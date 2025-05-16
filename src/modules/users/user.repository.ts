@@ -34,4 +34,16 @@ export class UserRepository {
       $or: [{ phone }, { email }],
     }).exec();
   }
+
+  async findById(id: string): Promise<UserDocument | null>{
+    return this.userModel.findById(id).select('-password').exec();
+  }
+
+  async findByPhone(phone: string): Promise<UserDocument | null> {
+    return this.userModel.findOne({ phone }).exec();
+  }
+
+//   async update(id: string, data: Partial<User>): Promise<User> {
+//     return this.userModel.findByIdAndUpdate(id, data, { new: true }).exec();
+//   }
 }
