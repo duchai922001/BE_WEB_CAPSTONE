@@ -1,7 +1,7 @@
 import { InjectModel } from '@nestjs/mongoose';
 import { Product, ProductDocument } from './product.entity';
 import { Model } from 'mongoose';
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { builderQuery } from 'src/common/helpers/query-builder.helper';
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 
@@ -32,5 +32,20 @@ export class ProductRepository {
   async count(query: BaseQueryDto) {
     const { filter } = builderQuery(query);
     return this.productModel.countDocuments(filter).exec();
+  }
+
+  async softDelete(id: string): Promise<Product> {
+    const product = await this.productModel.findByIdAndUpdate(
+      id,
+      { isDelete: true },
+      { new: true },
+    );
+    if (!product) {
+      throw new NotFoundException('Không tìm thấy sản phẩm để xoá');
+    }
+    if (product.isDelete) {
+      throw new BadRequestException('Sản phẩm đã bị xoá trước đó');
+    }
+    return product.save();
   }
 }

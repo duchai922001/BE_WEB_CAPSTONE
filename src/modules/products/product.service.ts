@@ -99,4 +99,8 @@ export class ProductService {
       total,
     };
   }
+
+  async softDelete(id: string): Promise<Product> {
+    return this.productRepository.softDelete(id);
+  }
 }
