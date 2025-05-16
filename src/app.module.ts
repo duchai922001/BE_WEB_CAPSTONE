@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ProductModule } from './modules/products/product.module';
+import { UserModule } from './modules/users/user.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -17,6 +18,7 @@ import { ProductModule } from './modules/products/product.module';
       }),
     }),
     ProductModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],

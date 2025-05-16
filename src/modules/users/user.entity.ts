@@ -11,16 +11,13 @@ export class User{
     password: string;
   
     @Prop({ required: true })
-    fullname: string;
+    fullName: string;
   
     @Prop({ required: true, unique: true })
     email: string;
   
     @Prop()
-    address: string;
-  
-    @Prop()
-    avartar: string;
+    avatar: string;
   
     @Prop({ default: 1 })
     status: number;
