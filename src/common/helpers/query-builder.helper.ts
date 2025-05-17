@@ -8,7 +8,13 @@ export function builderQuery(query: BaseQueryDto) {
   const filter: any = {};
   if (query.keyword) {
     const regex = { $regex: query.keyword, $options: 'i' };
-    filter.$or = [{ name: regex }, { description: regex }, { serials: regex }];
+    filter.$or = [
+      { name: regex },
+      { description: regex },
+      { serials: regex },
+      { fullName: regex },
+      { email: regex },
+    ];
   }
 
   const sortField = query.sortBy || 'createdAt';

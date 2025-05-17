@@ -1,9 +1,19 @@
-import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpStatus,
+  Param,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { CreateProductDto } from './dtos/create.dto';
 import { createResponse } from 'src/common/helpers/response.helper';
 import { ProductService } from './product.service';
 
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
+import { ResponseMessage } from 'src/common/enums/responseMessage';
 
 @Controller('products')
 export class ProductController {
@@ -11,9 +21,9 @@ export class ProductController {
   @Post('')
   async create(@Body() dto: CreateProductDto) {
     const data = await this.productService.create(dto);
-    return createResponse(HttpStatus.CREATED, data, 'Tạo dữ liệu thành công');
+    return createResponse(HttpStatus.CREATED, data, ResponseMessage.CREATE);
   }
-  
+
   @Get()
   async findAll(@Query() query: BaseQueryDto) {
     const data = await this.productService.getList(query);
@@ -24,5 +34,5 @@ export class ProductController {
   async delete(@Param('id') id: string) {
     const data = await this.productService.softDelete(id);
     return createResponse(HttpStatus.OK, data, 'Xoá sản phẩm thành công');
-}
+  }
 }

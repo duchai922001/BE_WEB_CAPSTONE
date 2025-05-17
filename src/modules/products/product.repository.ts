@@ -1,7 +1,11 @@
 import { InjectModel } from '@nestjs/mongoose';
 import { Product, ProductDocument } from './product.entity';
 import { Model } from 'mongoose';
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { builderQuery } from 'src/common/helpers/query-builder.helper';
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 
