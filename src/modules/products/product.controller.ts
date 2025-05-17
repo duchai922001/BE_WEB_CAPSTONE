@@ -1,4 +1,13 @@
-import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpStatus,
+  Param,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { CreateProductDto } from './dtos/create.dto';
 import { createResponse } from 'src/common/helpers/response.helper';
 import { ProductService } from './product.service';
@@ -13,7 +22,7 @@ export class ProductController {
     const data = await this.productService.create(dto);
     return createResponse(HttpStatus.CREATED, data, 'Tạo dữ liệu thành công');
   }
-  
+
   @Get()
   async findAll(@Query() query: BaseQueryDto) {
     const data = await this.productService.getList(query);
@@ -24,5 +33,5 @@ export class ProductController {
   async delete(@Param('id') id: string) {
     const data = await this.productService.softDelete(id);
     return createResponse(HttpStatus.OK, data, 'Xoá sản phẩm thành công');
-}
+  }
 }
