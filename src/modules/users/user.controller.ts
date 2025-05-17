@@ -15,12 +15,12 @@ import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
-  @Post('')
+  @Post('register')
   async create(@Body() dto: CreateUserDto) {
     const data = await this.userService.create(dto);
     return createResponse(HttpStatus.CREATED, data, 'Tạo user thành công');
   }
-  @Get()
+  @Get('')
   async getAll(@Query() query: BaseQueryDto) {
     const data = await this.userService.getAll(query);
     return createResponse(HttpStatus.OK, data, 'Lấy danh sách User thành công');

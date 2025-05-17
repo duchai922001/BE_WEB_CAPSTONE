@@ -13,6 +13,7 @@ import { createResponse } from 'src/common/helpers/response.helper';
 import { ProductService } from './product.service';
 
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
+import { ResponseMessage } from 'src/common/enums/responseMessage';
 
 @Controller('products')
 export class ProductController {
@@ -20,7 +21,7 @@ export class ProductController {
   @Post('')
   async create(@Body() dto: CreateProductDto) {
     const data = await this.productService.create(dto);
-    return createResponse(HttpStatus.CREATED, data, 'Tạo dữ liệu thành công');
+    return createResponse(HttpStatus.CREATED, data, ResponseMessage.CREATE);
   }
 
   @Get()

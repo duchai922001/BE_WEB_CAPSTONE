@@ -51,13 +51,12 @@ export class UserService {
     }
     return user;
   }
-
   async validateUser(phone: string, password: string): Promise<User> {
     const user = await this.userRepository.findByPhone(phone);
     if (!user) {
       throw new UnauthorizedException('Số điện thoại hoặc mật khẩu không đúng');
     }
-  
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       throw new UnauthorizedException('Số điện thoại hoặc mật khẩu không đúng');
