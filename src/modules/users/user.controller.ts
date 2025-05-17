@@ -1,4 +1,12 @@
-import { Body, Controller, Get, HttpStatus, Param, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpStatus,
+  Param,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dtos/create.dto';
 import { createResponse } from 'src/common/helpers/response.helper';
@@ -25,7 +33,7 @@ export class UserController {
   }
 
   @Post('auth')
-  async validateUser(@Body() body: { phone: string; password: string}){
+  async validateUser(@Body() body: { phone: string; password: string }) {
     const data = await this.userService.validateUser(body.phone, body.password);
     return createResponse(HttpStatus.OK, data, 'Đăng nhập thành công');
   }
