@@ -1,8 +1,19 @@
-import { Body, Controller, Get, HttpStatus, Param, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpStatus,
+  Param,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dtos/create.dto';
 import { createResponse } from 'src/common/helpers/response.helper';
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
+import { UpdateUserDto } from './dtos/update.dto';
 
 @Controller('users')
 export class UserController {
@@ -25,8 +36,23 @@ export class UserController {
   }
 
   @Post('auth')
-  async validateUser(@Body() body: { phone: string; password: string}){
+  async validateUser(@Body() body: { phone: string; password: string }) {
     const data = await this.userService.validateUser(body.phone, body.password);
     return createResponse(HttpStatus.OK, data, 'Đăng nhập thành công');
+  }
+
+  @Put(':id')
+  async updateUser(@Param('id') id: string, @Body() dto: UpdateUserDto) {
+    const updated = await this.userService.updateUser(id, dto);
+    return createResponse(
+      HttpStatus.OK,
+      updated,
+      'Cập nhật người dùng thành công',
+    );
+  }
+  @Delete(':id')
+  async remove(@Param('id') id: string) {
+    await this.userService.deleteUser(id);
+    return { message: 'Xóa người dùng thành công' };
   }
 }

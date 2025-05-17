@@ -6,9 +6,11 @@ import {
 } from '@nestjs/common';
 import { UserRepository } from './user.repository';
 import { CreateUserDto } from './dtos/create.dto';
-import { User } from './user.entity';
+import { User, UserDocument } from './user.entity';
 import * as bcrypt from 'bcrypt';
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
+import { UpdateUserDto } from './dtos/update.dto';
+import { isValidObjectId, Types } from 'mongoose';
 
 @Injectable()
 export class UserService {
@@ -45,6 +47,9 @@ export class UserService {
   }
 
   async getById(id: string): Promise<User> {
+    if (!isValidObjectId(id)) {
+        throw new BadRequestException('ID người dùng không hợp lệ');
+      }
     const user = await this.userRepository.findById(id);
     if (!user) {
       throw new NotFoundException('Không tìm thấy người dùng');
@@ -64,5 +69,43 @@ export class UserService {
     }
     const { password: _, ...userWithoutPassword } = user.toObject();
     return userWithoutPassword;
+  }
+
+  async updateUser(id: string, data: UpdateUserDto): Promise<User>{
+    if (!isValidObjectId(id)) {
+        throw new BadRequestException('ID người dùng không hợp lệ');
+      }
+    const user = await this.userRepository.findById(id);
+    if(!user){
+        throw new NotFoundException('Không tìm thấy');
+    }
+
+    if(data.email){
+        const existingByEmail = await this.userRepository.findByEmail(data.email);
+        if(existingByEmail && !(existingByEmail._id as Types.ObjectId).equals(user._id)){
+            throw new BadRequestException('Email đã được sử dụng bởi người dùng khác');
+        }
+    }
+    const updatedUser = await this.userRepository.update(id, data);
+    if (!updatedUser) {
+        throw new NotFoundException('Không thể cập nhật người dùng');
+      }
+    return updatedUser;
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    if (!isValidObjectId(id)) {
+      throw new BadRequestException('ID người dùng không hợp lệ');
+    }
+  
+    const user = await this.userRepository.findById(id);
+    if (!user) {
+      throw new NotFoundException('Không tìm thấy người dùng');
+    }
+  
+    const result = await this.userRepository.delete(id);
+    if (!result) {
+      throw new NotFoundException('Không thể xóa người dùng');
+    }
   }
 }
