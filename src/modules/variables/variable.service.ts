@@ -10,4 +10,12 @@ export class VariableService {
   async create(data: CreateVariableDto): Promise<Variable> {
     return await this.variableRepository.create(data);
   }
+
+  async getList(query: any): Promise<Variable[]> {
+    return await this.variableRepository.find(query);
+  }
+
+  async softDelete(id: string): Promise<Variable | null> {
+    return await this.variableRepository.SoftDelete(id);
+  }
 }

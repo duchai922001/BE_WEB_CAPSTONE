@@ -54,7 +54,7 @@ export class ProductRepository {
     );
 
     if (!product) {
-      throw new BadRequestException('Không tìm thấy sản phẩm hoặc sản phẩm đã bị xoá trước đó');
+      throw new BadRequestException('Không tìm thấy sản phẩm cần xóa');
     }
 
     return product;
