@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Param,
   Post,
+  Put,
   Query,
 } from '@nestjs/common';
 import { CreateProductDto } from './dtos/create.dto';
@@ -14,6 +15,7 @@ import { ProductService } from './product.service';
 
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { ResponseMessage } from 'src/common/enums/responseMessage';
+import { UpdateProductDto } from './dtos/update.dto';
 
 @Controller('products')
 export class ProductController {
@@ -34,5 +36,18 @@ export class ProductController {
   async delete(@Param('id') id: string) {
     const data = await this.productService.softDelete(id);
     return createResponse(HttpStatus.OK, data, 'Xoá sản phẩm thành công');
+  }
+
+  @Put(':id')
+  async update(
+    @Param('id') id: string,
+    @Body() updateProductDto: UpdateProductDto,
+  ) {
+    const updated = await this.productService.update(id, updateProductDto);
+    return createResponse(
+      HttpStatus.OK,
+      updated,
+      'Cập nhật sản phẩm thành công',
+    );
   }
 }

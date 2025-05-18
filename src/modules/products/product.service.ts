@@ -1,10 +1,11 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ProductRepository } from './product.repository';
 import { VariableRepository } from '../variables/variable.repository';
 import { CreateProductDto } from './dtos/create.dto';
 import { CreateVariableDto } from '../variables/dtos/create.dto';
 import { Product } from './product.entity';
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
+import { UpdateProductDto } from './dtos/update.dto';
 
 @Injectable()
 export class ProductService {
@@ -15,6 +16,7 @@ export class ProductService {
 
   async create(data: CreateProductDto): Promise<Product> {
     const {
+      barCode,
       name,
       description,
       costPrice,
@@ -76,6 +78,7 @@ export class ProductService {
       );
     }
     return await this.productRepository.create({
+      barCode,
       name,
       description,
       costPrice: finalCostPrice,
@@ -102,5 +105,10 @@ export class ProductService {
 
   async softDelete(id: string): Promise<Product> {
     return this.productRepository.softDelete(id);
+  }
+
+  async update(id: string, data: UpdateProductDto): Promise<Product> {
+    const product = await this.productRepository.update(id, data);
+    return product;
   }
 }

@@ -38,18 +38,39 @@ export class ProductRepository {
     return this.productModel.countDocuments(filter).exec();
   }
 
+  async findById(id: string): Promise<Product> {
+    const product = await this.productModel.findById(id);
+    if (!product) {
+      throw new NotFoundException('Không tìm thấy sản phẩm');
+    }
+    return product;
+  }
+
   async softDelete(id: string): Promise<Product> {
-    const product = await this.productModel.findByIdAndUpdate(
-      id,
+    const product = await this.productModel.findOneAndUpdate(
+      { _id: id, isDelete: false }, // chỉ update nếu chưa xóa
       { isDelete: true },
       { new: true },
     );
+
     if (!product) {
-      throw new NotFoundException('Không tìm thấy sản phẩm để xoá');
+      throw new BadRequestException('Không tìm thấy sản phẩm hoặc sản phẩm đã bị xoá trước đó');
     }
-    if (product.isDelete) {
-      throw new BadRequestException('Sản phẩm đã bị xoá trước đó');
+
+    return product;
+  }
+
+  async update(id: string, data: any): Promise<Product> {
+    const updateProduct = await this.productModel.findByIdAndUpdate(
+      id,
+      { ...data },
+      { new: true, runValidators: true },
+    );
+
+    if (!updateProduct) {
+      throw new NotFoundException('Không tìm thấy sản phẩm để cập nhật');
     }
-    return product.save();
+
+    return updateProduct;
   }
 }
