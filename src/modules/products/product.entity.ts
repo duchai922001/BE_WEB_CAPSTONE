@@ -4,6 +4,9 @@ export type ProductDocument = Product & Document;
 @Schema({ timestamps: true, versionKey: false })
 export class Product {
   @Prop({ required: true, unique: true })
+  barCode: string;
+
+  @Prop({ required: true, unique: true })
   name: string;
 
   @Prop({ default: 0 })

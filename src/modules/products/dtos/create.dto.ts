@@ -56,6 +56,10 @@ class VariableInputDto {
 
 export class CreateProductDto {
   @IsString()
+  @IsNotEmpty({ message: 'barCode is required' })
+  barCode: string;
+
+  @IsString()
   @IsNotEmpty({ message: 'name is required' })
   name: string;
 
