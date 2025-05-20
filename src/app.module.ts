@@ -5,6 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ProductModule } from './modules/products/product.module';
 import { BlogModule } from './modules/blogs/blog.module';
+import { FeedbackModule } from './modules/feedback/feedback.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -19,6 +20,7 @@ import { BlogModule } from './modules/blogs/blog.module';
     }),
     ProductModule,
     BlogModule,
+    FeedbackModule,
   ],
   controllers: [AppController],
   providers: [AppService],
