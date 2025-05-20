@@ -1,17 +1,17 @@
 import { Type } from 'class-transformer';
 import {
-  ArrayNotEmpty,
   IsArray,
   IsBoolean,
+  IsMongoId,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
-  ValidateIf,
   ValidateNested,
 } from 'class-validator';
+import { Types } from 'mongoose';
 
-class AttributeDto {
+export class AttributeDto {
   @IsString()
   @IsNotEmpty()
   key: string;
@@ -21,28 +21,36 @@ class AttributeDto {
   value: string;
 }
 
-class VariableInputDto {
+export class CreateVariableDto {
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => AttributeDto)
-  @IsNotEmpty()
-  attribute: { key: string; value: string }[];
+  attribute: AttributeDto[];
+
+  @IsBoolean()
+  @IsOptional()
+  isSerial?: boolean;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  serials?: string[];
 
   @IsNumber()
   @IsNotEmpty()
   costPrice: number;
 
   @IsNumber()
-  @IsOptional()
+  @IsNotEmpty()
   sellPrice: number;
 
   @IsNumber()
-  @IsNotEmpty()
-  stock: number;
+  @IsOptional()
+  stock?: number;
 
   @IsString()
-  @IsNotEmpty()
-  description: string;
+  @IsOptional()
+  description?: string;
 
   @IsString()
   @IsOptional()
@@ -52,63 +60,70 @@ class VariableInputDto {
   @IsString({ each: true })
   @IsOptional()
   listImage?: string[];
+
+  @IsBoolean()
+  @IsOptional()
+  isDelete?: boolean;
 }
 
 export class CreateProductDto {
   @IsString()
-  @IsNotEmpty({ message: 'barCode is required' })
-  barCode: string;
-
-  @IsString()
-  @IsNotEmpty({ message: 'name is required' })
+  @IsNotEmpty()
   name: string;
 
   @IsNumber()
   @IsOptional()
-  costPrice: number;
+  costPrice?: number;
 
   @IsNumber()
   @IsOptional()
-  sellPrice: number;
+  sellPrice?: number;
 
   @IsNumber()
   @IsOptional()
-  stock: number;
+  stock?: number;
 
   @IsString()
-  @IsNotEmpty({ message: 'description is required' })
+  @IsNotEmpty()
   description: string;
 
-  @IsString()
-  @IsNotEmpty({ message: 'brandId is required' })
-  brandId: string;
+  @IsMongoId()
+  @IsNotEmpty()
+  brandId: string | Types.ObjectId;
 
-  @IsString()
-  @IsNotEmpty({ message: 'categoryId is required' })
-  categoryId: string;
+  @IsMongoId()
+  @IsNotEmpty()
+  categoryId: string | Types.ObjectId;
 
   @IsString()
   @IsOptional()
-  mainImage: string;
+  mainImage?: string;
 
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
-  listImage: string[];
-
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => VariableInputDto)
-  @IsOptional()
-  variablesProduct?: VariableInputDto[];
+  listImage?: string[];
 
   @IsBoolean()
   @IsOptional()
-  isSerial: boolean;
+  isVariable?: boolean;
 
-  @ValidateIf((o) => o.isSerial === true)
-  @IsArray({ message: 'serials must be an array of strings' })
-  @IsString({ each: true, message: 'each serial must be a string' })
-  @ArrayNotEmpty({ message: 'serials cannot be empty if isSerial is true' })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateVariableDto)
+  @IsOptional()
+  variablesProduct?: CreateVariableDto[];
+
+  @IsBoolean()
+  @IsOptional()
+  isSerial?: boolean;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
   serials?: string[];
+
+  @IsString()
+  @IsOptional()
+  barcode?: string;
 }
