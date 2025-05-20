@@ -29,19 +29,24 @@ export class UserRepository {
     const { filter } = builderQuery(query);
     return this.userModel.countDocuments(filter).exec();
   }
-  async findByPhoneOrEmail(phone?: string, email?: string): Promise<UserDocument | null> {
+  async findByPhoneOrEmail(
+    phone?: string,
+    email?: string,
+  ): Promise<UserDocument | null> {
     const conditions: FilterQuery<UserDocument>[] = [];
     if (phone) conditions.push({ phone });
     if (email) conditions.push({ email });
-  
+
     if (conditions.length === 0) return null;
-  
-    return this.userModel.findOne({
-      $or: conditions,
-    }).exec();
+
+    return this.userModel
+      .findOne({
+        $or: conditions,
+      })
+      .exec();
   }
 
-  async findById(id: string): Promise<UserDocument | null>{
+  async findById(id: string): Promise<UserDocument | null> {
     return this.userModel.findById(id).select('-password').exec();
   }
 
@@ -49,12 +54,15 @@ export class UserRepository {
     return this.userModel.findOne({ phone }).exec();
   }
 
-  async findByEmail(email: string): Promise<UserDocument | null>{
-    return this.userModel.findOne({email}).exec();
+  async findByEmail(email: string): Promise<UserDocument | null> {
+    return this.userModel.findOne({ email }).exec();
   }
 
   async update(id: string, data: Partial<User>): Promise<UserDocument | null> {
-    return this.userModel.findByIdAndUpdate(id, data, { new: true }).select('-password').exec();
+    return this.userModel
+      .findByIdAndUpdate(id, data, { new: true })
+      .select('-password')
+      .exec();
   }
   async delete(id: string): Promise<boolean> {
     const result = await this.userModel.deleteOne({ _id: id });

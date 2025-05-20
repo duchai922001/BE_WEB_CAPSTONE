@@ -13,7 +13,7 @@ export class User{
     @Prop({ required: true })
     fullName: string;
   
-    @Prop({ required: true, unique: true })
+    @Prop({ required: true, unique: true, sparse: true })
     email: string;
   
     @Prop()
@@ -21,6 +21,9 @@ export class User{
   
     @Prop({ default: 1 })
     status: number;
+
+    @Prop({ type: Types.ObjectId, ref: 'Role', required: true })
+    roleId: Types.ObjectId;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
