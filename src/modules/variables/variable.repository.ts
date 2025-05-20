@@ -19,4 +19,8 @@ export class VariableRepository {
   async update(id: string, data: any): Promise<Variable | null> {
     return this.variableModel.findByIdAndUpdate(id, data, { new: true }).exec();
   }
+
+  async findById(id: string): Promise<Variable | null> {
+    return this.variableModel.findById(id).exec();
+  }
 }
