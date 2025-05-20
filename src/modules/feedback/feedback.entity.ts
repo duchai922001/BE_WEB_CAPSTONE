@@ -1,28 +1,22 @@
-import {
-  IsMongoId,
-  IsString,
-  IsOptional,
-  IsInt,
-  Min,
-  Max,
-} from 'class-validator';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document, Types } from 'mongoose';
 
-export class CreateFeedbackDto {
-  @IsMongoId()
-  userId: string;
+@Schema({ timestamps: true })
+export class Feedback extends Document {
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  userId: Types.ObjectId;
 
-  @IsMongoId()
-  productId: string;
+  @Prop({ type: Types.ObjectId, ref: 'Product', required: true })
+  productId: Types.ObjectId;
 
-  @IsMongoId()
-  repairRequestId: string;
+  @Prop({ type: Types.ObjectId, ref: 'RepairRequest', required: true })
+  repairRequestId: Types.ObjectId;
 
-  @IsInt()
-  @Min(1)
-  @Max(5)
+  @Prop({ required: true, min: 1, max: 5 })
   rating: number;
 
-  @IsString()
-  @IsOptional()
-  comment?: string;
+  @Prop()
+  comment: string;
 }
+
+export const FeedbackSchema = SchemaFactory.createForClass(Feedback);

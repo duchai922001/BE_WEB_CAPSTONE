@@ -1,7 +1,7 @@
 import { Type } from 'class-transformer';
 import {
-  ArrayMaxSize,
   IsArray,
+  IsBoolean,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -18,34 +18,48 @@ class AttributeDto {
   @IsNotEmpty({ message: 'value of attribute is required' })
   value: string;
 }
+
 export class CreateVariableDto {
   @IsArray()
-  @ArrayMaxSize(2)
   @ValidateNested({ each: true })
   @Type(() => AttributeDto)
   attribute: AttributeDto[];
 
+  @IsBoolean()
+  @IsOptional()
+  isSerial?: boolean;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  serials?: string[];
+
   @IsNumber()
+  @IsNotEmpty()
   costPrice: number;
 
   @IsNumber()
-  @IsOptional()
+  @IsNotEmpty()
   sellPrice: number;
 
   @IsNumber()
   @IsOptional()
-  stock: number;
-
-  @IsString()
-  @IsNotEmpty()
-  description: string;
+  stock?: number;
 
   @IsString()
   @IsOptional()
-  mainImage: string;
+  description?: string;
+
+  @IsString()
+  @IsOptional()
+  mainImage?: string;
 
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
   listImage?: string[];
+
+  @IsBoolean()
+  @IsOptional()
+  isDelete?: boolean;
 }

@@ -1,7 +1,11 @@
 import { InjectModel } from '@nestjs/mongoose';
 import { Product, ProductDocument } from './product.entity';
-import { Model } from 'mongoose';
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Model, Types } from 'mongoose';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { builderQuery } from 'src/common/helpers/query-builder.helper';
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 
@@ -11,6 +15,34 @@ export class ProductRepository {
     @InjectModel(Product.name)
     private readonly productModel: Model<ProductDocument>,
   ) {}
+
+  async updateQuantity(productId: string, newQuantity: number): Promise<void> {
+    await this.productModel.updateOne(
+      { _id: productId },
+      { $set: { stock: newQuantity } },
+    );
+  }
+
+  async removeSerialFromProduct(
+    productId: string,
+    serial: string,
+  ): Promise<void> {
+    await this.productModel.updateOne(
+      { _id: productId },
+      {
+        $pull: { serials: serial },
+        $inc: { stock: -1 },
+      },
+    );
+  }
+
+  async checkProductInListProducts(
+    listProductIds: string[],
+  ): Promise<ProductDocument[]> {
+    return await this.productModel
+      .find({ _id: { $in: listProductIds } })
+      .exec();
+  }
 
   async create(data: any): Promise<Product> {
     const newProduct = new this.productModel(data);
@@ -34,18 +66,41 @@ export class ProductRepository {
     return this.productModel.countDocuments(filter).exec();
   }
 
+  async findById(id: string): Promise<Product> {
+    const product = await this.productModel.findById(id);
+    if (!product) {
+      throw new NotFoundException('Không tìm thấy sản phẩm');
+    }
+    return product;
+  }
+
+  async productsSoftDelete(
+    productIds: string[] | Types.ObjectId[],
+  ): Promise<any> {
+    return this.productModel
+      .updateMany({ _id: { $in: productIds } }, { $set: { isDelete: true } })
+      .exec();
+  }
+
   async softDelete(id: string): Promise<Product> {
-    const product = await this.productModel.findByIdAndUpdate(
-      id,
+    const product = await this.productModel.findOneAndUpdate(
+      { _id: id, isDelete: false },
       { isDelete: true },
       { new: true },
     );
+
     if (!product) {
-      throw new NotFoundException('Không tìm thấy sản phẩm để xoá');
+      throw new BadRequestException(
+        'Không tìm thấy sản phẩm hoặc sản phẩm đã bị xoá trước đó',
+      );
     }
-    if (product.isDelete) {
-      throw new BadRequestException('Sản phẩm đã bị xoá trước đó');
-    }
-    return product.save();
+
+    return product;
+  }
+
+  async update(id: string, updateData: any): Promise<Product | null> {
+    return this.productModel
+      .findByIdAndUpdate(id, updateData, { new: true })
+      .exec();
   }
 }

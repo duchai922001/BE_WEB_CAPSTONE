@@ -4,7 +4,9 @@ import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ProductModule } from './modules/products/product.module';
+import { UserModule } from './modules/users/user.module';
 import { BlogModule } from './modules/blogs/blog.module';
+import { UploadModule } from './modules/upload/upload.module';
 import { FeedbackModule } from './modules/feedback/feedback.module';
 @Module({
   imports: [
@@ -19,7 +21,9 @@ import { FeedbackModule } from './modules/feedback/feedback.module';
       }),
     }),
     ProductModule,
+    UserModule,
     BlogModule,
+    UploadModule,
     FeedbackModule,
   ],
   controllers: [AppController],
