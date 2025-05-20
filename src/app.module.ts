@@ -7,6 +7,7 @@ import { ProductModule } from './modules/products/product.module';
 import { UserModule } from './modules/users/user.module';
 import { BlogModule } from './modules/blogs/blog.module';
 import { UploadModule } from './modules/upload/upload.module';
+import { FeedbackModule } from './modules/feedback/feedback.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -23,6 +24,7 @@ import { UploadModule } from './modules/upload/upload.module';
     UserModule,
     BlogModule,
     UploadModule,
+    FeedbackModule,
   ],
   controllers: [AppController],
   providers: [AppService],
