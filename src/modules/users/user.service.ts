@@ -16,8 +16,11 @@ import { isValidObjectId, Types } from 'mongoose';
 export class UserService {
   constructor(private readonly userRepository: UserRepository) {}
 
-  async create(data: CreateUserDto): Promise<User> {
-    const { phone, password, fullName, email, avatar, status } = data;
+  //Tìm hiểu xong
+  async create(data: CreateUserDto): Promise<UserDocument>/* Chỗ này cũng tương tự */ {
+    const password = data.password;
+    const phone = data.phone;
+    const email = data.email;
     const hashedPassword = await bcrypt.hash(password, 10);
     const existingUser = await this.userRepository.findByPhoneOrEmail(
       phone,
@@ -27,16 +30,13 @@ export class UserService {
       throw new BadRequestException('Account already exists');
     }
     const newUser = await this.userRepository.create({
-      phone,
+      ...data,
       password: hashedPassword,
-      fullName,
-      email,
-      avatar,
-      status,
     });
-    return newUser;
+    return newUser; // Đang trả ra một UserDocument
   }
 
+  // Done chưa xét page và keyword
   async getAll(query: BaseQueryDto) {
     const users = await this.userRepository.find(query);
     const total = await this.userRepository.count(query);
@@ -46,7 +46,7 @@ export class UserService {
     };
   }
 
-  async getById(id: string): Promise<User> {
+  async getById(id: string): Promise<UserDocument> {
     if (!isValidObjectId(id)) {
         throw new BadRequestException('ID người dùng không hợp lệ');
       }
@@ -56,7 +56,9 @@ export class UserService {
     }
     return user;
   }
-  async validateUser(phone: string, password: string): Promise<User> {
+
+  //Hàm này không thể trả ra một UserDocument tại vì ràng buộc 1: không có password, 2: cần có _id
+  async validateUser(phone: string, password: string): Promise<any> {
     const user = await this.userRepository.findByPhone(phone);
     if (!user) {
       throw new UnauthorizedException('Số điện thoại hoặc mật khẩu không đúng');
@@ -66,11 +68,11 @@ export class UserService {
     if (!isMatch) {
       throw new UnauthorizedException('Số điện thoại hoặc mật khẩu không đúng');
     }
-    const { password: _, ...userWithoutPassword } = user.toObject();
-    return userWithoutPassword;
+    
+    return user.toJSON();
   }
 
-  async updateUser(id: string, data: UpdateUserDto): Promise<User>{
+  async updateUser(id: string, data: UpdateUserDto): Promise<UserDocument>{
     if (!isValidObjectId(id)) {
         throw new BadRequestException('ID người dùng không hợp lệ');
       }
@@ -81,7 +83,7 @@ export class UserService {
 
     if(data.email){
         const existingByEmail = await this.userRepository.findByEmail(data.email);
-        if(existingByEmail && !(existingByEmail._id as Types.ObjectId).equals(user._id)){
+        if(existingByEmail && (existingByEmail._id != user._id)){
             throw new BadRequestException('Email đã được sử dụng bởi người dùng khác');
         }
     }

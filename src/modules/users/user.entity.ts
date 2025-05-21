@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
-export type UserDocument = User & Document & { _id: Types.ObjectId };
+export type UserDocument = User & Document;
 @Schema({timestamps: true, versionKey: false})
 export class User{
     @Prop({ required: true, unique: true })
@@ -13,17 +13,24 @@ export class User{
     @Prop({ required: true })
     fullName: string;
   
-    @Prop({ required: true, unique: true, sparse: true })
+    @Prop({ required: true, unique: true})
     email: string;
   
+    @Prop({ type: Types.ObjectId, ref: 'Role', required: true })
+    roleId: Types.ObjectId;
+
     @Prop()
     avatar: string;
   
     @Prop({ default: 1 })
     status: number;
 
-    @Prop({ type: Types.ObjectId, ref: 'Role', required: true })
-    roleId: Types.ObjectId;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
+UserSchema.set('toJSON', {
+  transform: function (doc, ret) {
+    delete ret.password;
+    return ret;
+  },
+});
