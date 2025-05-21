@@ -17,15 +17,11 @@ export class FeedbackRepository {
   }
 
   findAll() {
-    return this.feedbackModel
-      .find()
-      .populate('userId productId repairRequestId');
+    return this.feedbackModel.find().populate('userId productId');
   }
 
   findById(id: string) {
-    return this.feedbackModel
-      .findById(id)
-      .populate('userId productId repairRequestId');
+    return this.feedbackModel.findById(id).populate('userId productId');
   }
 
   update(id: string, dto: UpdateFeedbackDto) {
