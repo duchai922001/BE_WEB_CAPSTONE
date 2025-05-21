@@ -16,6 +16,7 @@ export class AuthService {
   async login(phone: string, password: string) {
     const user = await this.userService.validateUser(phone, password);
 
+    console.log('role trong payload o auth service', user.roleId.name);
     const payload = {
       sub: user._id,
       phone: user.phone,
@@ -55,7 +56,7 @@ export class AuthService {
       }
 
       const newAccessToken = this.jwtService.sign(
-        { sub: payload.sub, phone: payload.phone, roleId: payload.roleId },
+        { sub: payload.sub, phone: payload.phone, role: payload.role },
         { expiresIn: '15m' },
       );
 

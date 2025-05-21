@@ -68,8 +68,8 @@ export class UserService {
     if (!isMatch) {
       throw new UnauthorizedException('Số điện thoại hoặc mật khẩu không đúng');
     }
-    await user.populate('roleId')
-    return user.toJSON();
+    const populatedUser = await user.populate<{ roleId: { name: string } }>('roleId');
+    return populatedUser.toJSON();
   }
 
   async updateUser(id: string, data: UpdateUserDto): Promise<UserDocument>{

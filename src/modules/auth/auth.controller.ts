@@ -1,7 +1,6 @@
 import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dtos/login.dto';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -24,7 +23,6 @@ export class AuthController {
     const result = await this.authService.isAccessTokenValid(token);
     return result;
   }
-  @UseGuards(JwtAuthGuard) // dùng access token để xác thực
   @Post('logout')
   async logout(@Req() req: Request, @Body() body: { refreshToken: string }) {
     const user = (req as any).user;

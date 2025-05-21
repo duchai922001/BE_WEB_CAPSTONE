@@ -60,10 +60,9 @@ export class UserController {
     await this.userService.deleteUser(id);
     return { message: 'Xóa người dùng thành công' };
   }
-  @UseGuards(JwtAuthGuard) // xác thực trước
-  @UseGuards(RolesGuard) // sau đó kiểm tra quyền
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  @Get('admin-only')
+  @Post('admin-only')
   getForAdmin() {
     return 'Chỉ Admin mới truy cập được';
   }

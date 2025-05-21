@@ -4,15 +4,26 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) {
+export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(private configService: ConfigService) {
     super({
-        secretOrKey: configService.get<string>('JWT_ACCESS_SECRET') as string,
-        jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),      
+        secretOrKey: process.env.JWT_ACCESS_SECRET as string,
+        jwtFromRequest: ExtractJwt.fromExtractors([
+            (req) => {
+                const token = ExtractJwt.fromAuthHeaderAsBearerToken()(req);
+                console.log('Bearer Token in request:', token);
+                return token;
+              },
+        ])      
     });
   }
 
   async validate(payload: any) {
-    return payload;
+    console.log('validate() được gọi với payload:', payload);
+    return {
+        userId: payload.sub,
+        phone: payload.phone,
+        role: payload.role,
+      };
   }
 }
