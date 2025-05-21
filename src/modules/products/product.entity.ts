@@ -4,9 +4,6 @@ export type ProductDocument = Product & Document;
 @Schema({ timestamps: true, versionKey: false })
 export class Product {
   @Prop({ required: true, unique: true })
-  barCode: string;
-
-  @Prop({ required: true, unique: true })
   name: string;
 
   @Prop({ default: 0 })
@@ -30,6 +27,9 @@ export class Product {
   @Prop({ type: [Types.ObjectId], ref: 'Variable', default: [] })
   variables: Types.ObjectId[];
 
+  @Prop({ default: false })
+  isVariable: boolean;
+
   @Prop({ required: false })
   mainImage: string;
 
@@ -44,6 +44,9 @@ export class Product {
 
   @Prop({ default: false })
   isDelete: boolean;
+
+  @Prop({ required: false, unique: true, sparse: true })
+  barcode: string;
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Product);

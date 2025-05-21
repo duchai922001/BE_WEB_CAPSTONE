@@ -1,6 +1,6 @@
 import { InjectModel } from '@nestjs/mongoose';
 import { Product, ProductDocument } from './product.entity';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import {
   BadRequestException,
   Injectable,
@@ -15,6 +15,34 @@ export class ProductRepository {
     @InjectModel(Product.name)
     private readonly productModel: Model<ProductDocument>,
   ) {}
+
+  async updateQuantity(productId: string, newQuantity: number): Promise<void> {
+    await this.productModel.updateOne(
+      { _id: productId },
+      { $set: { stock: newQuantity } },
+    );
+  }
+
+  async removeSerialFromProduct(
+    productId: string,
+    serial: string,
+  ): Promise<void> {
+    await this.productModel.updateOne(
+      { _id: productId },
+      {
+        $pull: { serials: serial },
+        $inc: { stock: -1 },
+      },
+    );
+  }
+
+  async checkProductInListProducts(
+    listProductIds: string[],
+  ): Promise<ProductDocument[]> {
+    return await this.productModel
+      .find({ _id: { $in: listProductIds } })
+      .exec();
+  }
 
   async create(data: any): Promise<Product> {
     const newProduct = new this.productModel(data);
@@ -46,31 +74,33 @@ export class ProductRepository {
     return product;
   }
 
+  async productsSoftDelete(
+    productIds: string[] | Types.ObjectId[],
+  ): Promise<any> {
+    return this.productModel
+      .updateMany({ _id: { $in: productIds } }, { $set: { isDelete: true } })
+      .exec();
+  }
+
   async softDelete(id: string): Promise<Product> {
     const product = await this.productModel.findOneAndUpdate(
-      { _id: id, isDelete: false }, // chỉ update nếu chưa xóa
+      { _id: id, isDelete: false },
       { isDelete: true },
       { new: true },
     );
 
     if (!product) {
-      throw new BadRequestException('Không tìm thấy sản phẩm cần xóa');
+      throw new BadRequestException(
+        'Không tìm thấy sản phẩm hoặc sản phẩm đã bị xoá trước đó',
+      );
     }
 
     return product;
   }
 
-  async update(id: string, data: any): Promise<Product> {
-    const updateProduct = await this.productModel.findByIdAndUpdate(
-      id,
-      { ...data },
-      { new: true, runValidators: true },
-    );
-
-    if (!updateProduct) {
-      throw new NotFoundException('Không tìm thấy sản phẩm để cập nhật');
-    }
-
-    return updateProduct;
+  async update(id: string, updateData: any): Promise<Product | null> {
+    return this.productModel
+      .findByIdAndUpdate(id, updateData, { new: true })
+      .exec();
   }
 }

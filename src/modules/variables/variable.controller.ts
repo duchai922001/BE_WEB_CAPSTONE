@@ -1,8 +1,8 @@
-import { Body, Controller, Delete, Get, HttpStatus, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Param, Post } from '@nestjs/common';
 import { CreateVariableDto } from './dtos/create.dto';
 import { VariableService } from './variable.service';
 import { createResponse } from 'src/common/helpers/response.helper';
-import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
+import { ResponseMessage } from 'src/common/enums/responseMessage';
 
 @Controller('variables')
 export class VariableController {
@@ -10,18 +10,12 @@ export class VariableController {
   @Post('')
   async create(@Body() dto: CreateVariableDto) {
     const data = await this.variableService.create(dto);
-    return createResponse(HttpStatus.CREATED, data, 'Tạo dữ liệu thành công');
+    return createResponse(HttpStatus.CREATED, data, ResponseMessage.CREATE);
   }
 
-  @Get()
-  async getList(@Query() query: BaseQueryDto) {
-    const data = await this.variableService.getList(query);
-    return createResponse(HttpStatus.OK, data, 'Lấy danh sách thành công');
-  }
-  
-  @Delete(':id')
-  async softDelete(@Query('id') id: string) {
-    const data = await this.variableService.softDelete(id);
-    return createResponse(HttpStatus.OK, data, 'Xóa thành công');
+  @Get(':id')
+  async findById(@Param('id') id: string) {
+    const data = await this.variableService.findById(id);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
 }

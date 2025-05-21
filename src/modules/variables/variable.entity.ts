@@ -27,7 +27,7 @@ export class Variable extends Document {
   @Prop({ default: 0 })
   stock: number;
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   description: string;
 
   @Prop({ required: false })
@@ -35,6 +35,12 @@ export class Variable extends Document {
 
   @Prop({ type: [String], default: [] })
   listImage: string[];
+
+  @Prop({ default: false })
+  isSerial: boolean;
+
+  @Prop({ type: [String], default: [] })
+  serials: string[];
 
   @Prop({ default: false })
   isDelete: boolean;

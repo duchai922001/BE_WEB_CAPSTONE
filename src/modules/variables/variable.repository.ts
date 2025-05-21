@@ -22,29 +22,7 @@ export class VariableRepository {
     return this.variableModel.findByIdAndUpdate(id, data, { new: true }).exec();
   }
 
-  async find(query: BaseQueryDto): Promise<VariableDocument[]> {
-    const { filter, pagination, sort } = builderQuery(query);
-
-    const queryBuilder = this.variableModel
-      .find(filter)
-      .skip(pagination.skip)
-      .limit(pagination.limit)
-      .sort(sort as any);
-
-    return queryBuilder.exec();
-  }
-
-  async SoftDelete(id: string): Promise<Variable> {
-    const variable = await this.variableModel.findOneAndUpdate(
-      { _id: id, isDelete: false },
-      { isDelete: true },
-      { new: true },
-    );
-
-    if (!variable) {
-      throw new BadRequestException('Không tìm thấy biến thể cần xóa');
-    }
-
-    return variable;
+  async findById(id: string): Promise<Variable | null> {
+    return this.variableModel.findById(id).exec();
   }
 }
