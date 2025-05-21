@@ -1,8 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Variable, VariableDocument } from './variable.entity';
 import { Model } from 'mongoose';
 import { CreateVariableDto } from './dtos/create.dto';
+import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
+import { builderQuery } from 'src/common/helpers/query-builder.helper';
 
 @Injectable()
 export class VariableRepository {
@@ -18,5 +20,9 @@ export class VariableRepository {
 
   async update(id: string, data: any): Promise<Variable | null> {
     return this.variableModel.findByIdAndUpdate(id, data, { new: true }).exec();
+  }
+
+  async findById(id: string): Promise<Variable | null> {
+    return this.variableModel.findById(id).exec();
   }
 }
