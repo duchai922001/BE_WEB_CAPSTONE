@@ -8,12 +8,17 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dtos/create.dto';
 import { createResponse } from 'src/common/helpers/response.helper';
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { UpdateUserDto } from './dtos/update.dto';
+import { UserRole } from 'src/common/enums/role';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../roles/guards/role.guard';
+import { Roles } from '../roles/role.decorator';
 
 @Controller('users')
 export class UserController {
@@ -54,5 +59,12 @@ export class UserController {
   async remove(@Param('id') id: string) {
     await this.userService.deleteUser(id);
     return { message: 'Xóa người dùng thành công' };
+  }
+  @UseGuards(JwtAuthGuard) // xác thực trước
+  @UseGuards(RolesGuard) // sau đó kiểm tra quyền
+  @Roles(UserRole.ADMIN)
+  @Get('admin-only')
+  getForAdmin() {
+    return 'Chỉ Admin mới truy cập được';
   }
 }

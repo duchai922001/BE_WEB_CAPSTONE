@@ -7,12 +7,12 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(private configService: ConfigService) {
     super({
-        secretOrKey: configService.get<string>('JWT_SECRET') as string,
+        secretOrKey: configService.get<string>('JWT_ACCESS_SECRET') as string,
         jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),      
     });
   }
 
   async validate(payload: any) {
-    return payload; // payload chứa sub, phone, roleId
+    return payload;
   }
 }

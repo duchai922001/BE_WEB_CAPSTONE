@@ -68,7 +68,7 @@ export class UserService {
     if (!isMatch) {
       throw new UnauthorizedException('Số điện thoại hoặc mật khẩu không đúng');
     }
-    
+    await user.populate('roleId')
     return user.toJSON();
   }
 
