@@ -6,4 +6,5 @@ export enum ResponseMessage {
   DELETE_LIST = 'Xóa danh sách dữ liệu thành công',
   CREATE_LIST = 'Tạo danh sách dữ liệu thành công',
   UPDATE_LIST = 'Cập nhật danh sách dữ liệu thành công',
+  FILE_NOT_FOUND = 'Không tìm thấy bản ghi',
 }
