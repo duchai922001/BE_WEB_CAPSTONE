@@ -28,4 +28,8 @@ export class BaseQueryDto {
   @IsOptional()
   @IsString()
   populate?: string;
+
+  @IsOptional()
+  @IsString()
+  timeType?: string;
 }
