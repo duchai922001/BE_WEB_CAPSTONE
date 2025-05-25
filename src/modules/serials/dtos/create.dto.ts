@@ -1,12 +1,4 @@
-import {
-  IsMongoId,
-  IsString,
-  IsOptional,
-  IsInt,
-  Min,
-  Max,
-  IsNotEmpty,
-} from 'class-validator';
+import { IsMongoId, IsString, IsOptional, IsNotEmpty } from 'class-validator';
 
 export class CreateSerialDto {
   @IsMongoId()
