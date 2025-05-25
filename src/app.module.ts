@@ -6,6 +6,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ProductModule } from './modules/products/product.module';
 import { UserModule } from './modules/users/user.module';
 import { BlogModule } from './modules/blogs/blog.module';
+import { AuthModule } from './modules/auth/auth.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { FeedbackModule } from './modules/feedback/feedback.module';
 import { PromotionModule } from './modules/promotion/promotion.module';
@@ -26,6 +27,7 @@ import { CategoryModule } from './modules/categories/category.module';
     ProductModule,
     UserModule,
     BlogModule,
+    AuthModule,
     UploadModule,
     FeedbackModule,
     PromotionModule,

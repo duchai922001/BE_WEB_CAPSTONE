@@ -18,6 +18,10 @@ export class CreateUserDto {
   email: string;
 
   @IsString()
+  @IsNotEmpty({ message: 'RoleId is required' })
+  roleId: string;
+
+  @IsString()
   @IsOptional()
   avatar: string;
 
