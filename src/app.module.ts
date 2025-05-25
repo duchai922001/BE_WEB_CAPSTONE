@@ -10,6 +10,7 @@ import { UploadModule } from './modules/upload/upload.module';
 import { FeedbackModule } from './modules/feedback/feedback.module';
 import { PromotionModule } from './modules/promotion/promotion.module';
 import { BrandModule } from './modules/brands/brand.module';
+import { CategoryModule } from './modules/categories/category.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -29,6 +30,7 @@ import { BrandModule } from './modules/brands/brand.module';
     FeedbackModule,
     PromotionModule,
     BrandModule,
+    CategoryModule,
   ],
   controllers: [AppController],
   providers: [AppService],
