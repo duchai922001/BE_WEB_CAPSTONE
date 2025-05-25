@@ -8,6 +8,7 @@ import { UserModule } from './modules/users/user.module';
 import { BlogModule } from './modules/blogs/blog.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { FeedbackModule } from './modules/feedback/feedback.module';
+import { BrandModule } from './modules/brands/brand.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -25,6 +26,7 @@ import { FeedbackModule } from './modules/feedback/feedback.module';
     BlogModule,
     UploadModule,
     FeedbackModule,
+    BrandModule,
   ],
   controllers: [AppController],
   providers: [AppService],
