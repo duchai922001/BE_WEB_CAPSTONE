@@ -2,19 +2,68 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { VariableRepository } from './variable.repository';
 import { CreateVariableDto } from './dtos/create.dto';
 import { Variable } from './variable.entity';
+import { ResponseMessage } from 'src/common/enums/responseMessage';
+import { SerialService } from '../serials/serial.service';
+import { AttributeService } from '../attributes/attribute.service';
 
 @Injectable()
 export class VariableService {
-  constructor(private readonly variableRepository: VariableRepository) {}
+  constructor(
+    private readonly variableRepository: VariableRepository,
+    private readonly serialService: SerialService,
+    private readonly attributeService: AttributeService,
+  ) {}
 
   async create(data: CreateVariableDto): Promise<Variable> {
-    return await this.variableRepository.create(data);
+    const {
+      productId,
+      attributes,
+      costPrice,
+      sellPrice,
+      description,
+      image,
+      serials,
+      stock,
+    } = data;
+    const variable = await this.variableRepository.create({
+      productId,
+      description,
+      image,
+      costPrice,
+      sellPrice,
+      stock,
+    });
+    if (serials && serials.length > 0) {
+      await Promise.all(
+        serials.map((serial) =>
+          this.serialService.create({
+            serialCode: serial,
+            productId: productId,
+            variableId: (variable._id as any).toString(),
+          }),
+        ),
+      );
+    }
+
+    if (attributes && attributes.length > 0) {
+      await Promise.all(
+        attributes.map((attribute) =>
+          this.attributeService.create({
+            variableId: (variable._id as any).toString(),
+            key: attribute.key,
+            value: attribute.value,
+          }),
+        ),
+      );
+    }
+
+    return variable;
   }
 
   async findById(id: string): Promise<Variable> {
     const variable = await this.variableRepository.findById(id);
     if (!variable) {
-      throw new NotFoundException(`Biến thể không tồn tại với ID ${id}`);
+      throw new NotFoundException(ResponseMessage.FILE_NOT_FOUND);
     }
     return variable;
   }

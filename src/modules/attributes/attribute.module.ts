@@ -13,5 +13,6 @@ import { AttributeRepository } from './attribute.repository';
   ],
   controllers: [AttributeController],
   providers: [AttributeService, AttributeRepository],
+  exports: [AttributeService],
 })
-export class SerialModule {}
+export class AttributeModule {}

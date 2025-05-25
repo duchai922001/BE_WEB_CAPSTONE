@@ -2,6 +2,7 @@ import { Type } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
+  IsMongoId,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -20,14 +21,14 @@ class AttributeDto {
 }
 
 export class CreateVariableDto {
+  @IsString()
+  @IsNotEmpty()
+  productId: string;
+
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => AttributeDto)
-  attribute: AttributeDto[];
-
-  @IsBoolean()
-  @IsOptional()
-  isSerial?: boolean;
+  attributes: AttributeDto[];
 
   @IsArray()
   @IsString({ each: true })
@@ -51,15 +52,5 @@ export class CreateVariableDto {
   description?: string;
 
   @IsString()
-  @IsOptional()
-  mainImage?: string;
-
-  @IsArray()
-  @IsString({ each: true })
-  @IsOptional()
-  listImage?: string[];
-
-  @IsBoolean()
-  @IsOptional()
-  isDelete?: boolean;
+  image: string;
 }
