@@ -9,7 +9,7 @@ export class Serial extends Document {
   @Prop({ type: Types.ObjectId, ref: 'Variable' })
   variableId: Types.ObjectId;
 
-  @Prop({ required: true })
+  @Prop({ required: true, unique: true })
   serialCode: string;
 
   @Prop()

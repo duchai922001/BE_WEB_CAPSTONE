@@ -11,5 +11,6 @@ import { SerialRepository } from './serial.repository';
   ],
   controllers: [SerialController],
   providers: [SerialService, SerialRepository],
+  exports: [SerialService],
 })
 export class SerialModule {}

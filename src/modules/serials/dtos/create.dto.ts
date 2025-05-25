@@ -1,14 +1,14 @@
-import { IsMongoId, IsString, IsOptional, IsNotEmpty } from 'class-validator';
+import { IsString, IsOptional, IsNotEmpty } from 'class-validator';
 
 export class CreateSerialDto {
-  @IsMongoId()
+  @IsString()
   @IsNotEmpty()
   productId: string;
 
-  @IsMongoId()
+  @IsString()
   @IsNotEmpty()
   @IsOptional()
-  variableId: string;
+  variableId?: string;
 
   @IsString()
   @IsNotEmpty()
@@ -17,5 +17,5 @@ export class CreateSerialDto {
   @IsString()
   @IsNotEmpty()
   @IsOptional()
-  description: string;
+  description?: string;
 }

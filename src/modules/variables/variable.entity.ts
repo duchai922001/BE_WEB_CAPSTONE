@@ -1,22 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
-export type VariableDocument = Variable & Document;
+import { Document, Types } from 'mongoose';
+export type VariableDocument = Variable & Document & { _id: Types.ObjectId };
 @Schema({ timestamps: true, versionKey: false })
 export class Variable extends Document {
-  @Prop({
-    type: [
-      {
-        key: { type: String, required: true },
-        value: { type: String, required: true },
-      },
-    ],
-    required: true,
-    validate: [
-      (val: any[]) => val.length <= 2,
-      '{PATH} exceeds the limit of 2',
-    ],
-  })
-  attribute: { key: string; value: string }[];
+  @Prop({ type: Types.ObjectId, ref: 'Product', required: true })
+  productId: Types.ObjectId;
 
   @Prop({ required: true })
   costPrice: number;
@@ -30,20 +18,11 @@ export class Variable extends Document {
   @Prop({ required: false })
   description: string;
 
-  @Prop({ required: false })
-  mainImage: string;
+  @Prop({ required: true })
+  image: string;
 
-  @Prop({ type: [String], default: [] })
-  listImage: string[];
-
-  @Prop({ default: false })
-  isSerial: boolean;
-
-  @Prop({ type: [String], default: [] })
-  serials: string[];
-
-  @Prop({ default: false })
-  isDelete: boolean;
+  @Prop({ required: false, default: false })
+  status: boolean;
 }
 
 export const VariableSchema = SchemaFactory.createForClass(Variable);

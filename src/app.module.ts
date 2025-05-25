@@ -3,7 +3,6 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-import { ProductModule } from './modules/products/product.module';
 import { UserModule } from './modules/users/user.module';
 import { BlogModule } from './modules/blogs/blog.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -12,6 +11,7 @@ import { FeedbackModule } from './modules/feedback/feedback.module';
 import { PromotionModule } from './modules/promotion/promotion.module';
 import { BrandModule } from './modules/brands/brand.module';
 import { CategoryModule } from './modules/categories/category.module';
+import { VariableModule } from './modules/variables/variable.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -24,7 +24,6 @@ import { CategoryModule } from './modules/categories/category.module';
         uri: configService.get<string>('MONGODB_URI'),
       }),
     }),
-    ProductModule,
     UserModule,
     BlogModule,
     AuthModule,
@@ -33,6 +32,7 @@ import { CategoryModule } from './modules/categories/category.module';
     PromotionModule,
     BrandModule,
     CategoryModule,
+    VariableModule,
   ],
   controllers: [AppController],
   providers: [AppService],
