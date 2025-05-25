@@ -15,4 +15,8 @@ export class UpdateUserDto {
 
   @IsOptional()
   status?: number;
+
+  @IsOptional()
+  @IsString()
+  roleId: string;
 }
