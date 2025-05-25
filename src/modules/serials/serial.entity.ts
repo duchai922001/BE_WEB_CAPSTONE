@@ -10,7 +10,7 @@ export class Serial extends Document {
   variableId: Types.ObjectId;
 
   @Prop({ required: true })
-  serialCode: boolean;
+  serialCode: string;
 
   @Prop()
   description: string;
