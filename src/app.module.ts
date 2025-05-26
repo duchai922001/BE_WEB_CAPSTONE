@@ -12,6 +12,8 @@ import { PromotionModule } from './modules/promotion/promotion.module';
 import { BrandModule } from './modules/brands/brand.module';
 import { CategoryModule } from './modules/categories/category.module';
 import { VariableModule } from './modules/variables/variable.module';
+import { HashTagModule } from './modules/hashtags/hashtag.module';
+import { StaffActionLogModule } from './modules/staffActionLog/staffActionLog.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -33,6 +35,8 @@ import { VariableModule } from './modules/variables/variable.module';
     BrandModule,
     CategoryModule,
     VariableModule,
+    HashTagModule,
+    StaffActionLogModule,
   ],
   controllers: [AppController],
   providers: [AppService],
