@@ -85,7 +85,6 @@ export class ProductService {
             `${ResponseMessage.REQUIRED_FIELD} serials`,
           );
         }
-        console.log({ dto });
 
         const product = await this.productRepository.create({
           barcode: dto.barcode,
@@ -115,6 +114,29 @@ export class ProductService {
         break;
       }
       case ProductType.NORMAL_VARIABLES: {
+        if (variables.length < 0) {
+          throw new BadRequestException(
+            `${ResponseMessage.REQUIRED_FIELD} variables`,
+          );
+        }
+        const totalStock = variables.reduce(
+          (sum, v) => sum + (v.stock ?? 0),
+          0,
+        );
+        const product = await this.productRepository.create({
+          barcode,
+          brandId,
+          categoryId,
+          costPrice: 0,
+          name,
+          sellPrice: 0,
+          stock: totalStock,
+          typeProduct,
+          description,
+        });
+        // await Promise.all(variables.map((item) => (
+
+        // )))
         break;
       }
       case ProductType.NORMAL_VARIABLES_SERIALS: {
