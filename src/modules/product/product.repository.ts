@@ -19,4 +19,25 @@ export class ProductRepository {
   async findProductByName(name: string): Promise<Product | null> {
     return this.productModel.findOne({ name }).exec();
   }
+
+  async findById(id: string): Promise<ProductDocument | null> {
+    return this.productModel.findById(id).exec();
+  }
+
+  async updateById(
+    id: string,
+    data: Partial<ICreate>,
+  ): Promise<ProductDocument | null> {
+    return this.productModel.findByIdAndUpdate(id, data, {
+      new: true,
+    });
+  }
+
+  async deleteById(id: string): Promise<void> {
+    await this.productModel.findByIdAndDelete(id).exec();
+  }
+
+  async findAll(): Promise<ProductDocument[]> {
+    return this.productModel.find().exec();
+  }
 }
