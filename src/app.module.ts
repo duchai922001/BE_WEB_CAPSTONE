@@ -16,6 +16,7 @@ import { ProductModule } from './modules/product/product.module';
 import { ProductImageModule } from './modules/productImage/productImage.module';
 import { HashTagModule } from './modules/hashtags/hashtag.module';
 import { StaffActionLogModule } from './modules/staffActionLog/staffActionLog.module';
+import { PermissionModule } from './modules/permissions/permission.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -41,6 +42,7 @@ import { StaffActionLogModule } from './modules/staffActionLog/staffActionLog.mo
     ProductImageModule,
     HashTagModule,
     StaffActionLogModule,
+    PermissionModule,
   ],
   controllers: [AppController],
   providers: [AppService],

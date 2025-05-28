@@ -1,5 +1,6 @@
-import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { UserPermission } from "src/common/enums/permission";
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Types } from 'mongoose';
+import { UserPermission } from 'src/common/enums/permission';
 
 export type PermissionDocument = Permission & Document;
 

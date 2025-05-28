@@ -22,13 +22,9 @@ export class RolesGuard implements CanActivate {
     }
     
     const request = context.switchToHttp().getRequest();
-    console.log('Authorization header:', request.headers['authorization']);
     const user = request.user;
 
-    console.log('Request User:', request.user);
     if (!user || !user.role || !requiredRoles.includes(user.role)) {
-    //   console.log('request:', request);
-      console.log('User in request:', user);
       throw new ForbiddenException('Bạn không có quyền truy cập');
     }
     return true;

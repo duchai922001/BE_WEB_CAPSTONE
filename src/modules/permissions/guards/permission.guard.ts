@@ -5,31 +5,37 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { PERMISSION_KEYS } from '../permission.decorator';
 import { UserPermission } from 'src/common/enums/permission';
+import { PERMISSION_KEYS } from '../permission.decorator';
+
 
 @Injectable()
-export class PermissonsGuard implements CanActivate {
+export class PermissionsGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const requiredPermissons = this.reflector.getAllAndOverride<UserPermission[]>(
+    const requiredPermissions = this.reflector.getAllAndOverride<UserPermission[]>(
       PERMISSION_KEYS,
       [context.getHandler(), context.getClass()],
     );
-    if (!requiredPermissons || requiredPermissons.length === 0) {
-      return true; 
+
+    if (!requiredPermissions || requiredPermissions.length === 0) {
+      return true; // Không yêu cầu permission nào thì pass luôn
     }
-    
+
     const request = context.switchToHttp().getRequest();
-    console.log('Authorization header:', request.headers['authorization']);
     const user = request.user;
 
-    console.log('Request User:', request.user);
-    if (!user || !user.permission || !requiredPermissons.includes(user.permission)) {
-      console.log('User in request:', user);
+    const userPermissions: UserPermission[] = user?.permission ?? [];
+
+    const hasPermission = requiredPermissions.some((perm) =>
+      userPermissions.includes(perm),
+    );
+
+    if (!hasPermission) {
       throw new ForbiddenException('Bạn không có quyền truy cập');
     }
+
     return true;
   }
 }
