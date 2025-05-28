@@ -17,7 +17,7 @@ export class StaffActionLogRepository {
   create(data: CreateActionLogDto): Promise<StaffActionLog> {
     return this.staffActionModel.create(data);
   }
-
+  //get all
   async findAll() {
     return this.staffActionModel
       .find()
