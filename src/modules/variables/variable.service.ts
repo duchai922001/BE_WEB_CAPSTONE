@@ -67,4 +67,34 @@ export class VariableService {
     }
     return variable;
   }
+
+  async findByProductId(productId: string): Promise<Variable[]> {
+    return this.variableRepository.findByProductId(productId);
+  }
+
+  async updateById(id: string, dto: Partial<CreateVariableDto>) {
+    const variable = await this.variableRepository.updateById(id, dto);
+    if (!variable) {
+      throw new NotFoundException(ResponseMessage.FILE_NOT_FOUND);
+    }
+    return variable;
+  }
+
+  async deleteById(id: string) {
+    await this.serialService.deleteByProductId(id);
+    await this.attributeService.deleteByVariableId(id);
+    await this.variableRepository.deleteById(id);
+  }
+
+  async deleteByProductId(productId: string) {
+    const variables = await this.findByProductId(productId);
+    const variableIds = variables.map((v) => (v as any)._id.toString());
+
+    await Promise.all([
+      this.serialService.deleteManyByIds(variableIds),
+      this.attributeService.deleteManyByVariableIds(variableIds),
+    ]);
+
+    await this.variableRepository.deleteByProductId(productId);
+  }
 }

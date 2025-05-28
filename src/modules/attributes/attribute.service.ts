@@ -20,4 +20,20 @@ export class AttributeService {
     if (!serial) throw new NotFoundException(ResponseMessage.FILE_NOT_FOUND);
     return serial;
   }
+
+  async findByVariableId(variableId: string) {
+    return this.attributeRepository.findByVariableId(variableId);
+  }
+
+  async deleteById(id: string) {
+    await this.attributeRepository.deleteById(id);
+  }
+
+  async deleteByVariableId(variableId: string) {
+    await this.attributeRepository.deleteByVariableId(variableId);
+  }
+
+  async deleteManyByVariableIds(variableIds: string[]) {
+    await this.attributeRepository.deleteManyByVariableIds(variableIds);
+  }
 }
