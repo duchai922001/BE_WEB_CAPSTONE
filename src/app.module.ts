@@ -16,6 +16,7 @@ import { ProductModule } from './modules/product/product.module';
 import { ProductImageModule } from './modules/productImage/productImage.module';
 import { HashTagModule } from './modules/hashtags/hashtag.module';
 import { StaffActionLogModule } from './modules/staffActionLog/staffActionLog.module';
+import { PromotionImageModule } from './modules/promotionImage/promotionImage.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -34,6 +35,7 @@ import { StaffActionLogModule } from './modules/staffActionLog/staffActionLog.mo
     UploadModule,
     FeedbackModule,
     PromotionModule,
+    PromotionImageModule,
     BrandModule,
     CategoryModule,
     VariableModule,
