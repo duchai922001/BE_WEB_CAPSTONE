@@ -14,7 +14,7 @@ export class PromotionImageRepository {
     private readonly promotionImageModel: Model<PromotionImageDocument>,
   ) {}
 
-  async create(data: CreatePromotionImageDto): Promise<PromotionImage> {
+  async create(data: CreatePromotionImageDto): Promise<PromotionImageDocument> {
     const newPromotionImage = new this.promotionImageModel(data);
     return newPromotionImage.save();
   }
