@@ -31,7 +31,7 @@ export class CartController {
     return createResponse(HttpStatus.OK, data, ' Lấy cart thành công');
   }
 
-  @Delete('id')
+  @Delete(':id')
   async delete(@Param('id') id: string) {
     await this.cartService.delete(id);
     return createResponse(HttpStatus.OK, null, 'Xoá cart thành công');

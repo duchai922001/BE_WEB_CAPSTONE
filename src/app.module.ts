@@ -17,6 +17,7 @@ import { ProductImageModule } from './modules/productImage/productImage.module';
 import { HashTagModule } from './modules/hashtags/hashtag.module';
 import { StaffActionLogModule } from './modules/staffActionLog/staffActionLog.module';
 import { PermissionModule } from './modules/permissions/permission.module';
+import { CartModule } from './modules/cart/cart.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -43,6 +44,7 @@ import { PermissionModule } from './modules/permissions/permission.module';
     HashTagModule,
     StaffActionLogModule,
     PermissionModule,
+    CartModule,
   ],
   controllers: [AppController],
   providers: [AppService],
