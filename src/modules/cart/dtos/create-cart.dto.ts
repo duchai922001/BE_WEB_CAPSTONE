@@ -2,7 +2,7 @@ import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateCartDto {
   @IsString()
-  @IsNotEmpty({ message: 'RoleId is required' })
+  @IsNotEmpty({ message: 'userId is required' })
   userId: string;
 
   @IsNumber()
