@@ -19,6 +19,7 @@ import { StaffActionLogModule } from './modules/staffActionLog/staffActionLog.mo
 import { PermissionModule } from './modules/permissions/permission.module';
 import { CartModule } from './modules/cart/cart.module';
 import { EmployeeModule } from './modules/employee/employee.module';
+import { OrderModule } from './modules/order/order.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -47,6 +48,7 @@ import { EmployeeModule } from './modules/employee/employee.module';
     PermissionModule,
     CartModule,
     EmployeeModule,
+    OrderModule,
   ],
   controllers: [AppController],
   providers: [AppService],
