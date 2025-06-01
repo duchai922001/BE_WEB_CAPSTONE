@@ -20,6 +20,8 @@ import { PermissionModule } from './modules/permissions/permission.module';
 import { CartModule } from './modules/cart/cart.module';
 import { EmployeeModule } from './modules/employee/employee.module';
 import { OrderModule } from './modules/order/order.module';
+import { OrderItemModule } from './modules/orderItem/orderItem.module';
+import { CartItemModule } from './modules/cartItem/cartItem.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -49,6 +51,8 @@ import { OrderModule } from './modules/order/order.module';
     CartModule,
     EmployeeModule,
     OrderModule,
+    OrderItemModule,
+    CartItemModule,
   ],
   controllers: [AppController],
   providers: [AppService],

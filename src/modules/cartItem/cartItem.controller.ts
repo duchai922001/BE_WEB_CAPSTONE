@@ -7,7 +7,6 @@ import {
   Param,
   Patch,
   Post,
-  Put,
   Query,
 } from '@nestjs/common';
 import { CartItemService } from './cartItem.service';
@@ -17,7 +16,7 @@ import { ResponseMessage } from 'src/common/enums/responseMessage';
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 
 @Controller('cart-items')
-export class CategoryController {
+export class CartItemController {
   constructor(private readonly cartItemService: CartItemService) {}
 
   @Post('')
