@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Types } from 'mongoose';
+import { Types, Document } from 'mongoose';
 
 export type CartItemDocument = CartItem & Document;
 @Schema({ timestamps: true, versionKey: false })
@@ -14,6 +14,6 @@ export class CartItem extends Document {
   quantity: number;
 
   @Prop({default: false})
-  isSelected: boolean;
+  isSelec: boolean;
 }
 export const CartItemSchema = SchemaFactory.createForClass(CartItem);
