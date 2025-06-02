@@ -16,7 +16,7 @@ import { AttributeModule } from '../attributes/attribute.module';
     AttributeModule,
   ],
   providers: [VariableRepository, VariableService],
-  exports: [VariableRepository],
+  exports: [VariableService],
   controllers: [VariableController],
 })
 export class VariableModule {}

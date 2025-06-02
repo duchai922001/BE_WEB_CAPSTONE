@@ -22,6 +22,9 @@ import { EmployeeModule } from './modules/employee/employee.module';
 import { OrderModule } from './modules/order/order.module';
 import { OrderItemModule } from './modules/orderItem/orderItem.module';
 import { CartItemModule } from './modules/cartItem/cartItem.module';
+import { PromotionImageModule } from './modules/promotionImage/promotionImage.module';
+import { AddressModule } from './modules/address/address.module';
+import { NotificationModule } from './modules/notification/notification.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -40,6 +43,8 @@ import { CartItemModule } from './modules/cartItem/cartItem.module';
     UploadModule,
     FeedbackModule,
     PromotionModule,
+    PromotionImageModule,
+    AddressModule,
     BrandModule,
     CategoryModule,
     VariableModule,
@@ -53,6 +58,7 @@ import { CartItemModule } from './modules/cartItem/cartItem.module';
     OrderModule,
     OrderItemModule,
     CartItemModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

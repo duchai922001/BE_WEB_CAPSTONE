@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateSerialDto } from './dtos/create.dto';
 import { SerialRepository } from './serial.repository';
 import { ResponseMessage } from 'src/common/enums/responseMessage';
@@ -19,5 +19,29 @@ export class SerialService {
     const serial = await this.serialRepository.findById(id);
     if (!serial) throw new NotFoundException(ResponseMessage.FILE_NOT_FOUND);
     return serial;
+  }
+  async findByProductId(productId: string) {
+    return this.serialRepository.findByProductId(productId);
+  }
+
+  async deleteById(id: string) {
+    await this.serialRepository.deleteById(id);
+  }
+
+  async deleteByProductId(productId: string) {
+    await this.serialRepository.deleteByProductId(productId);
+  }
+
+  async updateById(id: string, dto: Partial<CreateSerialDto>) {
+    const serial = await this.serialRepository.updateById(id, dto);
+    if (!serial) throw new NotFoundException(ResponseMessage.FILE_NOT_FOUND);
+    return serial;
+  }
+
+  async deleteManyByIds(ids: string[]) {
+    if (!ids || ids.length === 0) {
+      throw new BadRequestException(ResponseMessage.REQUIRED_FIELD + ' ids');
+    }
+    return this.serialRepository.deleteManyByIds(ids);
   }
 }

@@ -22,4 +22,22 @@ export class AttributeRepository {
   findById(id: string) {
     return this.attributeModel.findById(id).populate('variableId');
   }
+
+  async findByVariableId(variableId: string): Promise<AttributeDocument[]> {
+    return this.attributeModel.find({ variableId }).exec();
+  }
+
+  async deleteById(id: string): Promise<void> {
+    await this.attributeModel.findByIdAndDelete(id).exec();
+  }
+
+  async deleteByVariableId(variableId: string): Promise<void> {
+    await this.attributeModel.deleteMany({ variableId }).exec();
+  }
+
+  async deleteManyByVariableIds(variableIds: string[]): Promise<void> {
+    await this.attributeModel
+      .deleteMany({ variableId: { $in: variableIds } })
+      .exec();
+  }
 }
