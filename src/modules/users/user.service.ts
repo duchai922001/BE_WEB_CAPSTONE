@@ -17,7 +17,9 @@ export class UserService {
   constructor(private readonly userRepository: UserRepository) {}
 
   //Tìm hiểu xong
-  async create(data: CreateUserDto): Promise<UserDocument>/* Chỗ này cũng tương tự */ {
+  async create(
+    data: CreateUserDto,
+  ): Promise<UserDocument> /* Chỗ này cũng tương tự */ {
     const password = data.password;
     const phone = data.phone;
     const email = data.email;
@@ -48,8 +50,8 @@ export class UserService {
 
   async getById(id: string): Promise<UserDocument> {
     if (!isValidObjectId(id)) {
-        throw new BadRequestException('ID người dùng không hợp lệ');
-      }
+      throw new BadRequestException('ID người dùng không hợp lệ');
+    }
     const user = await this.userRepository.findById(id);
     if (!user) {
       throw new NotFoundException('Không tìm thấy người dùng');
@@ -68,29 +70,38 @@ export class UserService {
     if (!isMatch) {
       throw new UnauthorizedException('Số điện thoại hoặc mật khẩu không đúng');
     }
-    const populatedUser = await user.populate<{ roleId: { name: string } }>('roleId');
+
+    const populatedUser = await user.populate({
+      path: 'roleId',
+      populate: {
+        path: 'permissionId',
+        select: 'name',
+      },
+    });
     return populatedUser.toJSON();
   }
 
-  async updateUser(id: string, data: UpdateUserDto): Promise<UserDocument>{
+  async updateUser(id: string, data: UpdateUserDto): Promise<UserDocument> {
     if (!isValidObjectId(id)) {
-        throw new BadRequestException('ID người dùng không hợp lệ');
-      }
+      throw new BadRequestException('ID người dùng không hợp lệ');
+    }
     const user = await this.userRepository.findById(id);
-    if(!user){
-        throw new NotFoundException('Không tìm thấy');
+    if (!user) {
+      throw new NotFoundException('Không tìm thấy');
     }
 
-    if(data.email){
-        const existingByEmail = await this.userRepository.findByEmail(data.email);
-        if(existingByEmail && (existingByEmail._id != user._id)){
-            throw new BadRequestException('Email đã được sử dụng bởi người dùng khác');
-        }
+    if (data.email) {
+      const existingByEmail = await this.userRepository.findByEmail(data.email);
+      if (existingByEmail && existingByEmail._id != user._id) {
+        throw new BadRequestException(
+          'Email đã được sử dụng bởi người dùng khác',
+        );
+      }
     }
     const updatedUser = await this.userRepository.update(id, data);
     if (!updatedUser) {
-        throw new NotFoundException('Không thể cập nhật người dùng');
-      }
+      throw new NotFoundException('Không thể cập nhật người dùng');
+    }
     return updatedUser;
   }
 
@@ -98,12 +109,12 @@ export class UserService {
     if (!isValidObjectId(id)) {
       throw new BadRequestException('ID người dùng không hợp lệ');
     }
-  
+
     const user = await this.userRepository.findById(id);
     if (!user) {
       throw new NotFoundException('Không tìm thấy người dùng');
     }
-  
+
     const result = await this.userRepository.delete(id);
     if (!result) {
       throw new NotFoundException('Không thể xóa người dùng');

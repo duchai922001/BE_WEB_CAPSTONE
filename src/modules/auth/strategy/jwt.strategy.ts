@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+import { permission } from 'process';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
@@ -14,7 +15,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
                 console.log('Bearer Token in request:', token);
                 return token;
               },
-        ])      
+        ])
     });
   }
 
@@ -24,6 +25,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
         userId: payload.sub,
         phone: payload.phone,
         role: payload.role,
+        permission: payload.permission,
       };
   }
 }

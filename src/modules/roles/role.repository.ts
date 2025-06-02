@@ -1,9 +1,10 @@
-import { Injectable } from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import { Role, RoleDocument } from "./role.entity";
-import { Model } from "mongoose";
-import { CreateRoleDto } from "./dtos/create-role.dto";
-import { UpdateRoleDto } from "./dtos/updated-role.dto";
+import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Role, RoleDocument } from './role.entity';
+import { Model, Types } from 'mongoose';
+import { CreateRoleDto } from './dtos/create-role.dto';
+import { UpdateRoleDto } from './dtos/updated-role.dto';
+import { UserRole } from 'src/common/enums/role';
 
 @Injectable()
 export class RoleRepository {
@@ -12,9 +13,13 @@ export class RoleRepository {
     private readonly roleModel: Model<RoleDocument>,
   ) {}
 
-  async create(data: CreateRoleDto): Promise<RoleDocument> {
-    return new this.roleModel(data).save();
-  }
+async create(data: {
+  name: UserRole;
+  description?: string;
+  permissionId: Types.ObjectId[];
+}) {
+  return this.roleModel.create(data);
+}
 
   async findAll(): Promise<RoleDocument[]> {
     return this.roleModel.find().exec();
@@ -35,5 +40,16 @@ export class RoleRepository {
   async delete(id: string): Promise<boolean> {
     const result = await this.roleModel.deleteOne({ _id: id });
     return result.deletedCount > 0;
+  }
+
+  async addPermissionsToRole(
+    roleId: string,
+    permissionIds: string[],
+  ): Promise<RoleDocument | null> {
+    return this.roleModel.findByIdAndUpdate(
+      roleId,
+      { $addToSet: { permissionId: { $each: permissionIds } } }, // tránh trùng lặp
+      { new: true },
+    );
   }
 }
