@@ -18,6 +18,7 @@ import { HashTagModule } from './modules/hashtags/hashtag.module';
 import { StaffActionLogModule } from './modules/staffActionLog/staffActionLog.module';
 import { PromotionImageModule } from './modules/promotionImage/promotionImage.module';
 import { AddressModule } from './modules/address/address.module';
+import { NotificationModule } from './modules/notification/notification.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -45,6 +46,7 @@ import { AddressModule } from './modules/address/address.module';
     ProductImageModule,
     HashTagModule,
     StaffActionLogModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [AppService],
