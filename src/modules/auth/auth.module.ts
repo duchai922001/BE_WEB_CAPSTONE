@@ -9,6 +9,7 @@ import { PassportModule } from "@nestjs/passport";
 import { JwtStrategy } from "./strategy/jwt.strategy";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
 import { ConfigModule, ConfigService } from "@nestjs/config";
+import { RefreshTokenStrategy } from "./strategy/refresh-token.strategy";
 
 @Module({
     imports: [
@@ -24,7 +25,7 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
       MongooseModule.forFeature([{ name: Token.name, schema: TokenSchema }]),
       forwardRef(() => UserModule),
     ],
-    providers: [AuthService, JwtStrategy, JwtAuthGuard],
+    providers: [AuthService, JwtStrategy, RefreshTokenStrategy, JwtAuthGuard],
     exports: [AuthService, JwtAuthGuard],
     controllers: [AuthController],
   })
