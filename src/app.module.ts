@@ -25,6 +25,8 @@ import { CartItemModule } from './modules/cartItem/cartItem.module';
 import { PromotionImageModule } from './modules/promotionImage/promotionImage.module';
 import { AddressModule } from './modules/address/address.module';
 import { NotificationModule } from './modules/notification/notification.module';
+import { Payment } from './modules/payment/payment.entity';
+import { PaymentModule } from './modules/payment/payment.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -59,6 +61,7 @@ import { NotificationModule } from './modules/notification/notification.module';
     OrderItemModule,
     CartItemModule,
     NotificationModule,
+    PaymentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -36,4 +36,8 @@ export class AttributeService {
   async deleteManyByVariableIds(variableIds: string[]) {
     await this.attributeRepository.deleteManyByVariableIds(variableIds);
   }
+
+  async findByIds(ids: string[]): Promise<any[]> {
+    return this.attributeRepository.findByIds(ids);
+  }
 }

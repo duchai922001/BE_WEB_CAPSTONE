@@ -4,7 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Token, TokenDocument } from './auth.entity';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { UserPermission } from 'src/common/enums/permission';
+import { PermissionSystem } from 'src/common/enums/permission';
 
 @Injectable()
 export class AuthService {
@@ -17,11 +17,14 @@ export class AuthService {
   async login(phone: string, password: string) {
     const user = await this.userService.validateUser(phone, password);
 
-    const permission = user.roleId.permissionId?.map((p) => p.name as UserPermission) || [];
+    const permission =
+      user.roleId.permissionId?.map((p) => p.name as PermissionSystem) || [];
     const payload = {
       sub: user._id,
       phone: user.phone,
       role: user.roleId.name,
+      email: user.email,
+      fullName: user.fullName,
       permission,
     };
 
@@ -39,7 +42,7 @@ export class AuthService {
       refreshToken,
     });
 
-    return { accessToken, refreshToken, user };
+    return { accessToken, refreshToken };
   }
   async refreshToken(refreshToken: string) {
     try {

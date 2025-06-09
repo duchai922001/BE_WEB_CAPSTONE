@@ -1,9 +1,9 @@
 import { IsArray, IsEnum, IsMongoId, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { UserRole } from 'src/common/enums/role';
+import { RoleSystem } from 'src/common/enums/role';
 
 export class CreateRoleDto {
-  @IsEnum(UserRole)
-  name: UserRole;
+  @IsEnum(RoleSystem)
+  name: RoleSystem;
 
   @IsOptional()
   @IsString()

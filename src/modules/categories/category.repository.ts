@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Category, CategoryDocument } from './category.entity';
 import { CreateCategoryDto } from './dtos/create.dto';
 import { UpdateCategoryDto } from './dtos/update.dto';
@@ -59,5 +59,10 @@ export class CategoryRepository {
       throw new NotFoundException(`Category with ID ${id} not found`);
     }
     return deletedCategory;
+  }
+
+  async findManyByIds(ids: string[]): Promise<Category[]> {
+    const objectIds = ids.map(id => new Types.ObjectId(id));
+    return this.categoryModel.find({ _id: { $in: objectIds } }).exec();
   }
 }
