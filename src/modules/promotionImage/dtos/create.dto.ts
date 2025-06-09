@@ -1,4 +1,5 @@
-import { IsMongoId, IsNotEmpty, IsString } from 'class-validator';
+import { IsEnum, IsMongoId, IsNotEmpty, IsString } from 'class-validator';
+import { PromotionImageType } from 'src/common/enums/promotionImage';
 
 export class CreatePromotionImageDto {
   @IsNotEmpty()
@@ -9,7 +10,7 @@ export class CreatePromotionImageDto {
   @IsString()
   url: string;
 
+  @IsEnum(PromotionImageType)
   @IsNotEmpty()
-  @IsString()
-  type: string;
+  type: PromotionImageType;
 }
