@@ -12,6 +12,9 @@ export class Category extends Document {
   @Prop({ required: false })
   url: string;
 
+  @Prop({ default: 1 })
+  slot: number;
+
   @Prop({ default: false })
   isDelete: boolean;
 }
