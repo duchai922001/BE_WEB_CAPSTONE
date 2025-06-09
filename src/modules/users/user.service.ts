@@ -29,7 +29,7 @@ export class UserService {
       email,
     );
     if (existingUser) {
-      throw new BadRequestException('Account already exists');
+      throw new BadRequestException('Tài khoản đã tồn tại');
     }
     const newUser = await this.userRepository.create({
       ...data,

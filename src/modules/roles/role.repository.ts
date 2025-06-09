@@ -4,7 +4,7 @@ import { Role, RoleDocument } from './role.entity';
 import { Model, Types } from 'mongoose';
 import { CreateRoleDto } from './dtos/create-role.dto';
 import { UpdateRoleDto } from './dtos/updated-role.dto';
-import { UserRole } from 'src/common/enums/role';
+import { RoleSystem } from 'src/common/enums/role';
 
 @Injectable()
 export class RoleRepository {
@@ -14,7 +14,7 @@ export class RoleRepository {
   ) {}
 
 async create(data: {
-  name: UserRole;
+  name: RoleSystem;
   description?: string;
   permissionId: Types.ObjectId[];
 }) {
