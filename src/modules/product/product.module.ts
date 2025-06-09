@@ -7,6 +7,8 @@ import { ProductService } from './product.service';
 import { ProductController } from './product.controller';
 import { ProductImageModule } from '../productImage/productImage.module';
 import { VariableModule } from '../variables/variable.module';
+import { CategoryModule } from '../categories/category.module';
+import { BrandModule } from '../brands/brand.module';
 
 @Module({
   imports: [
@@ -14,6 +16,8 @@ import { VariableModule } from '../variables/variable.module';
     SerialModule,
     ProductImageModule,
     VariableModule,
+    CategoryModule,
+    BrandModule,
   ],
   providers: [ProductRepository, ProductService],
   controllers: [ProductController],

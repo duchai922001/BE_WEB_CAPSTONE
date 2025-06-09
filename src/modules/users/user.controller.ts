@@ -15,10 +15,13 @@ import { CreateUserDto } from './dtos/create.dto';
 import { createResponse } from 'src/common/helpers/response.helper';
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { UpdateUserDto } from './dtos/update.dto';
-import { UserRole } from 'src/common/enums/role';
+import { RoleSystem } from 'src/common/enums/role';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../roles/guards/role.guard';
 import { Roles } from '../roles/role.decorator';
+import { PermissionsGuard } from '../permissions/guards/permission.guard';
+import { Permissions } from '../permissions/permission.decorator';
+import { PermissionSystem } from 'src/common/enums/permission';
 
 @Controller('users')
 export class UserController {
@@ -60,8 +63,10 @@ export class UserController {
     await this.userService.deleteUser(id);
     return { message: 'Xóa người dùng thành công' };
   }
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  // @UseGuards(JwtAuthGuard, RolesGuard)
+  // @Roles(UserRole.ADMIN)
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions(PermissionSystem.TEST, PermissionSystem.CREATE_USER)
   @Post('admin-only')
   getForAdmin() {
     return 'Chỉ Admin mới truy cập được';

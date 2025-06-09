@@ -4,6 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Token, TokenDocument } from './auth.entity';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
+import { PermissionSystem } from 'src/common/enums/permission';
 
 @Injectable()
 export class AuthService {
@@ -16,17 +17,21 @@ export class AuthService {
   async login(phone: string, password: string) {
     const user = await this.userService.validateUser(phone, password);
 
-    console.log('role trong payload o auth service', user.roleId.name);
+    const permission =
+      user.roleId.permissionId?.map((p) => p.name as PermissionSystem) || [];
     const payload = {
       sub: user._id,
       phone: user.phone,
       role: user.roleId.name,
+      email: user.email,
+      fullName: user.fullName,
+      permission,
     };
 
     const accessToken = this.jwtService.sign(payload, {
-        expiresIn: '15m',
-        secret: process.env.JWT_ACCESS_SECRET,
-      });
+      expiresIn: '15m',
+      secret: process.env.JWT_ACCESS_SECRET,
+    });
     const refreshToken = this.jwtService.sign(payload, {
       expiresIn: '7d',
       secret: process.env.JWT_REFRESH_SECRET,
@@ -37,7 +42,7 @@ export class AuthService {
       refreshToken,
     });
 
-    return { accessToken, refreshToken, user };
+    return { accessToken, refreshToken };
   }
   async refreshToken(refreshToken: string) {
     try {
@@ -56,7 +61,12 @@ export class AuthService {
       }
 
       const newAccessToken = this.jwtService.sign(
-        { sub: payload.sub, phone: payload.phone, role: payload.role },
+        {
+          sub: payload.sub,
+          phone: payload.phone,
+          role: payload.role,
+          permission: payload.permissions,
+        },
         { expiresIn: '15m' },
       );
 
@@ -68,11 +78,13 @@ export class AuthService {
   async logout(userId: string, refreshToken: string): Promise<void> {
     const result = await this.tokenModel.findOneAndUpdate(
       { userId, refreshToken, isRevoked: false },
-      { isRevoked: true }
+      { isRevoked: true },
     );
-  
+
     if (!result) {
-      throw new UnauthorizedException('Refresh token không hợp lệ hoặc đã bị thu hồi');
+      throw new UnauthorizedException(
+        'Refresh token không hợp lệ hoặc đã bị thu hồi',
+      );
     }
   }
   async isAccessTokenValid(token: string): Promise<boolean> {
@@ -86,5 +98,4 @@ export class AuthService {
       return false;
     }
   }
-  
 }

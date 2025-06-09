@@ -1,6 +1,15 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpStatus,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dtos/login.dto';
+import { createResponse } from 'src/common/helpers/response.helper';
 
 @Controller('auth')
 export class AuthController {
@@ -10,7 +19,8 @@ export class AuthController {
   async register() {}
   @Post('login')
   async login(@Body() data: LoginDto) {
-    return this.authService.login(data.phone, data.password);
+    const res = await this.authService.login(data.phone, data.password);
+    return createResponse(HttpStatus.OK, res, 'Đăng nhập thành công');
   }
   @Post('refresh-token')
   async refreshAccessToken(@Body('refreshToken') refreshToken: string) {

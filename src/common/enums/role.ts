@@ -1,7 +1,9 @@
-export enum UserRole {
+export enum RoleSystem {
   ADMIN = 'ADMIN',
   STAFF = 'STAFF',
   TECHNICIAN = 'TECHNICIAN',
   CONSULTANT = 'CONSULTANT',
+  EVENT = 'EVENT',
   CUSTOMER = 'CUSTOMER',
+  TEST1 = 'TEST1',
 }

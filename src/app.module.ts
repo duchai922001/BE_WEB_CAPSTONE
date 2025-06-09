@@ -16,6 +16,12 @@ import { ProductModule } from './modules/product/product.module';
 import { ProductImageModule } from './modules/productImage/productImage.module';
 import { HashTagModule } from './modules/hashtags/hashtag.module';
 import { StaffActionLogModule } from './modules/staffActionLog/staffActionLog.module';
+import { PermissionModule } from './modules/permissions/permission.module';
+import { CartModule } from './modules/cart/cart.module';
+import { EmployeeModule } from './modules/employee/employee.module';
+import { OrderModule } from './modules/order/order.module';
+import { OrderItemModule } from './modules/orderItem/orderItem.module';
+import { CartItemModule } from './modules/cartItem/cartItem.module';
 import { PromotionImageModule } from './modules/promotionImage/promotionImage.module';
 import { AddressModule } from './modules/address/address.module';
 import { NotificationModule } from './modules/notification/notification.module';
@@ -46,6 +52,12 @@ import { NotificationModule } from './modules/notification/notification.module';
     ProductImageModule,
     HashTagModule,
     StaffActionLogModule,
+    PermissionModule,
+    CartModule,
+    EmployeeModule,
+    OrderModule,
+    OrderItemModule,
+    CartItemModule,
     NotificationModule,
   ],
   controllers: [AppController],

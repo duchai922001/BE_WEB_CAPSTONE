@@ -68,8 +68,23 @@ export class VariableService {
     return variable;
   }
 
-  async findByProductId(productId: string): Promise<Variable[]> {
-    return this.variableRepository.findByProductId(productId);
+  async findByProductId(productId: string): Promise<any[]> {
+    const variables = await this.variableRepository.findByProductId(productId);
+
+    const result = await Promise.all(
+      variables.map(async (variable) => {
+        const attributes = await this.attributeService.findByVariableId(
+          variable._id.toString(),
+        );
+
+        return {
+          ...(variable.toObject?.() ?? variable),
+          attribute: attributes,
+        };
+      }),
+    );
+
+    return result;
   }
 
   async updateById(id: string, dto: Partial<CreateVariableDto>) {
