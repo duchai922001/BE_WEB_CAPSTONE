@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpStatus, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Param, Post } from '@nestjs/common';
 import { CreateProductDto } from './dtos/create.dto';
 import { createResponse } from 'src/common/helpers/response.helper';
 import { ResponseMessage } from 'src/common/enums/responseMessage';
@@ -16,6 +16,12 @@ export class ProductController {
   @Get('form-category')
   async getProductsFormCategory() {
     const data = await this.productService.getProductsFormCategory();
+    return createResponse(HttpStatus.CREATED, data, ResponseMessage.GET);
+  }
+
+  @Get('detail/:id')
+  async getDetail(@Param('id') id: string) {
+    const data = await this.productService.getProductDetailById(id);
     return createResponse(HttpStatus.CREATED, data, ResponseMessage.GET);
   }
 }

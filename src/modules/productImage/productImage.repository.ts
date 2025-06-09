@@ -1,6 +1,6 @@
 import { InjectModel } from '@nestjs/mongoose';
 import { ProductImage, ProductImageDocument } from './productImage.entity';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Injectable } from '@nestjs/common';
 import { CreateProductImageDto } from './dtos/create.dto';
 
@@ -26,5 +26,11 @@ export class ProductImageRepository {
         isDefault: true,
       })
       .lean();
+  }
+
+  async findByProductId(productId: string) {
+    return this.productImageModel.find({
+      productId: productId,
+    });
   }
 }

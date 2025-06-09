@@ -18,6 +18,8 @@ import {
 } from './dtos/product-format-category.dto';
 import { plainToInstance } from 'class-transformer';
 import { Types } from 'mongoose';
+import { BrandRepository } from '../brands/brand.repository';
+import { ProductDetailDto } from './dtos/product-detail.dto';
 
 @Injectable()
 export class ProductService {
@@ -27,6 +29,7 @@ export class ProductService {
     private readonly serialService: SerialService,
     private readonly variableService: VariableService,
     private readonly categoryRepo: CategoryRepository,
+    private readonly brandRepo: BrandRepository,
   ) {}
   private async handleImages(
     productId: string,
@@ -399,7 +402,6 @@ export class ProductService {
   async getProductsFormCategory(): Promise<ProductByCategoryDto[]> {
     const products = await this.productRepository.findAll();
 
-    // Nhóm sản phẩm theo categoryId
     const grouped: Record<string, any[]> = {};
     const productIds: string[] = [];
 
@@ -407,19 +409,21 @@ export class ProductService {
       const p = product as {
         _id: Types.ObjectId;
         categoryId: Types.ObjectId | string;
+        brandId: Types.ObjectId | string;
       };
+
       const categoryId = p.categoryId.toString();
 
       if (!grouped[categoryId]) {
         grouped[categoryId] = [];
       }
+
       grouped[categoryId].push(p);
       productIds.push(p._id.toString());
     }
 
     const categoryIds = Object.keys(grouped);
     const categories = await this.categoryRepo.findManyByIds(categoryIds);
-
     const productImages =
       await this.productImageService.findDefaultByProductIds(productIds);
 
@@ -428,22 +432,59 @@ export class ProductService {
       imageMap[image.productId.toString()] = image.url;
     }
 
-    const result: ProductByCategoryDto[] = categories.map((category) => {
+    const result: ProductByCategoryDto[] = [];
+
+    for (const category of categories) {
       const categoryId = (category._id as Types.ObjectId).toString();
       const rawProducts = grouped[categoryId] || [];
 
       const simplifiedProducts: SimpleProductDto[] = rawProducts.map((p) => ({
+        id: p._id,
         name: p.name,
         sellPrice: p.sellPrice,
         image: imageMap[p._id.toString()] || null,
       }));
 
-      return plainToInstance(ProductByCategoryDto, {
-        categoryName: category.name,
-        products: simplifiedProducts,
-      });
-    });
+      const brandIds = [
+        ...new Set(
+          rawProducts.map((p) => p.brandId?.toString()).filter(Boolean),
+        ),
+      ];
+      const brands = await this.brandRepo.findManyByIds(brandIds);
+
+      result.push(
+        plainToInstance(ProductByCategoryDto, {
+          categoryName: category.name,
+          products: simplifiedProducts,
+          brands: brands.map((b) => b.name),
+        }),
+      );
+    }
 
     return result;
+  }
+
+  async getProductDetailById(productId: string): Promise<ProductDetailDto> {
+    const product = await this.productRepository.findById(productId);
+    if (!product) throw new NotFoundException(ResponseMessage.FILE_NOT_FOUND);
+
+    const [category, brand] = await Promise.all([
+      this.categoryRepo.findById(String(product.categoryId)),
+      this.brandRepo.findById(String(product.brandId)),
+    ]);
+
+    const images = await this.productImageService.findByProductId(productId);
+    const variables = await this.variableService.findByProductId(productId);
+
+    return plainToInstance(ProductDetailDto, {
+      id: (product as any)._id.toString(),
+      name: product.name,
+      description: product.description,
+      sellPrice: product.sellPrice,
+      listImage: images.map((img) => img.url),
+      variables,
+      brands: brand?.name || '',
+      categoryName: category?.name || '',
+    });
   }
 }
