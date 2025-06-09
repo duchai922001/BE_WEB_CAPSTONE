@@ -18,4 +18,13 @@ export class ProductImageRepository {
   findById(id: string) {
     return this.productImageModel.findById(id).populate('productId');
   }
+
+  async findDefaultByProductIds(productIds: string[]) {
+    return this.productImageModel
+      .find({
+        productId: { $in: productIds },
+        isDefault: true,
+      })
+      .lean();
+  }
 }

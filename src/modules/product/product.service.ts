@@ -11,6 +11,13 @@ import { ProductImageService } from '../productImage/productImage.service';
 import { SerialService } from '../serials/serial.service';
 import { VariableService } from '../variables/variable.service';
 import { UpdateProductDto } from './dtos/update.dto';
+import { CategoryRepository } from '../categories/category.repository';
+import {
+  ProductByCategoryDto,
+  SimpleProductDto,
+} from './dtos/product-format-category.dto';
+import { plainToInstance } from 'class-transformer';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class ProductService {
@@ -19,6 +26,7 @@ export class ProductService {
     private readonly productImageService: ProductImageService,
     private readonly serialService: SerialService,
     private readonly variableService: VariableService,
+    private readonly categoryRepo: CategoryRepository,
   ) {}
   private async handleImages(
     productId: string,
@@ -134,9 +142,9 @@ export class ProductService {
           barcode,
           brandId,
           categoryId,
-          costPrice: 0,
+          costPrice: variables?.[0]?.costPrice,
           name,
-          sellPrice: 0,
+          sellPrice: variables?.[0]?.sellPrice,
           stock: totalStock,
           typeProduct,
           description,
@@ -310,9 +318,9 @@ export class ProductService {
           barcode,
           brandId,
           categoryId,
-          costPrice: 0,
+          costPrice: variables?.[0]?.costPrice,
           name,
-          sellPrice: 0,
+          sellPrice: variables?.[0]?.sellPrice,
           stock: totalStock,
           typeProduct,
           description,
@@ -386,5 +394,56 @@ export class ProductService {
 
     // Cập nhật hình ảnh (nếu có)
     await this.handleImages(productId, mainImage, listImage);
+  }
+
+  async getProductsFormCategory(): Promise<ProductByCategoryDto[]> {
+    const products = await this.productRepository.findAll();
+
+    // Nhóm sản phẩm theo categoryId
+    const grouped: Record<string, any[]> = {};
+    const productIds: string[] = [];
+
+    for (const product of products) {
+      const p = product as {
+        _id: Types.ObjectId;
+        categoryId: Types.ObjectId | string;
+      };
+      const categoryId = p.categoryId.toString();
+
+      if (!grouped[categoryId]) {
+        grouped[categoryId] = [];
+      }
+      grouped[categoryId].push(p);
+      productIds.push(p._id.toString());
+    }
+
+    const categoryIds = Object.keys(grouped);
+    const categories = await this.categoryRepo.findManyByIds(categoryIds);
+
+    const productImages =
+      await this.productImageService.findDefaultByProductIds(productIds);
+
+    const imageMap: Record<string, string> = {};
+    for (const image of productImages) {
+      imageMap[image.productId.toString()] = image.url;
+    }
+
+    const result: ProductByCategoryDto[] = categories.map((category) => {
+      const categoryId = (category._id as Types.ObjectId).toString();
+      const rawProducts = grouped[categoryId] || [];
+
+      const simplifiedProducts: SimpleProductDto[] = rawProducts.map((p) => ({
+        name: p.name,
+        sellPrice: p.sellPrice,
+        image: imageMap[p._id.toString()] || null,
+      }));
+
+      return plainToInstance(ProductByCategoryDto, {
+        categoryName: category.name,
+        products: simplifiedProducts,
+      });
+    });
+
+    return result;
   }
 }

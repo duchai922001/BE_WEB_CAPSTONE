@@ -18,4 +18,8 @@ export class ProductImageService {
     if (!image) throw new NotFoundException(ResponseMessage.FILE_NOT_FOUND);
     return image;
   }
+
+  async findDefaultByProductIds(productIds: string[]) {
+    return this.productImageRepository.findDefaultByProductIds(productIds);
+  }
 }
