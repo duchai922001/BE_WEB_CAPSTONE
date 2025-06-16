@@ -14,6 +14,6 @@ export class CartItem extends Document {
   quantity: number;
 
   @Prop({default: false})
-  isSelec: boolean;
+  isSelect: boolean;
 }
 export const CartItemSchema = SchemaFactory.createForClass(CartItem);
