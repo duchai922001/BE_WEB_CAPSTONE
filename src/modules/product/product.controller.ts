@@ -24,4 +24,10 @@ export class ProductController {
     const data = await this.productService.getProductDetailById(id);
     return createResponse(HttpStatus.CREATED, data, ResponseMessage.GET);
   }
+
+  @Get('brand/:brandName')
+  async getByBrandName(@Param('brandName') brandName: string) {
+    const data = await this.productService.getProductsByBrandName(brandName);
+    return createResponse(HttpStatus.CREATED, data, ResponseMessage.GET);
+  }
 }

@@ -487,4 +487,36 @@ export class ProductService {
       categoryName: category?.name || '',
     });
   }
+
+  async getProductsByBrandName(brandName: string) {
+    const brand = await this.brandRepo.findByName(brandName);
+    if (!brand) {
+      throw new NotFoundException(`Brand ${brandName} not found`);
+    }
+
+    const products = await this.productRepository.findByBrandId(
+      String(brand._id),
+    );
+    console.log({ products });
+    return Promise.all(
+      products.map(async (product) => {
+        const images = await this.productImageService.findByProductId(
+          String(product._id),
+        );
+        const variables = await this.variableService.findByProductId(
+          String(product._id),
+        );
+
+        return {
+          id: product._id,
+          name: product.name,
+          description: product.description,
+          sellPrice: product.sellPrice,
+          listImage: images.map((img) => img.url),
+          variables,
+          brands: brand.name || '',
+        };
+      }),
+    );
+  }
 }

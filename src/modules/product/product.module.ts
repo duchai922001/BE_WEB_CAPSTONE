@@ -9,10 +9,14 @@ import { ProductImageModule } from '../productImage/productImage.module';
 import { VariableModule } from '../variables/variable.module';
 import { CategoryModule } from '../categories/category.module';
 import { BrandModule } from '../brands/brand.module';
+import { Brand, BrandSchema } from '../brands/brand.entity';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: Product.name, schema: ProductSchema }]),
+    MongooseModule.forFeature([
+      { name: Product.name, schema: ProductSchema },
+      { name: Brand.name, schema: BrandSchema },
+    ]),
     SerialModule,
     ProductImageModule,
     VariableModule,

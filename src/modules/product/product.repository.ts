@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Product, ProductDocument } from './product.entity';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { ICreate } from './dtos/product.interface';
+import { Brand, BrandDocument } from '../brands/brand.entity';
 
 @Injectable()
 export class ProductRepository {
@@ -39,5 +40,12 @@ export class ProductRepository {
 
   async findAll(): Promise<ProductDocument[]> {
     return this.productModel.find().exec();
+  }
+
+  async findByBrandId(brandId: string) {
+    return this.productModel
+      .find({ brandId: brandId })
+      .populate('brandId categoryId')
+      .exec();
   }
 }
