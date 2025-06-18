@@ -20,6 +20,7 @@ import { plainToInstance } from 'class-transformer';
 import { Types } from 'mongoose';
 import { BrandRepository } from '../brands/brand.repository';
 import { ProductDetailDto } from './dtos/product-detail.dto';
+import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 
 @Injectable()
 export class ProductService {
@@ -486,5 +487,9 @@ export class ProductService {
       brands: brand?.name || '',
       categoryName: category?.name || '',
     });
+  }
+
+  async searchProducts(query: BaseQueryDto) {
+    return this.productRepository.search(query);
   }
 }
