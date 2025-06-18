@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { BlogRepository } from './blog.repository';
 import { CreateBlogDto } from './dtos/create.dto';
 import { Blog } from './blog.entity';
+import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 
 @Injectable()
 export class BlogService {
@@ -37,5 +38,9 @@ export class BlogService {
 
   async findAllBlogs(): Promise<Blog[]> {
     return this.blogRepository.findAll();
+  }
+
+  async getBlogsQuery(query: BaseQueryDto) {
+    return this.blogRepository.GetAllQuery(query);
   }
 }

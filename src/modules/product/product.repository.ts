@@ -3,6 +3,8 @@ import { Product, ProductDocument } from './product.entity';
 import { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { ICreate } from './dtos/product.interface';
+import { builderQuery } from 'src/common/helpers/query-builder.helper';
+import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { Brand, BrandDocument } from '../brands/brand.entity';
 
 @Injectable()
@@ -40,6 +42,29 @@ export class ProductRepository {
 
   async findAll(): Promise<ProductDocument[]> {
     return this.productModel.find().exec();
+  }
+
+  async search(query: BaseQueryDto) {
+    const builder = builderQuery(query);
+
+    const [items, total] = await Promise.all([
+      this.productModel
+        .find(builder.filter)
+        .skip(builder.pagination.skip)
+        .limit(builder.pagination.limit)
+        .sort(builder.sort)
+        .populate(builder.populate)
+        .lean(),
+
+      this.productModel.countDocuments(builder.filter),
+    ]);
+
+    return {
+      items,
+      total,
+      page: Number(query.page || 1),
+      limit: Number(query.limit || 10),
+    };
   }
 
   async findByBrandId(brandId: string) {
