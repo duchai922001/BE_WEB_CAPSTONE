@@ -6,6 +6,9 @@ export class Brand extends Document {
   @Prop({ required: true, unique: true })
   name: string;
 
+  @Prop()
+  image: string;
+
   @Prop({ default: false })
   isDelete: boolean;
 }

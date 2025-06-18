@@ -502,7 +502,6 @@ export class ProductService {
     const products = await this.productRepository.findByBrandId(
       String(brand._id),
     );
-    console.log({ products });
     return Promise.all(
       products.map(async (product) => {
         const images = await this.productImageService.findByProductId(
@@ -520,6 +519,7 @@ export class ProductService {
           listImage: images.map((img) => img.url),
           variables,
           brands: brand.name || '',
+          categoryId: product.categoryId,
         };
       }),
     );

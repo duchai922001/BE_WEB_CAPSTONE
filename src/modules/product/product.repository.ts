@@ -73,4 +73,13 @@ export class ProductRepository {
       .populate('brandId categoryId')
       .exec();
   }
+
+  async getBrandIdsByCategoryId(categoryId: string) {
+    const products = await this.productModel
+      .find({ categoryId })
+      .select('brandId')
+      .exec();
+    const brandIdSet = new Set(products.map((p) => p.brandId.toString()));
+    return Array.from(brandIdSet).map((id) => new Types.ObjectId(id));
+  }
 }

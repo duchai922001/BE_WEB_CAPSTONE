@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { SerialModule } from '../serials/serial.module';
 import { Product, ProductSchema } from './product.entity';
@@ -21,9 +21,10 @@ import { Brand, BrandSchema } from '../brands/brand.entity';
     ProductImageModule,
     VariableModule,
     CategoryModule,
-    BrandModule,
+    forwardRef(() => BrandModule),
   ],
   providers: [ProductRepository, ProductService],
   controllers: [ProductController],
+  exports: [ProductRepository],
 })
 export class ProductModule {}
