@@ -7,11 +7,13 @@ import {
   Post,
   Put,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { BlogService } from './blog.service';
 import { CreateBlogDto } from './dtos/create.dto';
 import { createResponse } from 'src/common/helpers/response.helper';
 import { ResponseMessage } from 'src/common/enums/responseMessage';
+import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 
 @Controller('blogs')
 export class BlogController {
@@ -39,5 +41,11 @@ export class BlogController {
   async getById(@Param('id') id: string) {
     const blog = await this.blogService.findBlogById(id);
     return createResponse(HttpStatus.OK, blog, ResponseMessage.GET);
+  }
+
+  @Get()
+  async getAll(@Query() query: BaseQueryDto) {
+    const blogs = await this.blogService.getBlogsQuery(query);
+    return createResponse(HttpStatus.OK, blogs, ResponseMessage.GET);
   }
 }
