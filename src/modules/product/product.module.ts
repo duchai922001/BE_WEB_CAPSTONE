@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { SerialModule } from '../serials/serial.module';
 import { Product, ProductSchema } from './product.entity';
@@ -9,17 +9,22 @@ import { ProductImageModule } from '../productImage/productImage.module';
 import { VariableModule } from '../variables/variable.module';
 import { CategoryModule } from '../categories/category.module';
 import { BrandModule } from '../brands/brand.module';
+import { Brand, BrandSchema } from '../brands/brand.entity';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: Product.name, schema: ProductSchema }]),
+    MongooseModule.forFeature([
+      { name: Product.name, schema: ProductSchema },
+      { name: Brand.name, schema: BrandSchema },
+    ]),
     SerialModule,
     ProductImageModule,
     VariableModule,
     CategoryModule,
-    BrandModule,
+    forwardRef(() => BrandModule),
   ],
   providers: [ProductRepository, ProductService],
   controllers: [ProductController],
+  exports: [ProductRepository],
 })
 export class ProductModule {}

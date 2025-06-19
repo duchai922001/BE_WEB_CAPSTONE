@@ -2,7 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UserService } from '../users/user.service';
 import { JwtService } from '@nestjs/jwt';
 import { Token, TokenDocument } from './auth.entity';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { PermissionSystem } from 'src/common/enums/permission';
 
@@ -46,16 +46,15 @@ export class AuthService {
   }
   async refreshToken(refreshToken: string) {
     try {
+      console.log({ refreshToken });
       const payload = this.jwtService.verify(refreshToken, {
         secret: process.env.JWT_REFRESH_SECRET,
       });
-
       const tokenDoc = await this.tokenModel.findOne({
-        userId: payload.sub,
+        userId: new Types.ObjectId(payload.sub),
         refreshToken,
         isRevoked: false,
       });
-
       if (!tokenDoc) {
         throw new UnauthorizedException('Invalid refresh token');
       }
@@ -69,7 +68,6 @@ export class AuthService {
         },
         { expiresIn: '15m' },
       );
-
       return { accessToken: newAccessToken };
     } catch (error) {
       throw new UnauthorizedException('Token verification failed');

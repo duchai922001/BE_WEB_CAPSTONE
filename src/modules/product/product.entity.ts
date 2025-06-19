@@ -31,6 +31,9 @@ export class Product extends Document {
   @Prop({ default: false })
   status: boolean;
 
+  @Prop({ default: false })
+  isInstallment: boolean;
+
   @Prop({
     type: String,
     enum: ProductType,

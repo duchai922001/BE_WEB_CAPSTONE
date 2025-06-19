@@ -13,5 +13,6 @@ import { InstalmentItemRepository } from './instalmentItem.repository';
   ],
   controllers: [InstalmentItemController],
   providers: [InstalmentItemService, InstalmentItemRepository],
+  exports: [InstalmentItemRepository],
 })
 export class InstalmentItemModule {}

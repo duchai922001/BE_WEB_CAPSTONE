@@ -9,7 +9,11 @@ export class OrderService{
     constructor(private readonly orderRepository: OrderRepository){}
 
     async customerCreate(data: CustomerCreateOrderDto){
-        return await this.orderRepository.create(data);
+        const { userId, ...orderData } = data;
+        return await this.orderRepository.create({
+            ...orderData,
+            userId,
+        });
     }
 
     async findAll(query: BaseQueryDto){
@@ -26,5 +30,9 @@ export class OrderService{
 
     async delete(id: string){
         return await this.orderRepository.delete(id);
+    }
+
+    async getByUserId(userId: string){
+        return await this.orderRepository.getByUserId(userId);
     }
 }

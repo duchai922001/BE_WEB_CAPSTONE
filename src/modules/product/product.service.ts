@@ -20,6 +20,7 @@ import { plainToInstance } from 'class-transformer';
 import { Types } from 'mongoose';
 import { BrandRepository } from '../brands/brand.repository';
 import { ProductDetailDto } from './dtos/product-detail.dto';
+import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 
 @Injectable()
 export class ProductService {
@@ -486,5 +487,41 @@ export class ProductService {
       brands: brand?.name || '',
       categoryName: category?.name || '',
     });
+  }
+
+  async searchProducts(query: BaseQueryDto) {
+    return this.productRepository.search(query);
+  }
+
+  async getProductsByBrandName(brandName: string) {
+    const brand = await this.brandRepo.findByName(brandName);
+    if (!brand) {
+      throw new NotFoundException(`Brand ${brandName} not found`);
+    }
+
+    const products = await this.productRepository.findByBrandId(
+      String(brand._id),
+    );
+    return Promise.all(
+      products.map(async (product) => {
+        const images = await this.productImageService.findByProductId(
+          String(product._id),
+        );
+        const variables = await this.variableService.findByProductId(
+          String(product._id),
+        );
+
+        return {
+          id: product._id,
+          name: product.name,
+          description: product.description,
+          sellPrice: product.sellPrice,
+          listImage: images.map((img) => img.url),
+          variables,
+          brands: brand.name || '',
+          categoryId: product.categoryId,
+        };
+      }),
+    );
   }
 }
