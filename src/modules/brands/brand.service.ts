@@ -4,10 +4,14 @@ import { Brand } from './brand.entity';
 import { CreateBrandDto } from './dtos/create.dto';
 import { UpdateBrandDto } from './dtos/update.dto';
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
+import { ProductRepository } from '../product/product.repository';
 
 @Injectable()
 export class BrandService {
-  constructor(private readonly brandRepository: BrandRepository) {}
+  constructor(
+    private readonly brandRepository: BrandRepository,
+    private readonly productRepository: ProductRepository,
+  ) {}
   async create(data: CreateBrandDto): Promise<Brand> {
     const brand = await this.brandRepository.findByName(data.name);
     if (brand) {
@@ -28,5 +32,11 @@ export class BrandService {
 
   async delete(id: string): Promise<Brand> {
     return await this.brandRepository.delete(id);
+  }
+
+  async getBrandsByCategory(categoryId: string) {
+    const brandIds =
+      await this.productRepository.getBrandIdsByCategoryId(categoryId);
+    return this.brandRepository.findByIds(brandIds);
   }
 }

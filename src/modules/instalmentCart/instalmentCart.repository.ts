@@ -33,4 +33,12 @@ export class InstalmentCartRepository {
   async findAll(): Promise<InstalmentCart[]> {
     return this.model.find().exec();
   }
+
+  async getOrCreateInstalmentCart(
+    userId: string,
+  ): Promise<InstalmentCartDocument> {
+    let cart = await this.model.findOne({ userId });
+    if (!cart) cart = await this.model.create({ userId });
+    return cart;
+  }
 }

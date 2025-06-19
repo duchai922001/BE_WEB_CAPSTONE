@@ -17,6 +17,10 @@ export class BrandRepository {
     return this.brandModel.findById(id);
   }
 
+  async findByIds(brandIds: Types.ObjectId[]) {
+    return this.brandModel.find({ _id: { $in: brandIds } }).exec();
+  }
+
   async findByName(name: string): Promise<Brand | null> {
     return this.brandModel.findOne({ name });
   }

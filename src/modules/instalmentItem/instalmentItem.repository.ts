@@ -40,4 +40,16 @@ export class InstalmentItemRepository {
   async delete(id: string): Promise<void> {
     await this.model.findByIdAndDelete(id).exec();
   }
+
+  async addItem(instalmentCartId: string, productId: string) {
+    return this.model.findOneAndUpdate(
+      { instalmentCartId: instalmentCartId, productId },
+      { $set: { status: false } },
+      { upsert: true, new: true },
+    );
+  }
+
+  async getItems(instalmentCartId: string) {
+    return this.model.find({ instalmentCartId }).populate('productId');
+  }
 }
