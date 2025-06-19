@@ -49,4 +49,10 @@ export class OrderController {
     const data = await this.orderService.delete(id);
     return createResponse(HttpStatus.OK, data, ResponseMessage.DELETE);
   }
+
+  @Get('user/:userId')
+  async getByUserId(@Param('userId') userId: string) {
+    const data = await this.orderService.getByUserId(userId);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
 }
