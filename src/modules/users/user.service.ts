@@ -120,4 +120,22 @@ export class UserService {
       throw new NotFoundException('Không thể xóa người dùng');
     }
   }
+
+  async changePassword(id: string, newPassword): Promise<any> {
+    if (!isValidObjectId(id)) {
+      throw new BadRequestException('ID người dùng không hợp lệ');
+    }
+    const user = await this.userRepository.findById(id);
+    if (!user) {
+      throw new NotFoundException('Không tìm thấy người dùng');
+    }
+    const result = await this.userRepository.updatePassword(id, newPassword);
+    if (!result) {
+      throw new NotFoundException('Không thể update người dùng');
+    }
+    return {
+      message: 'Đổi mật khẩu thành công',
+      userId: result._id,
+    };
+  }
 }

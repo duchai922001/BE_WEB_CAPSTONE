@@ -69,6 +69,12 @@ export class UserRepository {
       .select('-password')
       .exec();
   }
+  async updatePassword(id: string, hashedPassword: string): Promise<UserDocument | null> {
+  return this.userModel
+    .findByIdAndUpdate(id, { password: hashedPassword }, { new: true })
+    .select('-password')
+    .exec();
+}
   async delete(id: string): Promise<boolean> {
     const result = await this.userModel.deleteOne({ _id: id });
     return result.deletedCount > 0;

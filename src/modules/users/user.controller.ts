@@ -58,6 +58,13 @@ export class UserController {
       'Cập nhật người dùng thành công',
     );
   }
+
+  @Put('change-password/:id')
+  async changePassword(@Param('id') id: string, @Body() body: {newPassword: string}){
+    const result = await this.userService.changePassword(id, body.newPassword);
+    return createResponse(HttpStatus.OK, result, 'Đổi mật khẩu thành công',);
+  }
+
   @Delete(':id')
   async remove(@Param('id') id: string) {
     await this.userService.deleteUser(id);
