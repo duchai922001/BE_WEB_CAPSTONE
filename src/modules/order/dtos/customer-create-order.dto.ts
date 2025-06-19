@@ -1,12 +1,14 @@
 import { Type } from 'class-transformer';
 import {
   IsBoolean,
+  IsEnum,
   IsMongoId,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
 } from 'class-validator';
+import { OrderNormalStatus } from 'src/common/enums/orderStatus';
 
 export class CustomerCreateOrderDto {
   @IsNotEmpty()
@@ -52,8 +54,8 @@ export class CustomerCreateOrderDto {
   customerDept?: number;
 
   @IsOptional()
-  @IsNumber()
-  status: boolean;
+  @IsEnum(OrderNormalStatus)
+  method: OrderNormalStatus;
 
   @IsOptional()
   @IsBoolean()

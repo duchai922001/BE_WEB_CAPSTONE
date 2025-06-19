@@ -6,6 +6,7 @@ import { CustomerCreateOrderDto } from './dtos/customer-create-order.dto';
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { builderQuery } from 'src/common/helpers/query-builder.helper';
 import { UpdateOrderDto } from './dtos/update-order.dto';
+import { ResponseMessage } from 'src/common/enums/responseMessage';
 
 @Injectable()
 export class OrderRepository {
@@ -33,6 +34,7 @@ export class OrderRepository {
     const order = await this.orderModel.findById(id).exec();
     return order;
   }
+
   async update(
     id: string,
     data: UpdateOrderDto,
@@ -43,5 +45,16 @@ export class OrderRepository {
   async delete(id: string): Promise<boolean> {
     const result = await this.orderModel.deleteOne({ _id: id });
     return result.deletedCount > 0;
+  }
+
+  async getByUserId(userId: string): Promise<OrderDocument[]> {
+    const orders = await this.orderModel
+      .find({ userId })
+      .sort({ createdAt: -1 })
+      .exec();
+    if (!orders || orders.length === 0) {
+      throw new NotFoundException(ResponseMessage.FILE_NOT_FOUND);
+    }
+    return orders;
   }
 }

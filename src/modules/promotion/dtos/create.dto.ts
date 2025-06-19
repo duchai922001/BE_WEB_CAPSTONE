@@ -1,16 +1,34 @@
 import {
   IsArray,
-  IsBoolean,
   IsDateString,
-  IsIn,
+  IsEnum,
+  IsMongoId,
   IsNotEmpty,
-  IsNumber,
   IsOptional,
   IsString,
-  IsMongoId,
+  IsBoolean,
+  IsNumber,
+  Min,
+  ArrayUnique,
 } from 'class-validator';
+import { PromotionDiscountType } from 'src/common/enums/promotion';
 
 export class CreatePromotionDto {
+  @IsArray()
+  @IsMongoId({ each: true })
+  @IsOptional()
+  @ArrayUnique()
+  products?: string[];
+
+  @IsArray()
+  @IsMongoId({ each: true })
+  @IsOptional()
+  promotionImages?: string[];
+
+  @IsMongoId()
+  @IsNotEmpty()
+  createdBy: string;
+
   @IsString()
   @IsNotEmpty()
   title: string;
@@ -20,55 +38,20 @@ export class CreatePromotionDto {
   description: string;
 
   @IsNumber()
+  @Min(0)
   @IsOptional()
   discountValue?: number;
 
-  @IsString()
-  @IsNotEmpty()
-  @IsIn(['percent', 'cash'], {
-    message: 'discountType must be either "percent" or "cash"',
-  })
-  discountType: string;
+  @IsEnum(PromotionDiscountType)
+  discountType: PromotionDiscountType;
 
   @IsDateString()
-  @IsNotEmpty()
   startDate: string;
 
   @IsDateString()
-  @IsNotEmpty()
   endDate: string;
-
-  @IsString()
-  @IsNotEmpty()
-  createBy: string;
-
-  @IsString()
-  @IsOptional()
-  mainImage?: string;
-
-  @IsString()
-  @IsOptional()
-  rightImage?: string;
-
-  @IsString()
-  @IsOptional()
-  LeftImage?: string;
-
-  @IsArray()
-  @IsString({ each: true })
-  @IsOptional()
-  listImage?: string[];
 
   @IsBoolean()
   @IsOptional()
-  isDelete?: boolean;
-
-  @IsArray()
-  @IsMongoId({ each: true })
-  @IsOptional()
-  products?: string[];
-
-  @IsMongoId()
-  @IsNotEmpty()
-  isSelectBy: string;
+  status?: boolean;
 }
