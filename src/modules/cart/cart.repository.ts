@@ -29,4 +29,10 @@ export class CartRepository {
     const result = await this.cartModel.deleteOne({ _id: id });
     return result.deletedCount > 0;
   }
+
+  async getOrCreateCart(userId: string): Promise<CartDocument> {
+    let cart = await this.cartModel.findOne({ userId });
+    if (!cart) cart = await this.cartModel.create({ userId });
+    return cart;
+  }
 }
