@@ -25,6 +25,8 @@ import { CartItemModule } from './modules/cartItem/cartItem.module';
 import { PromotionImageModule } from './modules/promotionImage/promotionImage.module';
 import { AddressModule } from './modules/address/address.module';
 import { NotificationModule } from './modules/notification/notification.module';
+import { Payment } from './modules/payment/payment.entity';
+import { PaymentModule } from './modules/payment/payment.module';
 import { FavoriteModule } from './modules/favorites/favorites.module';
 @Module({
   imports: [
@@ -60,6 +62,7 @@ import { FavoriteModule } from './modules/favorites/favorites.module';
     OrderItemModule,
     CartItemModule,
     NotificationModule,
+    PaymentModule,
     FavoriteModule,
   ],
   controllers: [AppController],
