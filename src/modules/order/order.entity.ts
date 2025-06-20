@@ -11,6 +11,12 @@ export class Order extends Document {
   @Prop({ type: Types.ObjectId, ref: 'Employee' })
   employeeId: Types.ObjectId;
 
+  @Prop({ type: [Types.ObjectId], ref: 'Payment', default: [] })
+  payments: Types.ObjectId[];
+
+  @Prop({ type: [Types.ObjectId], ref: 'OrderItem', default: [] })
+  orderItems: Types.ObjectId[];
+
   @Prop()
   discountType: string;
 

@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
 import {
+  IsArray,
   IsBoolean,
   IsEnum,
   IsMongoId,
@@ -64,4 +65,14 @@ export class CustomerCreateOrderDto {
   @IsOptional()
   @IsString()
   reason?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsMongoId({ each: true })
+  payments?: string[]; 
+
+  @IsOptional()
+  @IsArray()
+  @IsMongoId({ each: true })
+  orderItems?: string[]; 
 }
