@@ -11,11 +11,8 @@ export class Order extends Document {
   @Prop({ type: Types.ObjectId, ref: 'Employee' })
   employeeId: Types.ObjectId;
 
-  @Prop({ type: [Types.ObjectId], ref: 'Payment', default: [] })
-  payments: Types.ObjectId[];
-
-  @Prop({ type: [Types.ObjectId], ref: 'OrderItem', default: [] })
-  orderItems: Types.ObjectId[];
+  @Prop({ type: String, unique: true })
+  orderCode: string;
 
   @Prop()
   discountType: string;
@@ -29,10 +26,10 @@ export class Order extends Document {
   @Prop({ default: 0 })
   estimatedRevenue: number;
 
-  @Prop({ required: true })
+  @Prop({ default: 0 })
   lastAmount: number;
 
-  @Prop({ required: true })
+  @Prop({ default: 0 })
   customerPaid: number;
 
   @Prop({ default: 0 })
@@ -43,7 +40,7 @@ export class Order extends Document {
     enum: OrderNormalStatus,
     default: OrderNormalStatus.PENDING,
   })
-  method: string;
+  status: string;
 
   @Prop({ default: false })
   isReturnedOrder: boolean;

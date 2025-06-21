@@ -26,7 +26,7 @@ export class PaymentRepository {
   }
 
   async findByOrderId(orderId: string): Promise<PaymentDocument[]> {
-    return this.paymentModel.find({ orderId }).populate('orderId').exec();
+    return this.paymentModel.find({ orderId });
   }
 
   async findByRepairRequestId(

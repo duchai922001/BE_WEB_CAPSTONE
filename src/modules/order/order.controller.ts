@@ -8,6 +8,8 @@ import {
   Post,
   Put,
   Query,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CustomerCreateOrderDto } from './dtos/customer-create-order.dto';
@@ -15,14 +17,21 @@ import { createResponse } from 'src/common/helpers/response.helper';
 import { ResponseMessage } from 'src/common/enums/responseMessage';
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { UpdateOrderDto } from './dtos/update-order.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('orders')
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
-  @Post('customer')
-  async employeeCreateOrder(@Body() dto: CustomerCreateOrderDto) {
-    const data = await this.orderService.customerCreate(dto);
+  @Get('search')
+  async searchByOrderCode(@Query('orderCode') orderCode: string) {
+    const data = await this.orderService.searchOrderByOrderCode(orderCode);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
+
+  @Post('')
+  async create(@Body() dto: CustomerCreateOrderDto) {
+    const data = await this.orderService.createOrder(dto);
     return createResponse(HttpStatus.CREATED, data, ResponseMessage.CREATE);
   }
 
@@ -32,7 +41,7 @@ export class OrderController {
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
 
-  @Get(':id')
+  @Get('get-by-id/:id')
   async getById(@Param('id') id: string) {
     const data = await this.orderService.findById(id);
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
@@ -50,9 +59,10 @@ export class OrderController {
     return createResponse(HttpStatus.OK, data, ResponseMessage.DELETE);
   }
 
-  @Get('user/:userId')
-  async getByUserId(@Param('userId') userId: string) {
-    const data = await this.orderService.getByUserId(userId);
+  @UseGuards(JwtAuthGuard)
+  @Get('user')
+  async getByUserId(@Request() req) {
+    const data = await this.orderService.getByUserId(req.user.userId);
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
 }
