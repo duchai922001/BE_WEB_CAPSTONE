@@ -50,6 +50,7 @@ export class OrderRepository {
   async getByUserId(userId: string): Promise<OrderDocument[]> {
     const orders = await this.orderModel
       .find({ userId })
+      .populate('orderItems')
       .sort({ createdAt: -1 })
       .exec();
     if (!orders || orders.length === 0) {
