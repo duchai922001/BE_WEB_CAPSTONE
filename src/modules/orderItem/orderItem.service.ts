@@ -28,8 +28,6 @@ export class OrderItemService {
 
   async getByOrderId(orderId: string) {
     const orderItems = await this.orderItemRepository.getByOrderId(orderId);
-    console.log(orderItems);
-    console.log('Order Items:', orderItems);
     if (!orderItems || orderItems.length === 0) {
       throw new NotFoundException('Không tìm thấy OrderItem cho đơn hàng này');
     }

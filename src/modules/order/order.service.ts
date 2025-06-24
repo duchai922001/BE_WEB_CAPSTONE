@@ -69,7 +69,13 @@ export class OrderService {
   }
 
   async findById(id: string) {
-    return await this.orderRepository.findById(id);
+    console.log({ id });
+    const orderItems = await this.orderItemRepository.getByOrderId(id);
+    const order = await this.orderRepository.findById(id);
+    return {
+      order,
+      orderItems,
+    };
   }
 
   async update(id: string, data: UpdateOrderDto) {
@@ -82,7 +88,6 @@ export class OrderService {
 
   async getByUserId(userId: string) {
     const orders = await this.orderRepository.getByUserId(userId);
-    console.log({ orders });
     // const responseData = await Promise.all(
     //   orders.map(async (order) => {
     //     const payment = await this.paymentRepo.findByOrderId(

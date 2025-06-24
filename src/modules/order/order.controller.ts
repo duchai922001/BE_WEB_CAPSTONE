@@ -41,7 +41,7 @@ export class OrderController {
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
 
-  @Get('get-by-id/:id')
+  @Get('getById/:id')
   async getById(@Param('id') id: string) {
     const data = await this.orderService.findById(id);
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
