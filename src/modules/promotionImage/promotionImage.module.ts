@@ -12,7 +12,7 @@ import { PromotionImageController } from './promotionImage.controller';
     ]),
   ],
   providers: [PromotionImageRepository, PromotionImageService],
-  exports: [],
   controllers: [PromotionImageController],
+  exports: [PromotionImageRepository],
 })
 export class PromotionImageModule {}

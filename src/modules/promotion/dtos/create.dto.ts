@@ -12,7 +12,16 @@ import {
   ArrayUnique,
 } from 'class-validator';
 import { PromotionDiscountType } from 'src/common/enums/promotion';
+import { PromotionImageType } from 'src/common/enums/promotionImage';
+export class CreatePromotionImageDto {
+  @IsNotEmpty()
+  @IsString()
+  url: string;
 
+  @IsEnum(PromotionImageType)
+  @IsNotEmpty()
+  type: PromotionImageType;
+}
 export class CreatePromotionDto {
   @IsArray()
   @IsMongoId({ each: true })
@@ -21,9 +30,7 @@ export class CreatePromotionDto {
   products?: string[];
 
   @IsArray()
-  @IsMongoId({ each: true })
-  @IsOptional()
-  promotionImages?: string[];
+  promotionImages?: CreatePromotionImageDto[];
 
   @IsMongoId()
   @IsNotEmpty()
@@ -39,7 +46,6 @@ export class CreatePromotionDto {
 
   @IsNumber()
   @Min(0)
-  @IsOptional()
   discountValue?: number;
 
   @IsEnum(PromotionDiscountType)
@@ -50,8 +56,4 @@ export class CreatePromotionDto {
 
   @IsDateString()
   endDate: string;
-
-  @IsBoolean()
-  @IsOptional()
-  status?: boolean;
 }
