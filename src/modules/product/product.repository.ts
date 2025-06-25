@@ -74,6 +74,13 @@ export class ProductRepository {
       .exec();
   }
 
+  async findByCategoryId(categoryId: string) {
+    return this.productModel
+      .find({ categoryId: categoryId })
+      .populate('brandId categoryId')
+      .exec();
+  }
+
   async getBrandIdsByCategoryId(categoryId: string) {
     const products = await this.productModel
       .find({ categoryId })

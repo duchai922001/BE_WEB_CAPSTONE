@@ -43,6 +43,12 @@ export class ProductController {
   @Get('brand/:brandName')
   async getByBrandName(@Param('brandName') brandName: string) {
     const data = await this.productService.getProductsByBrandName(brandName);
-    return createResponse(HttpStatus.CREATED, data, ResponseMessage.GET);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
+
+  @Get('category/:categoryName')
+  async getByCategoryName(@Param('categoryName') brandName: string) {
+    const data = await this.productService.getProductsByCategoryName(brandName);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
 }
