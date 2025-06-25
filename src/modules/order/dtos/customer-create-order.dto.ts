@@ -1,5 +1,5 @@
-import { Type } from 'class-transformer';
 import {
+  IsArray,
   IsBoolean,
   IsEnum,
   IsMongoId,
@@ -7,8 +7,20 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  ValidateNested,
 } from 'class-validator';
-import { OrderNormalStatus } from 'src/common/enums/orderStatus';
+import { Type } from 'class-transformer';
+
+export class OrderItems {
+  @IsNotEmpty()
+  @IsMongoId()
+  productId: string;
+
+  @IsNotEmpty()
+  @IsNumber()
+  @Type(() => Number)
+  quantity: number;
+}
 
 export class CustomerCreateOrderDto {
   @IsNotEmpty()
@@ -26,7 +38,7 @@ export class CustomerCreateOrderDto {
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
-  discountValue: string;
+  discountValue: number;
 
   @IsNotEmpty()
   @IsNumber()
@@ -34,34 +46,8 @@ export class CustomerCreateOrderDto {
   totalAmount: number;
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  estimatedRevenue: number;
-
-  @IsNotEmpty()
-  @IsNumber()
-  @Type(() => Number)
-  lastAmount: number;
-
-  @IsNotEmpty()
-  @IsNumber()
-  @Type(() => Number)
-  customerPaid: number;
-
-  @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  customerDept?: number;
-
-  @IsOptional()
-  @IsEnum(OrderNormalStatus)
-  method: OrderNormalStatus;
-
-  @IsOptional()
-  @IsBoolean()
-  isReturnedOrder?: boolean;
-
-  @IsOptional()
-  @IsString()
-  reason?: string;
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => OrderItems)
+  orderItems?: OrderItems[];
 }

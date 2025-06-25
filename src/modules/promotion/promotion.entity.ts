@@ -8,9 +8,6 @@ export class Promotion {
   @Prop({ type: [Types.ObjectId], ref: 'Product', default: [] })
   products: Types.ObjectId[];
 
-  @Prop({ type: [Types.ObjectId], ref: 'PromotionImage', default: [] })
-  promotionImages: Types.ObjectId[];
-
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   createdBy: Types.ObjectId;
 

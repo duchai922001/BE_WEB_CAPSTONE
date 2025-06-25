@@ -30,4 +30,14 @@ export class PromotionImageRepository {
   async deleteById(id: string): Promise<void> {
     await this.promotionImageModel.findByIdAndDelete(id).exec();
   }
+
+  async createMany(data: CreatePromotionImageDto[]): Promise<any> {
+    return this.promotionImageModel.insertMany(data);
+  }
+
+  async findByPromotionId(
+    promotionId: string,
+  ): Promise<PromotionImageDocument[]> {
+    return this.promotionImageModel.find({ promotionId }).exec();
+  }
 }

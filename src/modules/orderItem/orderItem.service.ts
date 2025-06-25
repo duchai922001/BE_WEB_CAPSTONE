@@ -1,7 +1,7 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { OrderItemRepository } from "./orderItem.repository";
-import { CreateOrderItemDto } from "./dtos/create-orderItem.dto";
-import { BaseQueryDto } from "src/common/dtos/base-query.dto";
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { OrderItemRepository } from './orderItem.repository';
+import { CreateOrderItemDto } from './dtos/create-orderItem.dto';
+import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 
 @Injectable()
 export class OrderItemService {
@@ -24,5 +24,13 @@ export class OrderItemService {
   async delete(id: string) {
     const ok = await this.orderItemRepository.delete(id);
     if (!ok) throw new NotFoundException('Không thể xóa OrderItem');
+  }
+
+  async getByOrderId(orderId: string) {
+    const orderItems = await this.orderItemRepository.getByOrderId(orderId);
+    if (!orderItems || orderItems.length === 0) {
+      throw new NotFoundException('Không tìm thấy OrderItem cho đơn hàng này');
+    }
+    return orderItems;
   }
 }
