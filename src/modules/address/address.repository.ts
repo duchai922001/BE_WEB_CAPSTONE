@@ -33,10 +33,18 @@ export class AddressRepository {
     id: string,
     data: UpdateAddressDto,
   ): Promise<AddressDocument | null> {
-    return this.addressModel.findByIdAndUpdate({_id: id}, data, { new: true }).exec();
+    return this.addressModel
+      .findByIdAndUpdate({ _id: id }, data, { new: true })
+      .exec();
+  }
+  async updateMany(filter: any, update: any): Promise<void> {
+    await this.addressModel.updateMany(filter, update);
   }
 
   async deleteById(id: string): Promise<void> {
     await this.addressModel.findByIdAndDelete(id).exec();
   }
+  async findOne(filter: any): Promise<Address | null> {
+  return this.addressModel.findOne(filter).exec();
+}
 }

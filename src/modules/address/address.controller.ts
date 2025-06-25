@@ -55,6 +55,18 @@ export class AddressController {
     }
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
+  @Get('user/:userId/default')
+  async getUserDefaultAddress(@Param('userId') userId: string) {
+    const data = await this.addressService.getDefaultAddressByUserId(userId);
+    if (!data) {
+      return createResponse(
+        HttpStatus.NOT_FOUND,
+        null,
+        ResponseMessage.FILE_NOT_FOUND,
+      );
+    }
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
 
   @Put(':id')
   async updateAddress(@Param('id') id: string, @Body() dto: UpdateAddressDto) {

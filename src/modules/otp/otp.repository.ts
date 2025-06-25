@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Otp, OtpDocument } from './otp.entity';
 import { Model } from 'mongoose';
@@ -19,7 +19,6 @@ export class OtpRepository {
     });
     return otp.save();
   }
-
   async findValidOtp(
     email: string,
     code: string,
@@ -37,7 +36,14 @@ export class OtpRepository {
   }
 
   async markOtpAsUsed(id: string): Promise<void> {
-    await this.otpModel.updateOne({ _id: id }, { isUsed: true }).exec();
+    const result = await this.otpModel
+      .updateOne({ _id: id, isUsed: false }, { $set: { isUsed: true } })
+      .exec();
+
+    if (result.modifiedCount === 0) {
+      // Nếu không có document nào được cập nhật, có nghĩa là đã dùng rồi
+      throw new BadRequestException('OTP đã được sử dụng');
+    }
   }
   async findLastOtp(
     email: string,

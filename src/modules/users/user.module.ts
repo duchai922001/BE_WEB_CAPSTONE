@@ -9,12 +9,14 @@ import { APP_GUARD } from '@nestjs/core';
 import { RolesGuard } from '../roles/guards/role.guard';
 import { AuthModule } from '../auth/auth.module';
 import { PermissionModule } from '../permissions/permission.module';
+import { AddressModule } from '../address/address.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     RoleModule,
     PermissionModule,
+    AddressModule,
     forwardRef(() => AuthModule),
   ],
   providers: [

@@ -59,7 +59,6 @@ export class OtpService {
 
     console.log(`Sent OTP ${code} to ${email}`);
   }
-
   async verifyOtp(
     email: string,
     code: string,
@@ -67,12 +66,11 @@ export class OtpService {
   ): Promise<{ userId: string }> {
     const otp = await this.otpRepository.findValidOtp(email, code, purpose);
     if (!otp) {
-      throw new BadRequestException('OTP is invalid or expired');
+      throw new BadRequestException('OTP không đúng hoặc đã hết hạn');
     }
 
     await this.otpRepository.markOtpAsUsed(otp._id.toString());
 
-    // Lấy userId từ email (giả sử bạn có userRepository)
     const user = await this.userRepository.findByEmail(email);
     if (!user) {
       throw new NotFoundException('Không tìm thấy người dùng với email này');

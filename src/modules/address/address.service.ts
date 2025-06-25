@@ -10,6 +10,13 @@ export class AddressService {
 
   async create(data: CreateAddressDto): Promise<Address> {
     const { userId, receiverName, phone, fullAddress, isDefault } = data;
+
+    if (isDefault) {
+      await this.addressRepository.updateMany(
+        { userId },
+        { $set: { isDefault: false } },
+      );
+    }
     const address = await this.addressRepository.create({
       userId,
       receiverName,
@@ -35,15 +42,31 @@ export class AddressService {
   async getAllAddresses(): Promise<Address[]> {
     return this.addressRepository.findAll();
   }
+  async getDefaultAddressByUserId(userId: string): Promise<Address | null> {
+    return this.addressRepository.findOne({
+      userId,
+      isDefault: true,
+    });
+  }
 
   async updateAddress(
     id: string,
     data: UpdateAddressDto,
   ): Promise<Address | null> {
-    const updatedAddress = await this.addressRepository.updateById(id, data);
-    if (!updatedAddress) {
-      return null;
+    const existingAddress = await this.addressRepository.findById(id);
+    if (!existingAddress) return null;
+
+    // Nếu người dùng đang đặt địa chỉ này là mặc định
+    if (data.isDefault) {
+      // Đặt tất cả các địa chỉ khác của user về false
+      await this.addressRepository.updateMany(
+        { userId: existingAddress.userId, _id: { $ne: id } },
+        { isDefault: false },
+      );
     }
+
+    // Cập nhật địa chỉ được chọn
+    const updatedAddress = await this.addressRepository.updateById(id, data);
     return updatedAddress;
   }
 

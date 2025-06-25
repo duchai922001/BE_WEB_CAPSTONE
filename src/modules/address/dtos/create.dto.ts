@@ -2,7 +2,7 @@ import { IsString, IsBoolean, IsOptional, IsNotEmpty, IsMongoId } from 'class-va
 
 export class CreateAddressDto {
   @IsMongoId()
-  @IsNotEmpty()
+  @IsOptional()
   userId: string;
 
   @IsString()

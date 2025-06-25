@@ -52,7 +52,7 @@ export class UserRepository {
   }
 
   async findById(id: string): Promise<UserDocument | null> {
-    return this.userModel.findById(id).select('-password').exec();
+    return this.userModel.findById(id).exec();
   }
 
   async findByPhone(phone: string): Promise<UserDocument | null> {
@@ -65,13 +65,18 @@ export class UserRepository {
 
   async update(id: string, data: UpdateUserDto): Promise<UserDocument | null> {
     return this.userModel
-      .findByIdAndUpdate(id, data, { new: true })
+      .findByIdAndUpdate(id, data, { new: true})
       .select('-password')
       .exec();
   }
   async updatePassword(id: string, hashedPassword: string): Promise<UserDocument | null> {
   return this.userModel
     .findByIdAndUpdate(id, { password: hashedPassword }, { new: true })
+    .exec();
+}
+  async updateEmail(id: string, email: string): Promise<UserDocument | null> {
+  return this.userModel
+    .findByIdAndUpdate(id, { email: email }, { new: true })
     .select('-password')
     .exec();
 }

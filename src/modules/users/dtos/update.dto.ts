@@ -6,17 +6,10 @@ export class UpdateUserDto {
   fullName?: string;
 
   @IsOptional()
-  @IsEmail()
-  email?: string;
-
-  @IsOptional()
   @IsString()
   avatar?: string;
 
   @IsOptional()
   status?: number;
 
-  @IsOptional()
-  @IsString()
-  roleId: string;
 }
