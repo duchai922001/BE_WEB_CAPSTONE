@@ -13,7 +13,6 @@ export class PromotionService {
   ) {}
 
   async create(data: CreatePromotionDto): Promise<any> {
-    console.log({ data });
     const {
       createdBy,
       description,
