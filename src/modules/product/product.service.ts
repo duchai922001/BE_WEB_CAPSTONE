@@ -524,4 +524,35 @@ export class ProductService {
       }),
     );
   }
+
+  async getProductsByCategoryName(categoryName: string) {
+    const category = await this.categoryRepo.findByName(categoryName);
+    if (!category) {
+      throw new NotFoundException(`Danh mục ${categoryName} không tìm thấy`);
+    }
+
+    const products = await this.productRepository.findByCategoryId(
+      String(category._id),
+    );
+    return Promise.all(
+      products.map(async (product) => {
+        const images = await this.productImageService.findByProductId(
+          String(product._id),
+        );
+        const variables = await this.variableService.findByProductId(
+          String(product._id),
+        );
+
+        return {
+          id: product._id,
+          name: product.name,
+          description: product.description,
+          sellPrice: product.sellPrice,
+          listImage: images.map((img) => img.url),
+          variables,
+          categoryId: product.categoryId,
+        };
+      }),
+    );
+  }
 }
