@@ -5,7 +5,9 @@ import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 
 @Injectable()
 export class OrderItemService {
-  constructor(private readonly orderItemRepository: OrderItemRepository) {}
+  constructor(
+    private readonly orderItemRepository: OrderItemRepository,
+  ) {}
 
   async create(dto: CreateOrderItemDto) {
     return await this.orderItemRepository.create(dto);

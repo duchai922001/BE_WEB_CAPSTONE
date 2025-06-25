@@ -5,12 +5,14 @@ import { Model, Types } from 'mongoose';
 import { CreateOrderItemDto } from './dtos/create-orderItem.dto';
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { builderQuery } from 'src/common/helpers/query-builder.helper';
+import { ProductImageRepository } from '../productImage/productImage.repository';
 
 @Injectable()
 export class OrderItemRepository {
   constructor(
     @InjectModel(OrderItem.name)
     private readonly OrderItemModel: Model<OrderItemDocument>,
+    private readonly productImageRepository: ProductImageRepository,
   ) {}
 
   async create(data: CreateOrderItemDto): Promise<OrderItemDocument> {
@@ -41,7 +43,7 @@ export class OrderItemRepository {
     })
       .populate({
         path: 'productId',
-        select: 'name sellPrice',
+        select: 'name brand costPrice sellPrice typeProduct',
       })
       .sort({ createdAt: -1 })
       .lean()
@@ -51,12 +53,26 @@ export class OrderItemRepository {
       throw new Error('No order items found for the given order ID');
     }
 
-    // ✅ Đổi tên productId thành product
+    // Lấy ảnh mặc định của từng sản phẩm
+    const productImages =
+      await this.productImageRepository.findDefaultByProductIds(
+        orderItems.map((item) => item.productId._id.toString()),
+      );
+
+    // Tạo map ảnh theo productId
+    const imageMap = new Map<string, string>();
+    productImages.forEach((img) => {
+      imageMap.set(img.productId.toString(), img.url);
+    });
+
     const formattedItems = orderItems.map((item) => {
       const { productId, ...rest } = item;
+      const imageUrl = imageMap.get(productId._id.toString()) || null;
+      
       return {
         ...rest,
         product: productId,
+        imageUrl,
       };
     });
 

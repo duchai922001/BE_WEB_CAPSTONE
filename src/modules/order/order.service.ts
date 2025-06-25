@@ -69,7 +69,6 @@ export class OrderService {
   }
 
   async findById(id: string) {
-    console.log({ id });
     const orderItems = await this.orderItemRepository.getByOrderId(id);
     const order = await this.orderRepository.findById(id);
     return {
