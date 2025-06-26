@@ -10,7 +10,7 @@ import { AddressController } from './address.controller';
     MongooseModule.forFeature([{ name: Address.name, schema: AddressSchema }]),
   ],
   providers: [AddressRepository, AddressService],
-  exports: [],
+  exports: [AddressService],
   controllers: [AddressController],
 })
 export class AddressModule {}

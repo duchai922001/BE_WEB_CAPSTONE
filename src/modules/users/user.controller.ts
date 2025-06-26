@@ -5,9 +5,11 @@ import {
   Get,
   HttpStatus,
   Param,
+  Patch,
   Post,
   Put,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
@@ -36,6 +38,17 @@ export class UserController {
     const data = await this.userService.getAll(query);
     return createResponse(HttpStatus.OK, data, 'Lấy danh sách User thành công');
   }
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  async getMe(@Req() req: Request) {
+    const userId = (req as any).user.userId;
+    const user = await this.userService.getById(userId);
+    return {
+      statusCode: 200,
+      message: 'Lấy thông tin người dùng thành công',
+      data: user,
+    };
+  }
 
   @Get(':id')
   async getById(@Param('id') id: string) {
@@ -51,13 +64,31 @@ export class UserController {
 
   @Put(':id')
   async updateUser(@Param('id') id: string, @Body() dto: UpdateUserDto) {
-    const updated = await this.userService.updateUser(id, dto);
+    const updated = await this.userService.updateUserBasicInformation(id, dto);
     return createResponse(
       HttpStatus.OK,
       updated,
       'Cập nhật người dùng thành công',
     );
   }
+  @Patch(':id/update-email')
+  async updateUserEmail(
+    @Param('id') id: string,
+    @Body() body: {email: string},
+  ) {
+    const updatedUser = await this.userService.updateEmail(id, body.email);
+    return updatedUser;
+  }
+
+  @Put('change-password/:id')
+  async changePassword(
+    @Param('id') id: string,
+    @Body() body: { hashedPassword: string },
+  ) {
+    const result = await this.userService.changePassword(id, body);
+    return createResponse(HttpStatus.OK, result, 'Đổi mật khẩu thành công');
+  }
+
   @Delete(':id')
   async remove(@Param('id') id: string) {
     await this.userService.deleteUser(id);
