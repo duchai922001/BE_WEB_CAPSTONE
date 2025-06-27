@@ -8,8 +8,12 @@ import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 export class BlogService {
   constructor(private readonly blogRepository: BlogRepository) {}
 
-  async createBlog(dto: CreateBlogDto): Promise<Blog> {
-    return this.blogRepository.createBlog(dto);
+  async createBlog(dto: CreateBlogDto, userId: string): Promise<Blog> {
+    const payload = {
+      ...dto,
+      userId,
+    };
+    return this.blogRepository.createBlog(payload);
   }
 
   async updateBlog(id: string, dto: Partial<CreateBlogDto>): Promise<Blog> {

@@ -1,11 +1,13 @@
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { TypeBlog } from '../blog.entity';
 
 export class CreateBlogDto {
-  @IsString()
-  @IsNotEmpty()
-  userId: string;
-
   @IsString()
   @IsNotEmpty()
   title: string;
@@ -26,9 +28,10 @@ export class CreateBlogDto {
   @IsNotEmpty()
   content: string;
 
-  @IsString()
   @IsOptional()
-  hashTag?: string;
+  @IsArray()
+  @IsString({ each: true })
+  hashTag?: string[];
 
   @IsEnum(TypeBlog)
   @IsNotEmpty()

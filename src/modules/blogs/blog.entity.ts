@@ -26,8 +26,8 @@ export class Blog {
   @Prop({ required: true })
   content: string;
 
-  @Prop()
-  hashTag: string;
+  @Prop({ type: [String], default: [] })
+  hashTag: string[];
 
   @Prop({ required: true, enum: TypeBlog })
   typeBlog: TypeBlog;

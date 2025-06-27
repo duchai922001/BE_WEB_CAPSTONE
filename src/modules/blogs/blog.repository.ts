@@ -12,7 +12,7 @@ export class BlogRepository {
     @InjectModel(Blog.name) private readonly blogModel: Model<BlogDocument>,
   ) {}
 
-  async createBlog(dto: CreateBlogDto): Promise<Blog> {
+  async createBlog(dto: any): Promise<Blog> {
     const createdBlog = new this.blogModel(dto);
     return createdBlog.save();
   }
