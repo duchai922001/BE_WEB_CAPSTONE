@@ -11,7 +11,23 @@ export class UpdateAddressDto {
 
   @IsString()
   @IsOptional()
-  fullAddress?: string;
+  provinces?: string;
+
+  @IsString()
+  @IsOptional()
+  districts?: string;
+
+  @IsString()
+  @IsOptional()
+  wards?: string;
+
+  @IsString()
+  @IsOptional()
+  street?: string;
+
+  @IsString()
+  @IsOptional()
+  postalCode?: string;
 
   @IsBoolean()
   @IsOptional()

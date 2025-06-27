@@ -14,7 +14,19 @@ export class Address extends Document {
   phone: string;
 
   @Prop({ required: true })
-  fullAddress: string;
+  provinces: string;
+
+  @Prop({ required: true })
+  districts: string;
+
+  @Prop({ required: true })
+  wards: string;
+
+  @Prop({ required: true })
+  street: string;
+
+  @Prop({ required: true })
+  postalCode: string;
 
   @Prop({ default: false })
   isDefault: boolean;

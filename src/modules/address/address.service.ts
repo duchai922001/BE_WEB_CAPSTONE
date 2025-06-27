@@ -9,8 +9,17 @@ export class AddressService {
   constructor(private readonly addressRepository: AddressRepository) {}
 
   async create(data: CreateAddressDto): Promise<Address> {
-    const { userId, receiverName, phone, fullAddress, isDefault } = data;
-
+    const {
+      userId,
+      receiverName,
+      phone,
+      provinces,
+      districts,
+      wards,
+      street,
+      postalCode,
+      isDefault,
+    } = data;
     if (isDefault) {
       await this.addressRepository.updateMany(
         { userId },
@@ -21,7 +30,11 @@ export class AddressService {
       userId,
       receiverName,
       phone,
-      fullAddress,
+      provinces,
+      districts,
+      wards,
+      street,
+      postalCode,
       isDefault,
     });
     return address;

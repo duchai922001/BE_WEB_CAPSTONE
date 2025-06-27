@@ -1,4 +1,10 @@
-import { IsString, IsBoolean, IsOptional, IsNotEmpty, IsMongoId } from 'class-validator';
+import {
+  IsString,
+  IsBoolean,
+  IsOptional,
+  IsNotEmpty,
+  IsMongoId,
+} from 'class-validator';
 
 export class CreateAddressDto {
   @IsMongoId()
@@ -15,9 +21,25 @@ export class CreateAddressDto {
 
   @IsString()
   @IsNotEmpty()
-  fullAddress: string;
+  provinces: string;
+
+  @IsString()
+  @IsNotEmpty()
+  districts: string;
+
+  @IsString()
+  @IsNotEmpty()
+  wards: string;
+
+  @IsString()
+  @IsNotEmpty()
+  street: string;
+
+  @IsString()
+  @IsNotEmpty()
+  postalCode: string;
 
   @IsBoolean()
-  @IsOptional() 
+  @IsOptional()
   isDefault?: boolean;
 }

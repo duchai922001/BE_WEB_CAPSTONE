@@ -33,6 +33,7 @@ export class AuthController {
     const result = await this.authService.isAccessTokenValid(token);
     return result;
   }
+  
   @Post('logout')
   async logout(@Req() req: Request, @Body() body: { refreshToken: string }) {
     const user = (req as any).user;
