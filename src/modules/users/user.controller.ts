@@ -24,6 +24,7 @@ import { Roles } from '../roles/role.decorator';
 import { PermissionsGuard } from '../permissions/guards/permission.guard';
 import { Permissions } from '../permissions/permission.decorator';
 import { PermissionSystem } from 'src/common/enums/permission';
+import { ResponseMessage } from 'src/common/enums/responseMessage';
 
 @Controller('users')
 export class UserController {
@@ -49,7 +50,11 @@ export class UserController {
       data: user,
     };
   }
-
+  @Get('staff-system')
+  async getStaffSystem() {
+    const data = await this.userService.getUsersExcludeAdminAndCustomer();
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
   @Get(':id')
   async getById(@Param('id') id: string) {
     const user = await this.userService.getById(id);
@@ -74,7 +79,7 @@ export class UserController {
   @Patch(':id/update-email')
   async updateUserEmail(
     @Param('id') id: string,
-    @Body() body: {email: string},
+    @Body() body: { email: string },
   ) {
     const updatedUser = await this.userService.updateEmail(id, body.email);
     return updatedUser;
@@ -94,10 +99,11 @@ export class UserController {
     await this.userService.deleteUser(id);
     return { message: 'Xóa người dùng thành công' };
   }
+
   // @UseGuards(JwtAuthGuard, RolesGuard)
   // @Roles(UserRole.ADMIN)
   @UseGuards(JwtAuthGuard, PermissionsGuard)
-  @Permissions(PermissionSystem.TEST, PermissionSystem.CREATE_USER)
+  // @Permissions(PermissionSystem.TEST, PermissionSystem.CREATE_USER)
   @Post('admin-only')
   getForAdmin() {
     return 'Chỉ Admin mới truy cập được';

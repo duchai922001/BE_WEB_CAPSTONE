@@ -1,13 +1,12 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
-import { RoleSystem } from 'src/common/enums/role';
 
 export type RoleDocument = Role & Document;
 
 @Schema({ timestamps: true, versionKey: false })
 export class Role {
-  @Prop({ required: true, enum: RoleSystem, unique: true })
-  name: RoleSystem;
+  @Prop({ required: true, type: String, unique: true })
+  name: string;
 
   @Prop()
   description: string;

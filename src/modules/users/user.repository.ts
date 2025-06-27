@@ -10,15 +10,14 @@ import { UpdateUserDto } from './dtos/update.dto';
 export class UserRepository {
   constructor(
     @InjectModel(User.name)
-    private readonly userModel: Model<UserDocument>, 
+    private readonly userModel: Model<UserDocument>,
   ) {}
-  //Tìm hiểu xong
-  async create(data: any): Promise<UserDocument>/*Chỗ này đáng lý ban đầu trả về một User (Vẫn có thể chấp nhận)*/  {
+
+  async create(data: any): Promise<UserDocument> {
     const newUser = new this.userModel(data);
-    return newUser.save(); // Cái này trả về một UserDocument
+    return newUser.save();
   }
 
-  // Chưa tìm hiểu phân trang và keyword rõ nhưng tạm thời là ok
   async find(query: BaseQueryDto): Promise<UserDocument[]> {
     const { filter, pagination, sort } = builderQuery(query);
     const queryBuilder = this.userModel
@@ -27,9 +26,9 @@ export class UserRepository {
       .limit(pagination.limit)
       .sort(sort as any);
 
-    return queryBuilder.exec(); //Trả về mảng UserDocument
+    return queryBuilder.exec();
   }
-  // Ok giống trên
+
   async count(query: BaseQueryDto) {
     const { filter } = builderQuery(query);
     return this.userModel.countDocuments(filter).exec();
@@ -65,23 +64,34 @@ export class UserRepository {
 
   async update(id: string, data: UpdateUserDto): Promise<UserDocument | null> {
     return this.userModel
-      .findByIdAndUpdate(id, data, { new: true})
+      .findByIdAndUpdate(id, data, { new: true })
       .select('-password')
       .exec();
   }
-  async updatePassword(id: string, hashedPassword: string): Promise<UserDocument | null> {
-  return this.userModel
-    .findByIdAndUpdate(id, { password: hashedPassword }, { new: true })
-    .exec();
-}
+  async updatePassword(
+    id: string,
+    hashedPassword: string,
+  ): Promise<UserDocument | null> {
+    return this.userModel
+      .findByIdAndUpdate(id, { password: hashedPassword }, { new: true })
+      .exec();
+  }
   async updateEmail(id: string, email: string): Promise<UserDocument | null> {
-  return this.userModel
-    .findByIdAndUpdate(id, { email: email }, { new: true })
-    .select('-password')
-    .exec();
-}
+    return this.userModel
+      .findByIdAndUpdate(id, { email: email }, { new: true })
+      .select('-password')
+      .exec();
+  }
   async delete(id: string): Promise<boolean> {
     const result = await this.userModel.deleteOne({ _id: id });
     return result.deletedCount > 0;
+  }
+
+  async findUsersExcludeRoles(excludedRoles: string[]) {
+    const users = await this.userModel.find().populate('roleId').exec();
+    return users.filter((user: any) => {
+      const roleName = user.roleId?.name?.toUpperCase?.();
+      return !excludedRoles.includes(roleName);
+    });
   }
 }

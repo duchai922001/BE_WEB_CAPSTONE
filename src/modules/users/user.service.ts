@@ -62,8 +62,6 @@ export class UserService {
     }
     return user;
   }
-
-  //Hàm này không thể trả ra một UserDocument tại vì ràng buộc 1: không có password, 2: cần có _id
   async validateUser(phone: string, password: string): Promise<any> {
     const user = await this.userRepository.findByPhone(phone);
     if (!user) {
@@ -112,7 +110,7 @@ export class UserService {
       throw new NotFoundException('Không tìm thấy');
     }
     const updatedUser = await this.userRepository.updateEmail(id, email);
-        if (!updatedUser) {
+    if (!updatedUser) {
       throw new NotFoundException('Không thể cập nhật người dùng');
     }
     return updatedUser;
@@ -134,8 +132,11 @@ export class UserService {
     }
   }
 
-  async changePassword(id: string, payload: {hashedPassword: string}): Promise<any> {
-      const { hashedPassword } = payload;
+  async changePassword(
+    id: string,
+    payload: { hashedPassword: string },
+  ): Promise<any> {
+    const { hashedPassword } = payload;
     if (!isValidObjectId(id)) {
       throw new BadRequestException('ID người dùng không hợp lệ');
     }
@@ -153,10 +154,17 @@ export class UserService {
     };
   }
   async getUserByEmail(email: string): Promise<UserDocument> {
-  const user = await this.userRepository.findByEmail(email);
-  if (!user) {
-    throw new NotFoundException('Không tìm thấy người dùng với email này');
+    const user = await this.userRepository.findByEmail(email);
+    if (!user) {
+      throw new NotFoundException('Không tìm thấy người dùng với email này');
+    }
+    return user;
   }
-  return user;
-}
+
+  async getUsersExcludeAdminAndCustomer() {
+    return await this.userRepository.findUsersExcludeRoles([
+      'ADMIN',
+      'CUSTOMER',
+    ]);
+  }
 }

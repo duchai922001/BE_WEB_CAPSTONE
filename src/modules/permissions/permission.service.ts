@@ -1,17 +1,17 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { PermissionRepository } from "./permission.repository";
-import { CreatePermissionDto } from "./dtos/create-permisson.dto";
-import { UpdatePermissionDto } from "./dtos/update-permission.dto";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { PermissionRepository } from './permission.repository';
+import { CreatePermissionDto } from './dtos/create-permisson.dto';
+import { UpdatePermissionDto } from './dtos/update-permission.dto';
 
 @Injectable()
 export class PermissionService {
   constructor(private readonly permisRepo: PermissionRepository) {}
 
   async create(dto: CreatePermissionDto) {
-    const permission = await this.permisRepo.findByName(dto.name);
-    if(permission){
-      throw new BadRequestException('permission đã tồn tại');
-    }
     return this.permisRepo.create(dto);
   }
 
