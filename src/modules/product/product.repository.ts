@@ -89,4 +89,37 @@ export class ProductRepository {
     const brandIdSet = new Set(products.map((p) => p.brandId.toString()));
     return Array.from(brandIdSet).map((id) => new Types.ObjectId(id));
   }
+
+  async findWithPagination(query: BaseQueryDto) {
+    const { page = '1', limit = '10', keyword } = query;
+
+    const filter: any = {};
+
+    if (keyword) {
+      filter.name = { $regex: keyword, $options: 'i' };
+    }
+
+  
+
+    const pageNumber = parseInt(page);
+    const limitNumber = parseInt(limit);
+
+    const [data, total] = await Promise.all([
+      this.productModel
+        .find(filter)
+        .select('_id name costPrice sellPrice stock barcode')
+        .skip((pageNumber - 1) * limitNumber)
+        .limit(limitNumber)
+        .sort({ createdAt: -1 }),
+      this.productModel.countDocuments(filter),
+    ]);
+
+    return {
+      data,
+      total,
+      page: pageNumber,
+      limit: limitNumber,
+      totalPages: Math.ceil(total / limitNumber),
+    };
+  }
 }

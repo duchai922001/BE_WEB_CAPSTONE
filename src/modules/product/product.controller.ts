@@ -22,6 +22,12 @@ export class ProductController {
     return createResponse(HttpStatus.CREATED, data, ResponseMessage.CREATE);
   }
 
+  @Get()
+  async getProducts(@Query() query: BaseQueryDto) {
+    const data = await this.productService.getList(query);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
+
   @Get('form-category')
   async getProductsFormCategory() {
     const data = await this.productService.getProductsFormCategory();

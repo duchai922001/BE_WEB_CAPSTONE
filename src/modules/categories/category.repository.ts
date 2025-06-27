@@ -25,11 +25,18 @@ export class CategoryRepository {
 
   async findAll(query: BaseQueryDto): Promise<Category[]> {
     const { filter, pagination, sort } = builderQuery(query);
+  
+    const finalFilter = {
+      ...filter,
+      isDelete: false,
+    };
+  
     const queryBuilder = this.categoryModel
-      .find(filter)
+      .find(finalFilter)
       .skip(pagination.skip)
       .limit(pagination.limit)
       .sort(sort as any);
+  
     return queryBuilder.exec();
   }
 

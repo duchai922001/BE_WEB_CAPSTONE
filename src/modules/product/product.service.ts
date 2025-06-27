@@ -555,4 +555,8 @@ export class ProductService {
       }),
     );
   }
+
+  async getList(query: BaseQueryDto) {
+    return this.productRepository.findWithPagination(query);
+  }
 }
