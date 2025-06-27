@@ -85,59 +85,6 @@ export class UserService {
     return populatedUser.toJSON();
   }
 
-  // async updateUser(id: string, data: UpdateUserDto): Promise<UserDocument> {
-  //   if (!isValidObjectId(id)) {
-  //     throw new BadRequestException('ID người dùng không hợp lệ');
-  //   }
-  //   const user = await this.userRepository.findById(id);
-  //   if (!user) {
-  //     throw new NotFoundException('Không tìm thấy');
-  //   }
-
-  //   if (data.email) {
-  //     const existingByEmail = await this.userRepository.findByEmail(data.email);
-  //     if (existingByEmail && existingByEmail._id != user._id) {
-  //       throw new BadRequestException(
-  //         'Email đã được sử dụng bởi người dùng khác',
-  //       );
-  //     }
-  //   }
-  //   const updatedUser = await this.userRepository.update(id, data);
-  //   if (!updatedUser) {
-  //     throw new NotFoundException('Không thể cập nhật người dùng');
-  //   }
-  //   return updatedUser;
-  // }
-
-  // async updateUserWithAddress(
-  //   id: string,
-  //   data: UpdateUserWithAddressDto,
-  // ): Promise<UserDocument> {
-  //   if (!isValidObjectId(id)) {
-  //     throw new BadRequestException('ID người dùng không hợp lệ');
-  //   }
-  //   const user = await this.userRepository.findById(id);
-  //   if (!user) {
-  //     throw new NotFoundException('Không tìm thấy');
-  //   }
-
-  //   if (data.name) {
-  //     await this.userRepository.update(id, {
-  //       fullName: data.name,
-  //     });
-  //   }
-
-  //   if (data.address) {
-  //     const addressData = {
-  //       ...data.address,
-  //       userId: id,
-  //     };
-  //     await this.addressService.create(addressData);
-  //   }
-
-  //   return this.getById(id);
-  // }
-
   async updateUserBasicInformation(
     id: string,
     data: UpdateUserDto,
@@ -205,4 +152,11 @@ export class UserService {
       userId: result._id,
     };
   }
+  async getUserByEmail(email: string): Promise<UserDocument> {
+  const user = await this.userRepository.findByEmail(email);
+  if (!user) {
+    throw new NotFoundException('Không tìm thấy người dùng với email này');
+  }
+  return user;
+}
 }

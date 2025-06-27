@@ -9,17 +9,19 @@ import * as nodemailer from 'nodemailer';
 import { OtpDocument } from './otp.entity';
 import { UserRepository } from '../users/user.repository';
 import { Types } from 'mongoose';
+import { UserService } from '../users/user.service';
 
 @Injectable()
 export class OtpService {
   constructor(
     private readonly otpRepository: OtpRepository,
     private readonly userRepository: UserRepository,
+    private readonly userService: UserService,
   ) {}
   private transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com', // Hoặc server SMTP của bạn
+    host: 'smtp.gmail.com',
     port: 587,
-    secure: false, // true nếu dùng port 465
+    secure: false,
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
@@ -30,6 +32,11 @@ export class OtpService {
       email,
       purpose,
     )) as OtpDocument & { createdAt: Date };
+
+    const user = await this.userService.getUserByEmail(email);
+    if(!user){
+      throw new BadRequestException('Người dùng không có trong hệ thống, vui lòng kiểm tra lại');
+    }
 
     if (
       lastOtp &&
