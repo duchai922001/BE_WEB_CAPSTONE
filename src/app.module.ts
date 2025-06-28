@@ -30,6 +30,8 @@ import { PaymentModule } from './modules/payment/payment.module';
 import { FavoriteModule } from './modules/favorites/favorites.module';
 import { AttributeKeyModule } from './modules/attribute-key/attribute-key.module';
 import { RepairRequestModule } from './modules/repairRequest/repairRequest.module';
+import { RepairServiceModule } from './modules/repairService/repairService.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -68,7 +70,6 @@ import { RepairRequestModule } from './modules/repairRequest/repairRequest.modul
     PaymentModule,
     FavoriteModule,
     AttributeKeyModule,
-    RepairRequestModule,
   ],
   controllers: [AppController],
   providers: [AppService],
