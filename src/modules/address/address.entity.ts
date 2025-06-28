@@ -1,5 +1,4 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import e from 'express';
 import { Document, Types } from 'mongoose';
 export type AddressDocument = Address & Document;
 
@@ -15,7 +14,28 @@ export class Address extends Document {
   phone: string;
 
   @Prop({ required: true })
-  fullAddress: string;
+  provinceCode: number;
+
+  @Prop({ required: true })
+  provinces: string;
+
+  @Prop({ required: true })
+  districtCode: number;
+
+  @Prop({ required: true })
+  districts: string;
+
+  @Prop({ required: true })
+  wardCode: number;
+
+  @Prop({ required: true })
+  wards: string;
+
+  @Prop({ required: true })
+  street: string;
+
+  @Prop({ required: true })
+  postalCode: string;
 
   @Prop({ default: false })
   isDefault: boolean;

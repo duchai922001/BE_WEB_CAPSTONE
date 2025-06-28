@@ -1,9 +1,16 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+import { PromotionDiscountType } from 'src/common/enums/promotion';
 export type PromotionDocument = Promotion & Document;
 
 @Schema({ timestamps: true, versionKey: false })
 export class Promotion {
+  @Prop({ type: [Types.ObjectId], ref: 'Product', default: [] })
+  products: Types.ObjectId[];
+
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  createdBy: Types.ObjectId;
+
   @Prop({ required: true, unique: true })
   title: string;
 
@@ -13,38 +20,17 @@ export class Promotion {
   @Prop({ default: 0 })
   discountValue: number;
 
-  @Prop({ required: true })
+  @Prop({ required: true, enum: PromotionDiscountType })
   discountType: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, index: true })
   startDate: Date;
 
   @Prop({ required: true })
   endDate: Date;
 
-  @Prop({ required: true })
-  createBy: string;
-
-  @Prop({ required: false })
-  mainImage: string;
-
-  @Prop({ required: false })
-  rightImage: string;
-
-  @Prop({ required: false })
-  LeftImage: string;
-
-  @Prop({ type: [String], default: [] })
-  listImage: string[];
-
-  @Prop({ default: false })
-  isDelete: boolean;
-
-  @Prop({ type: [Types.ObjectId], ref: 'Product', default: [] })
-  products: Types.ObjectId[];
-
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  isSelectBy: Types.ObjectId;
+  @Prop({ default: true })
+  status: boolean;
 }
 
 export const PromotionSchema = SchemaFactory.createForClass(Promotion);

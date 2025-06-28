@@ -1,8 +1,17 @@
-import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put } from "@nestjs/common";
-import { createResponse } from "src/common/helpers/response.helper";
-import { PermissionService } from "./permission.service";
-import { CreatePermissionDto } from "./dtos/create-permisson.dto";
-import { UpdatePermissionDto } from "./dtos/update-permission.dto";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpStatus,
+  Param,
+  Post,
+  Put,
+} from '@nestjs/common';
+import { createResponse } from 'src/common/helpers/response.helper';
+import { PermissionService } from './permission.service';
+import { CreatePermissionDto } from './dtos/create-permisson.dto';
+import { UpdatePermissionDto } from './dtos/update-permission.dto';
 
 @Controller('permissions')
 export class PermissionController {
@@ -11,7 +20,11 @@ export class PermissionController {
   @Post()
   async create(@Body() dto: CreatePermissionDto) {
     const data = await this.permissionService.create(dto);
-    return createResponse(HttpStatus.CREATED, data, 'Tạo Permission thành công');
+    return createResponse(
+      HttpStatus.CREATED,
+      data,
+      'Tạo Permission thành công',
+    );
   }
 
   @Get()
@@ -29,7 +42,11 @@ export class PermissionController {
   @Put(':id')
   async update(@Param('id') id: string, @Body() dto: UpdatePermissionDto) {
     const data = await this.permissionService.update(id, dto);
-    return createResponse(HttpStatus.OK, data, 'Cập nhật Permission thành công');
+    return createResponse(
+      HttpStatus.OK,
+      data,
+      'Cập nhật Permission thành công',
+    );
   }
 
   @Delete(':id')

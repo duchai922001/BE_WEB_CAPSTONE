@@ -21,11 +21,9 @@ export class AdviseGateway implements OnGatewayConnection, OnGatewayDisconnect {
   connectedClients = new Map<string, Socket>(); // lưu client.id và socket
   handleDisconnect(client: any) {
     this.connectedClients.set(client.id, client);
-    console.log(`Client connected: ${client.id}`);
   }
   handleConnection(client: any, ...args: any[]) {
     this.connectedClients.delete(client.id);
-    console.log(`Client disconnected: ${client.id}`);
   }
 
   @SubscribeMessage('request_advise')

@@ -1,9 +1,9 @@
-import { Module } from "@nestjs/common";
-import { CartItemController } from "./cartItem.controller";
-import { CartItem, CartItemSchema } from "./cartItem.entity";
-import { CartItemRepository } from "./cartItem.repository";
-import { CartItemService } from "./cartItem.service";
-import { MongooseModule } from "@nestjs/mongoose";
+import { Module } from '@nestjs/common';
+import { CartItemController } from './cartItem.controller';
+import { CartItem, CartItemSchema } from './cartItem.entity';
+import { CartItemRepository } from './cartItem.repository';
+import { CartItemService } from './cartItem.service';
+import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
   imports: [
@@ -13,5 +13,6 @@ import { MongooseModule } from "@nestjs/mongoose";
   ],
   providers: [CartItemService, CartItemRepository],
   controllers: [CartItemController],
+  exports: [CartItemRepository],
 })
 export class CartItemModule {}

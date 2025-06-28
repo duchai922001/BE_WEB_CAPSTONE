@@ -1,5 +1,6 @@
 import { Prop, SchemaFactory, Schema } from '@nestjs/mongoose';
 import { Types, Document } from 'mongoose';
+import { OrderNormalStatus } from 'src/common/enums/orderStatus';
 
 export type OrderDocument = Order & Document;
 @Schema({ timestamps: true, versionKey: false })
@@ -7,8 +8,11 @@ export class Order extends Document {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   userId: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'Employee'})
+  @Prop({ type: Types.ObjectId, ref: 'Employee' })
   employeeId: Types.ObjectId;
+
+  @Prop({ type: String, unique: true })
+  orderCode: string;
 
   @Prop()
   discountType: string;
@@ -16,25 +20,29 @@ export class Order extends Document {
   @Prop()
   discountValue: string;
 
-  @Prop({required: true})
+  @Prop({ required: true })
   totalAmount: number;
 
-  @Prop({default: 0})
+  @Prop({ default: 0 })
   estimatedRevenue: number;
 
-  @Prop({required: true})
+  @Prop({ default: 0 })
   lastAmount: number;
 
-  @Prop({required: true})
+  @Prop({ default: 0 })
   customerPaid: number;
 
-  @Prop({default: 0})
+  @Prop({ default: 0 })
   customerDept: number;
 
-  @Prop({default: 1})
-  status: number;
+  @Prop({
+    required: true,
+    enum: OrderNormalStatus,
+    default: OrderNormalStatus.PENDING,
+  })
+  status: string;
 
-  @Prop({default: false})
+  @Prop({ default: false })
   isReturnedOrder: boolean;
 
   @Prop()

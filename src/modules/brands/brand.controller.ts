@@ -49,4 +49,10 @@ export class BrandController {
     const data = await this.brandService.delete(id);
     return createResponse(HttpStatus.OK, data, ResponseMessage.DELETE);
   }
+
+  @Get('by-category/:categoryId')
+  async getBrandsByCategory(@Param('categoryId') categoryId: string) {
+    const data = await this.brandService.getBrandsByCategory(categoryId);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
 }

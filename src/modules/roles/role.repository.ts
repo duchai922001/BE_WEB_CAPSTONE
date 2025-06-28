@@ -2,9 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Role, RoleDocument } from './role.entity';
 import { Model, Types } from 'mongoose';
-import { CreateRoleDto } from './dtos/create-role.dto';
 import { UpdateRoleDto } from './dtos/updated-role.dto';
-import { UserRole } from 'src/common/enums/role';
 
 @Injectable()
 export class RoleRepository {
@@ -13,13 +11,13 @@ export class RoleRepository {
     private readonly roleModel: Model<RoleDocument>,
   ) {}
 
-async create(data: {
-  name: UserRole;
-  description?: string;
-  permissionId: Types.ObjectId[];
-}) {
-  return this.roleModel.create(data);
-}
+  async create(data: {
+    name: string;
+    description?: string;
+    permissionId: Types.ObjectId[];
+  }) {
+    return this.roleModel.create(data);
+  }
 
   async findAll(): Promise<RoleDocument[]> {
     return this.roleModel.find().exec();

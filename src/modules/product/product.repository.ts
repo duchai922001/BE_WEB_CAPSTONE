@@ -1,8 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Product, ProductDocument } from './product.entity';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { ICreate } from './dtos/product.interface';
+import { builderQuery } from 'src/common/helpers/query-builder.helper';
+import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
+import { Brand, BrandDocument } from '../brands/brand.entity';
 
 @Injectable()
 export class ProductRepository {
@@ -39,5 +42,82 @@ export class ProductRepository {
 
   async findAll(): Promise<ProductDocument[]> {
     return this.productModel.find().exec();
+  }
+
+  async search(query: BaseQueryDto) {
+    const builder = builderQuery(query);
+
+    const [items, total] = await Promise.all([
+      this.productModel
+        .find(builder.filter)
+        .skip(builder.pagination.skip)
+        .limit(builder.pagination.limit)
+        .sort(builder.sort)
+        .populate(builder.populate)
+        .lean(),
+
+      this.productModel.countDocuments(builder.filter),
+    ]);
+
+    return {
+      items,
+      total,
+      page: Number(query.page || 1),
+      limit: Number(query.limit || 10),
+    };
+  }
+
+  async findByBrandId(brandId: string) {
+    return this.productModel
+      .find({ brandId: brandId })
+      .populate('brandId categoryId')
+      .exec();
+  }
+
+  async findByCategoryId(categoryId: string) {
+    return this.productModel
+      .find({ categoryId: categoryId })
+      .populate('brandId categoryId')
+      .exec();
+  }
+
+  async getBrandIdsByCategoryId(categoryId: string) {
+    const products = await this.productModel
+      .find({ categoryId })
+      .select('brandId')
+      .exec();
+    const brandIdSet = new Set(products.map((p) => p.brandId.toString()));
+    return Array.from(brandIdSet).map((id) => new Types.ObjectId(id));
+  }
+
+  async findWithPagination(query: BaseQueryDto) {
+    const { page = '1', limit = '10', keyword } = query;
+
+    const filter: any = {};
+
+    if (keyword) {
+      filter.name = { $regex: keyword, $options: 'i' };
+    }
+
+    const pageNumber = parseInt(page);
+    const limitNumber = parseInt(limit);
+
+    const [data, total] = await Promise.all([
+      this.productModel
+        .find(filter)
+        .select('_id name costPrice sellPrice stock barcode')
+        .skip((pageNumber - 1) * limitNumber)
+        .limit(limitNumber)
+        .sort({ createdAt: -1 }),
+      this.productModel.countDocuments(filter),
+    ]);
+
+    return {
+      data,
+      total,
+      page: pageNumber,
+      limit: limitNumber,
+      totalPages: Math.ceil(total / limitNumber),
+    };
   }
 }

@@ -7,12 +7,15 @@ import {
   Param,
   Post,
   Put,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
 import { createResponse } from 'src/common/helpers/response.helper';
 import { ResponseMessage } from 'src/common/enums/responseMessage';
 import { AddressService } from './address.service';
 import { CreateAddressDto } from './dtos/create.dto';
 import { UpdateAddressDto } from './dtos/update.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('address')
 export class AddressController {
@@ -30,9 +33,10 @@ export class AddressController {
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
 
-  @Get(':userId')
-  async getAddressByUserId(@Param('userId') userId: string) {
-    const data = await this.addressService.getAddressByUserId(userId);
+  @UseGuards(JwtAuthGuard)
+  @Get('user')
+  async getAddressByUserId(@Request() req) {
+    const data = await this.addressService.getAddressByUserId(req.user.userId);
     if (!data || data.length === 0) {
       return createResponse(
         HttpStatus.NOT_FOUND,
@@ -46,6 +50,19 @@ export class AddressController {
   @Get(':id')
   async getAddressById(@Param('id') id: string) {
     const data = await this.addressService.getAddressById(id);
+    if (!data) {
+      return createResponse(
+        HttpStatus.NOT_FOUND,
+        null,
+        ResponseMessage.FILE_NOT_FOUND,
+      );
+    }
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
+
+  @Get('user/:userId/default')
+  async getUserDefaultAddress(@Param('userId') userId: string) {
+    const data = await this.addressService.getDefaultAddressByUserId(userId);
     if (!data) {
       return createResponse(
         HttpStatus.NOT_FOUND,

@@ -25,6 +25,13 @@ import { CartItemModule } from './modules/cartItem/cartItem.module';
 import { PromotionImageModule } from './modules/promotionImage/promotionImage.module';
 import { AddressModule } from './modules/address/address.module';
 import { NotificationModule } from './modules/notification/notification.module';
+import { OtpModule } from './modules/otp/otp.module';
+import { Payment } from './modules/payment/payment.entity';
+import { PaymentModule } from './modules/payment/payment.module';
+import { FavoriteModule } from './modules/favorites/favorites.module';
+import { AttributeKeyModule } from './modules/attribute-key/attribute-key.module';
+import { RepairRequestModule } from './modules/repairRequest/repairRequest.module';
+import { RepairServiceModule } from './modules/repairService/repairService.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -59,6 +66,12 @@ import { NotificationModule } from './modules/notification/notification.module';
     OrderItemModule,
     CartItemModule,
     NotificationModule,
+    OtpModule,
+    PaymentModule,
+    FavoriteModule,
+    AttributeKeyModule,
+    RepairRequestModule,
+    RepairServiceModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -13,6 +13,6 @@ import { ProductImageRepository } from './productImage.repository';
   ],
   controllers: [ProductImageController],
   providers: [ProductImageService, ProductImageRepository],
-  exports: [ProductImageService],
+  exports: [ProductImageService, ProductImageRepository],
 })
 export class ProductImageModule {}

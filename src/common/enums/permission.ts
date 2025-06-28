@@ -1,7 +1,10 @@
-export enum UserPermission {
-  CREATE_USER = 'CREATE_USER',
-  UPDATE_USER = 'UPDATE_USER',
-  DELETE_USER = 'DELETE_USER',
-  VIEW_USER = 'VIEW_USER',
+export enum PermissionSystem {
+  CREATE = 'CREATE',
+  UPDATE = 'UPDATE',
+  DELETE = 'DELETE',
+  VIEW = 'VIEW',
+
+  // Additional / Testing permissions
   TEST = 'TEST',
+  ALL = '*',
 }

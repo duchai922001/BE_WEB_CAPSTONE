@@ -23,6 +23,10 @@ export class AttributeRepository {
     return this.attributeModel.findById(id).populate('variableId');
   }
 
+  async findByIds(ids: string[]): Promise<Attribute[]> {
+    return this.attributeModel.find({ _id: { $in: ids } }).lean();
+  }
+
   async findByVariableId(variableId: string): Promise<AttributeDocument[]> {
     return this.attributeModel.find({ variableId }).exec();
   }

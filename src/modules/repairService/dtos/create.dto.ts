@@ -1,0 +1,54 @@
+import {
+  IsBoolean,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+
+export class CreateRepairServiceDto {
+  @IsString()
+  @IsNotEmpty()
+  createBy: string;
+
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+
+  @IsString()
+  @IsOptional()
+  description?: string;
+
+  @IsNumber()
+  @Type(() => Number)
+  @Min(0)
+  costPrice: number;
+
+  @IsNumber()
+  @Type(() => Number)
+  @Min(0)
+  sellPrice: number;
+
+  @IsString()
+  @IsNotEmpty()
+  estimatedTime: string;
+
+  @IsString()
+  @IsNotEmpty()
+  warrantlyPeriod: string;
+
+  @IsBoolean()
+  @IsOptional()
+  status?: boolean;
+
+  @IsNumber()
+  @Type(() => Number)
+  @Min(0)
+  stock: number;
+
+  @IsString()
+  @IsNotEmpty()
+  image: string;
+}

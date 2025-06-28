@@ -1,12 +1,15 @@
 import { IsEnum, IsOptional, IsString } from 'class-validator';
-import { UserPermission } from 'src/common/enums/permission';
+import { PermissionSystem } from 'src/common/enums/permission';
+import { TableSystem } from 'src/common/enums/tableSystem';
 
 export class CreatePermissionDto {
-  @IsEnum(UserPermission)
-  name: UserPermission;
+  @IsEnum(PermissionSystem)
+  name: PermissionSystem;
+
+  @IsEnum(TableSystem)
+  table: TableSystem;
 
   @IsOptional()
   @IsString()
   description?: string;
-
 }

@@ -1,4 +1,4 @@
-import { IsString, IsBoolean, IsOptional } from 'class-validator';
+import { IsString, IsBoolean, IsOptional, IsNumber } from 'class-validator';
 
 export class UpdateAddressDto {
   @IsString()
@@ -9,9 +9,37 @@ export class UpdateAddressDto {
   @IsOptional()
   phone?: string;
 
+  @IsNumber()
+  @IsOptional()
+  provinceCode?: number;
+
   @IsString()
   @IsOptional()
-  fullAddress?: string;
+  provinces?: string;
+
+  @IsNumber()
+  @IsOptional()
+  districtCode?: number;
+
+  @IsString()
+  @IsOptional()
+  districts?: string;
+
+  @IsNumber()
+  @IsOptional()
+  wardCode?: number;
+
+  @IsString()
+  @IsOptional()
+  wards?: string;
+
+  @IsString()
+  @IsOptional()
+  street?: string;
+
+  @IsString()
+  @IsOptional()
+  postalCode?: string;
 
   @IsBoolean()
   @IsOptional()

@@ -11,6 +11,16 @@ import { ProductImageService } from '../productImage/productImage.service';
 import { SerialService } from '../serials/serial.service';
 import { VariableService } from '../variables/variable.service';
 import { UpdateProductDto } from './dtos/update.dto';
+import { CategoryRepository } from '../categories/category.repository';
+import {
+  ProductByCategoryDto,
+  SimpleProductDto,
+} from './dtos/product-format-category.dto';
+import { plainToInstance } from 'class-transformer';
+import { Types } from 'mongoose';
+import { BrandRepository } from '../brands/brand.repository';
+import { ProductDetailDto } from './dtos/product-detail.dto';
+import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 
 @Injectable()
 export class ProductService {
@@ -19,6 +29,8 @@ export class ProductService {
     private readonly productImageService: ProductImageService,
     private readonly serialService: SerialService,
     private readonly variableService: VariableService,
+    private readonly categoryRepo: CategoryRepository,
+    private readonly brandRepo: BrandRepository,
   ) {}
   private async handleImages(
     productId: string,
@@ -134,9 +146,9 @@ export class ProductService {
           barcode,
           brandId,
           categoryId,
-          costPrice: 0,
+          costPrice: variables?.[0]?.costPrice,
           name,
-          sellPrice: 0,
+          sellPrice: variables?.[0]?.sellPrice,
           stock: totalStock,
           typeProduct,
           description,
@@ -310,9 +322,9 @@ export class ProductService {
           barcode,
           brandId,
           categoryId,
-          costPrice: 0,
+          costPrice: variables?.[0]?.costPrice,
           name,
-          sellPrice: 0,
+          sellPrice: variables?.[0]?.sellPrice,
           stock: totalStock,
           typeProduct,
           description,
@@ -386,5 +398,182 @@ export class ProductService {
 
     // Cập nhật hình ảnh (nếu có)
     await this.handleImages(productId, mainImage, listImage);
+  }
+
+  async getProductsFormCategory(): Promise<ProductByCategoryDto[]> {
+    const products = await this.productRepository.findAll();
+
+    const grouped: Record<string, any[]> = {};
+    const productIds: string[] = [];
+
+    for (const product of products) {
+      const p = product as {
+        _id: Types.ObjectId;
+        categoryId: Types.ObjectId | string;
+        brandId: Types.ObjectId | string;
+      };
+
+      const categoryId = p.categoryId.toString();
+
+      if (!grouped[categoryId]) {
+        grouped[categoryId] = [];
+      }
+
+      grouped[categoryId].push(p);
+      productIds.push(p._id.toString());
+    }
+
+    const categoryIds = Object.keys(grouped);
+    const categories = await this.categoryRepo.findManyByIds(categoryIds);
+    const productImages =
+      await this.productImageService.findDefaultByProductIds(productIds);
+
+    const imageMap: Record<string, string> = {};
+    for (const image of productImages) {
+      imageMap[image.productId.toString()] = image.url;
+    }
+
+    const result: ProductByCategoryDto[] = [];
+
+    for (const category of categories) {
+      const categoryId = (category._id as Types.ObjectId).toString();
+      const rawProducts = grouped[categoryId] || [];
+
+      const simplifiedProducts: SimpleProductDto[] = rawProducts.map((p) => ({
+        id: p._id,
+        name: p.name,
+        sellPrice: p.sellPrice,
+        image: imageMap[p._id.toString()] || null,
+      }));
+
+      const brandIds = [
+        ...new Set(
+          rawProducts.map((p) => p.brandId?.toString()).filter(Boolean),
+        ),
+      ];
+      const brands = await this.brandRepo.findManyByIds(brandIds);
+
+      result.push(
+        plainToInstance(ProductByCategoryDto, {
+          categoryName: category.name,
+          products: simplifiedProducts,
+          brands: brands.map((b) => b.name),
+        }),
+      );
+    }
+
+    return result;
+  }
+
+  async getProductDetailById(productId: string): Promise<ProductDetailDto> {
+    const product = await this.productRepository.findById(productId);
+    if (!product) throw new NotFoundException(ResponseMessage.FILE_NOT_FOUND);
+
+    const [category, brand] = await Promise.all([
+      this.categoryRepo.findById(String(product.categoryId)),
+      this.brandRepo.findById(String(product.brandId)),
+    ]);
+
+    const images = await this.productImageService.findByProductId(productId);
+    const variables = await this.variableService.findByProductId(productId);
+
+    return plainToInstance(ProductDetailDto, {
+      id: (product as any)._id.toString(),
+      name: product.name,
+      description: product.description,
+      sellPrice: product.sellPrice,
+      listImage: images.map((img) => img.url),
+      variables,
+      brands: brand?.name || '',
+      categoryName: category?.name || '',
+    });
+  }
+
+  async searchProducts(query: BaseQueryDto) {
+    const result = await this.productRepository.search(query);
+    const itemsWithImage = await Promise.all(
+      result.items.map(async (product) => {
+        const defaultImage =
+          await this.productImageService.findDefaultImageByProductId(
+            (product as any)._id.toString(),
+          );
+        return {
+          ...(product.toObject?.() || product),
+          defaultImage: defaultImage?.url || null,
+        };
+      }),
+    );
+
+    return {
+      ...result,
+      items: itemsWithImage,
+    };
+  }
+
+  async getProductsByBrandName(brandName: string) {
+    const brand = await this.brandRepo.findByName(brandName);
+    if (!brand) {
+      throw new NotFoundException(`Brand ${brandName} not found`);
+    }
+
+    const products = await this.productRepository.findByBrandId(
+      String(brand._id),
+    );
+    return Promise.all(
+      products.map(async (product) => {
+        const images = await this.productImageService.findByProductId(
+          String(product._id),
+        );
+        const variables = await this.variableService.findByProductId(
+          String(product._id),
+        );
+
+        return {
+          id: product._id,
+          name: product.name,
+          description: product.description,
+          sellPrice: product.sellPrice,
+          listImage: images.map((img) => img.url),
+          variables,
+          brands: brand.name || '',
+          categoryId: product.categoryId,
+        };
+      }),
+    );
+  }
+
+  async getProductsByCategoryName(categoryName: string) {
+    const category = await this.categoryRepo.findByName(categoryName);
+    if (!category) {
+      throw new NotFoundException(`Danh mục ${categoryName} không tìm thấy`);
+    }
+
+    const products = await this.productRepository.findByCategoryId(
+      String(category._id),
+    );
+    return Promise.all(
+      products.map(async (product) => {
+        const images = await this.productImageService.findByProductId(
+          String(product._id),
+        );
+        const variables = await this.variableService.findByProductId(
+          String(product._id),
+        );
+
+        return {
+          id: product._id,
+          name: product.name,
+          description: product.description,
+          sellPrice: product.sellPrice,
+          listImage: images.map((img) => img.url),
+          variables,
+          categoryId: product.categoryId,
+        };
+      }),
+    );
+  }
+
+  async getList(query: BaseQueryDto) {
+    return this.productRepository.findWithPagination(query);
   }
 }

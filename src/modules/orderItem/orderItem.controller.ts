@@ -1,9 +1,18 @@
-import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Query } from "@nestjs/common";
-import { CreateOrderItemDto } from "./dtos/create-orderItem.dto";
-import { createResponse } from "src/common/helpers/response.helper";
-import { ResponseMessage } from "src/common/enums/responseMessage";
-import { BaseQueryDto } from "src/common/dtos/base-query.dto";
-import { OrderItemService } from "./orderItem.service";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpStatus,
+  Param,
+  Post,
+  Query,
+} from '@nestjs/common';
+import { CreateOrderItemDto } from './dtos/create-orderItem.dto';
+import { createResponse } from 'src/common/helpers/response.helper';
+import { ResponseMessage } from 'src/common/enums/responseMessage';
+import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
+import { OrderItemService } from './orderItem.service';
 
 @Controller('order-items')
 export class OrderItemController {
@@ -31,5 +40,19 @@ export class OrderItemController {
   async delete(@Param('id') id: string) {
     const data = await this.orderItemService.delete(id);
     return createResponse(HttpStatus.OK, data, ResponseMessage.DELETE);
+  }
+
+  @Get(':order')
+  async findByOrderId(@Param('orderId') orderId: string) {
+    const data = await this.orderItemService.getByOrderId(orderId);
+
+    if (!data || data.length === 0) {
+      return createResponse(
+        HttpStatus.NOT_FOUND,
+        null,
+        ResponseMessage.FILE_NOT_FOUND,
+      );
+    }
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
 }

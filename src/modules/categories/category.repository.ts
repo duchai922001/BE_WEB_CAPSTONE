@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Category, CategoryDocument } from './category.entity';
 import { CreateCategoryDto } from './dtos/create.dto';
 import { UpdateCategoryDto } from './dtos/update.dto';
@@ -25,11 +25,18 @@ export class CategoryRepository {
 
   async findAll(query: BaseQueryDto): Promise<Category[]> {
     const { filter, pagination, sort } = builderQuery(query);
+  
+    const finalFilter = {
+      ...filter,
+      isDelete: false,
+    };
+  
     const queryBuilder = this.categoryModel
-      .find(filter)
+      .find(finalFilter)
       .skip(pagination.skip)
       .limit(pagination.limit)
       .sort(sort as any);
+  
     return queryBuilder.exec();
   }
 
@@ -59,5 +66,10 @@ export class CategoryRepository {
       throw new NotFoundException(`Category with ID ${id} not found`);
     }
     return deletedCategory;
+  }
+
+  async findManyByIds(ids: string[]): Promise<Category[]> {
+    const objectIds = ids.map(id => new Types.ObjectId(id));
+    return this.categoryModel.find({ _id: { $in: objectIds } }).exec();
   }
 }

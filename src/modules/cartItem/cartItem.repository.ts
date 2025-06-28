@@ -27,6 +27,14 @@ export class CartItemRepository {
     return queryBuilder.exec();
   }
 
+  async addItem(cartId: string, productId: string, quantity: number) {
+    return this.cartItemModel.findOneAndUpdate(
+      { cartId, productId },
+      { $inc: { quantity }, $setOnInsert: { isSelec: true } },
+      { upsert: true, new: true },
+    );
+  }
+
   async findById(id: string): Promise<CartItemDocument | null> {
     return this.cartItemModel.findById(id).exec();
   }
@@ -49,5 +57,9 @@ export class CartItemRepository {
   async delete(id: string): Promise<boolean> {
     const result = await this.cartItemModel.deleteOne({ _id: id });
     return result.deletedCount > 0;
+  }
+
+  async getItems(cartId: string) {
+    return this.cartItemModel.find({ cartId }).populate('productId');
   }
 }
