@@ -4,6 +4,7 @@ import {
   IsOptional,
   IsNotEmpty,
   IsMongoId,
+  IsNumber,
 } from 'class-validator';
 
 export class CreateAddressDto {
@@ -19,13 +20,25 @@ export class CreateAddressDto {
   @IsNotEmpty()
   phone: string;
 
+  @IsNumber()
+  @IsNotEmpty()
+  provinceCode: number;
+
   @IsString()
   @IsNotEmpty()
   provinces: string;
 
+  @IsNumber()
+  @IsNotEmpty()
+  districtCode: number;
+
   @IsString()
   @IsNotEmpty()
   districts: string;
+
+  @IsNumber()
+  @IsNotEmpty()
+  wardCode: number;
 
   @IsString()
   @IsNotEmpty()

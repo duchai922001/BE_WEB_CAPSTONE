@@ -14,10 +14,19 @@ export class Address extends Document {
   phone: string;
 
   @Prop({ required: true })
+  provinceCode: number;
+
+  @Prop({ required: true })
   provinces: string;
 
   @Prop({ required: true })
+  districtCode: number;
+
+  @Prop({ required: true })
   districts: string;
+
+  @Prop({ required: true })
+  wardCode: number;
 
   @Prop({ required: true })
   wards: string;

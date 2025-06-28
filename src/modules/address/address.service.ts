@@ -14,29 +14,38 @@ export class AddressService {
       receiverName,
       phone,
       provinces,
+      provinceCode,
       districts,
+      districtCode,
       wards,
+      wardCode,
       street,
       postalCode,
       isDefault,
     } = data;
+
     if (isDefault) {
       await this.addressRepository.updateMany(
         { userId },
         { $set: { isDefault: false } },
       );
     }
+
     const address = await this.addressRepository.create({
       userId,
       receiverName,
       phone,
       provinces,
+      provinceCode,
       districts,
+      districtCode,
       wards,
+      wardCode,
       street,
       postalCode,
       isDefault,
     });
+
     return address;
   }
 
@@ -55,6 +64,7 @@ export class AddressService {
   async getAllAddresses(): Promise<Address[]> {
     return this.addressRepository.findAll();
   }
+
   async getDefaultAddressByUserId(userId: string): Promise<Address | null> {
     return this.addressRepository.findOne({
       userId,

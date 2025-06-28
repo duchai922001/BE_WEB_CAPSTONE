@@ -37,6 +37,7 @@ export class AddressRepository {
       .findByIdAndUpdate({ _id: id }, data, { new: true })
       .exec();
   }
+
   async updateMany(filter: any, update: any): Promise<void> {
     await this.addressModel.updateMany(filter, update);
   }
@@ -44,6 +45,7 @@ export class AddressRepository {
   async deleteById(id: string): Promise<void> {
     await this.addressModel.findByIdAndDelete(id).exec();
   }
+  
   async findOne(filter: any): Promise<Address | null> {
   return this.addressModel.findOne(filter).exec();
 }
