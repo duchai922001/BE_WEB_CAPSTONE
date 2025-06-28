@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { RepairServiceController } from './repairService.controller';
-import { RepairRequestImageService } from '../repairRequestImage/repairRequestImage.service';
 import { RepairServiceService } from './repairService.service';
 import { RepairServiceRepository } from './repairService.repository';
 import { RepairService, RepairServiceSchema } from './repairService.entity';
@@ -13,7 +12,7 @@ import { RepairService, RepairServiceSchema } from './repairService.entity';
     ]),
   ],
   controllers: [RepairServiceController],
-  providers: [RepairRequestImageService, RepairServiceRepository],
+  providers: [RepairServiceService, RepairServiceRepository],
   exports: [RepairServiceService],
 })
-export class RepairRequestImageModule {}
+export class RepairServiceModule {}
