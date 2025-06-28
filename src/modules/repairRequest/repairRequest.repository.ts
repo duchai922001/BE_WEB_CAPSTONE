@@ -2,7 +2,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Injectable } from '@nestjs/common';
 import { RepairRequest, RepairRequestDocument } from './repairRequest.entity';
-import { CreateRepairRequestDto } from './dtos/create.dto';
+import { CreateRepairRequestDto } from './dtos/customer-create-repair-request.dto';
 
 @Injectable()
 export class RepairRequestRepository {

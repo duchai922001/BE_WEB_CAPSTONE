@@ -26,10 +26,10 @@ import { PromotionImageModule } from './modules/promotionImage/promotionImage.mo
 import { AddressModule } from './modules/address/address.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { OtpModule } from './modules/otp/otp.module';
-import { Payment } from './modules/payment/payment.entity';
 import { PaymentModule } from './modules/payment/payment.module';
 import { FavoriteModule } from './modules/favorites/favorites.module';
 import { AttributeKeyModule } from './modules/attribute-key/attribute-key.module';
+import { RepairRequestModule } from './modules/repairRequest/repairRequest.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -68,6 +68,7 @@ import { AttributeKeyModule } from './modules/attribute-key/attribute-key.module
     PaymentModule,
     FavoriteModule,
     AttributeKeyModule,
+    RepairRequestModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { createResponse } from 'src/common/helpers/response.helper';
 import { ResponseMessage } from 'src/common/enums/responseMessage';
-import { CreateRepairRequestDto } from './dtos/create.dto';
+import { CreateRepairRequestDto } from './dtos/customer-create-repair-request.dto';
 import { RepairRequestService } from './repairRequest.service';
 
 @Controller('repair-requests')
@@ -22,7 +22,7 @@ export class RepairRequestController {
     return createResponse(201, data, ResponseMessage.CREATE);
   }
 
-  @Get()
+  @Get('')
   async findAll() {
     const data = await this.service.findAll();
     return createResponse(200, data, ResponseMessage.GET);

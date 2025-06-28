@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { ResponseMessage } from 'src/common/enums/responseMessage';
 import { RepairRequestRepository } from './repairRequest.repository';
-import { CreateRepairRequestDto } from './dtos/create.dto';
+import { CreateRepairRequestDto } from './dtos/customer-create-repair-request.dto';
 
 @Injectable()
 export class RepairRequestService {
