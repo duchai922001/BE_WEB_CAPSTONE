@@ -29,6 +29,7 @@ import { OtpModule } from './modules/otp/otp.module';
 import { Payment } from './modules/payment/payment.entity';
 import { PaymentModule } from './modules/payment/payment.module';
 import { FavoriteModule } from './modules/favorites/favorites.module';
+import { AttributeKeyModule } from './modules/attribute-key/attribute-key.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -66,6 +67,7 @@ import { FavoriteModule } from './modules/favorites/favorites.module';
     OtpModule,
     PaymentModule,
     FavoriteModule,
+    AttributeKeyModule,
   ],
   controllers: [AppController],
   providers: [AppService],
