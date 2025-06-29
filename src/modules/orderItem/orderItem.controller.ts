@@ -42,7 +42,7 @@ export class OrderItemController {
     return createResponse(HttpStatus.OK, data, ResponseMessage.DELETE);
   }
 
-  @Get(':order')
+  @Get('order/:orderId')
   async findByOrderId(@Param('orderId') orderId: string) {
     const data = await this.orderItemService.getByOrderId(orderId);
 
