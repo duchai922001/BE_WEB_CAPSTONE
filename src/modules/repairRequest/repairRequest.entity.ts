@@ -15,6 +15,9 @@ export class RepairRequest extends Document {
   technicianId: Types.ObjectId;
 
   @Prop()
+  repairRequestCode: string;
+
+  @Prop()
   deviceSerial: string;
 
   @Prop({ required: true })
