@@ -28,6 +28,13 @@ export class ProductImageRepository {
       .lean();
   }
 
+  async findDefaultImageByProductId(productId: string) {
+    return this.productImageModel.findOne({
+      productId,
+      isDefault: true,
+    });
+  }
+
   async findByProductId(productId: string) {
     return this.productImageModel.find({
       productId: productId,

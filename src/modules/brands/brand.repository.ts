@@ -22,7 +22,9 @@ export class BrandRepository {
   }
 
   async findByName(name: string): Promise<Brand | null> {
-    return this.brandModel.findOne({ name });
+    return this.brandModel.findOne({
+      name: { $regex: `^${name}$`, $options: 'i' },
+    });
   }
   async create(data: CreateBrandDto): Promise<Brand> {
     const newBrand = new this.brandModel(data);
