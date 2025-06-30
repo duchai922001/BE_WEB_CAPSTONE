@@ -490,7 +490,24 @@ export class ProductService {
   }
 
   async searchProducts(query: BaseQueryDto) {
-    return this.productRepository.search(query);
+    const result = await this.productRepository.search(query);
+    const itemsWithImage = await Promise.all(
+      result.items.map(async (product) => {
+        const defaultImage =
+          await this.productImageService.findDefaultImageByProductId(
+            (product as any)._id.toString(),
+          );
+        return {
+          ...(product.toObject?.() || product),
+          defaultImage: defaultImage?.url || null,
+        };
+      }),
+    );
+
+    return {
+      ...result,
+      items: itemsWithImage,
+    };
   }
 
   async getProductsByBrandName(brandName: string) {
