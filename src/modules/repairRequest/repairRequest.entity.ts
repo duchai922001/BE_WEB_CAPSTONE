@@ -14,7 +14,7 @@ export class RepairRequest extends Document {
   @Prop({ type: Types.ObjectId, ref: 'User' })
   technicianId: Types.ObjectId;
 
-  @Prop()
+  @Prop({ type: String, unique: true })
   repairRequestCode: string;
 
   @Prop()
@@ -53,7 +53,11 @@ export class RepairRequest extends Document {
   @Prop({ default: 0 })
   customerDept: number;
 
-  @Prop({ enum: RepairRequestStatus, default: RepairRequestStatus.PENDING })
+  @Prop({
+    required: true,
+    enum: RepairRequestStatus,
+    default: RepairRequestStatus.PENDING,
+  })
   status: RepairRequestStatus;
 }
 

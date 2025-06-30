@@ -62,6 +62,11 @@ export class RepairRequestService {
     return repairRequest;
   }
 
+  async getByUserId(userId: string) {
+    const repairRequests = await this.repairRequestRepo.getByUserId(userId);
+    return repairRequests;
+  }
+
   async findById(id: string) {
     const result = await this.repairRequestRepo.findById(id);
     if (!result) throw new NotFoundException(ResponseMessage.FILE_NOT_FOUND);

@@ -29,10 +29,6 @@ export class CreateRepairRequestDto {
 
   @IsNotEmpty()
   @IsString()
-  repairRequestCode: string;
-
-  @IsNotEmpty()
-  @IsString()
   deviceName: string;
 
   @IsNotEmpty()
