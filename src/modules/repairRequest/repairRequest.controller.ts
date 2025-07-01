@@ -3,14 +3,18 @@ import {
   Controller,
   Delete,
   Get,
+  HttpStatus,
   Param,
   Patch,
   Post,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
 import { createResponse } from 'src/common/helpers/response.helper';
 import { ResponseMessage } from 'src/common/enums/responseMessage';
-import { CreateRepairRequestDto } from './dtos/create.dto';
+import { CreateRepairRequestDto } from './dtos/customer-create-repair-request.dto';
 import { RepairRequestService } from './repairRequest.service';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('repair-requests')
 export class RepairRequestController {
@@ -22,7 +26,14 @@ export class RepairRequestController {
     return createResponse(201, data, ResponseMessage.CREATE);
   }
 
-  @Get()
+  @UseGuards(JwtAuthGuard)
+  @Get('user')
+  async getByUserId(@Request() req) {
+    const data = await this.service.getByUserId(req.user.userId);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
+
+  @Get('')
   async findAll() {
     const data = await this.service.findAll();
     return createResponse(200, data, ResponseMessage.GET);

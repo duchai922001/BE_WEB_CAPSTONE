@@ -1,23 +1,21 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-export enum RepairRequestStatus {
-  PENDING = 'PENDING', // Chờ xử lý
-  ASSIGNED = 'ASSIGNED', // Đã giao kỹ thuật viên
-  IN_PROGRESS = 'IN_PROGRESS', // Đang xử lý
-  COMPLETED = 'COMPLETED', // Đã hoàn thành
-  CANCELLED = 'CANCELLED', // Đã hủy
-}
+import { RepairRequestStatus } from '../../common/enums/repairRequestStatus';
+
 export type RepairRequestDocument = RepairRequest & Document;
 @Schema({ timestamps: true, versionKey: false })
 export class RepairRequest extends Document {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   userId: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  @Prop({ type: Types.ObjectId, ref: 'User' })
   assignedStaffId: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  @Prop({ type: Types.ObjectId, ref: 'User' })
   technicianId: Types.ObjectId;
+
+  @Prop({ type: String, unique: true })
+  repairRequestCode: string;
 
   @Prop()
   deviceSerial: string;
@@ -28,10 +26,10 @@ export class RepairRequest extends Document {
   @Prop({ required: true })
   issueDescription: string;
 
-  @Prop()
-  esstimatedCost: number;
+  @Prop({ default: 0 })
+  estimatedCost: number;
 
-  @Prop()
+  @Prop({ default: 0 })
   actualCost: number;
 
   @Prop()
@@ -49,13 +47,17 @@ export class RepairRequest extends Document {
   @Prop()
   pickupActualDate: Date;
 
-  @Prop()
+  @Prop({ default: 0 })
   customerPaid: number;
 
-  @Prop()
+  @Prop({ default: 0 })
   customerDept: number;
 
-  @Prop({ enum: RepairRequestStatus, default: RepairRequestStatus.PENDING })
+  @Prop({
+    required: true,
+    enum: RepairRequestStatus,
+    default: RepairRequestStatus.PENDING,
+  })
   status: RepairRequestStatus;
 }
 
