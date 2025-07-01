@@ -23,14 +23,25 @@ export class OrderRepository {
     const { filter, pagination, sort } = builderQuery(query);
     const queryBuilder = this.orderModel
       .find(filter)
+      .populate({
+        path: 'addressId',
+        select: 'street wards districts provinces',
+      })
       .skip(pagination.skip)
       .limit(pagination.limit)
       .sort(sort as any);
+
     return queryBuilder.exec();
   }
 
   async findById(id: string): Promise<OrderDocument | null> {
-    const order = await this.orderModel.findById(id).exec();
+    const order = await this.orderModel
+      .findById(id)
+      .populate({
+        path: 'addressId',
+        select: 'street wards districts provinces',
+      })
+      .exec();
     return order;
   }
 
@@ -49,6 +60,10 @@ export class OrderRepository {
   async getByUserId(userId: string): Promise<OrderDocument[]> {
     const orders = await this.orderModel
       .find({ userId })
+      .populate({
+        path: 'addressId',
+        select: 'street wards districts provinces',
+      })
       .sort({ createdAt: -1 })
       .exec();
     if (!orders || orders.length === 0) {

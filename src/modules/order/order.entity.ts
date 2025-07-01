@@ -35,8 +35,8 @@ export class Order extends Document {
   @Prop({ default: 0 })
   customerDept: number;
 
-  @Prop({ required: true})
-  deliveryAddress: string;
+  @Prop({ type: Types.ObjectId, ref: 'Address', required: true })
+  addressId: Types.ObjectId;
 
   @Prop({
     required: true,
