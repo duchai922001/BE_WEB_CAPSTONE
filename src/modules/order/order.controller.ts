@@ -65,4 +65,10 @@ export class OrderController {
     const data = await this.orderService.getByUserId(req.user.userId);
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
+
+  @Get('get-user/:orderId')
+  async getUserByOrderId(@Param('orderId') orderId: string){
+    const data = await this.orderService.getUserByOrderId(orderId);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
 }

@@ -35,6 +35,9 @@ export class Order extends Document {
   @Prop({ default: 0 })
   customerDept: number;
 
+  @Prop({ required: true})
+  deliveryAddress: string;
+
   @Prop({
     required: true,
     enum: OrderNormalStatus,

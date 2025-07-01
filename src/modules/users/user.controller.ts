@@ -25,6 +25,7 @@ import { PermissionsGuard } from '../permissions/guards/permission.guard';
 import { Permissions } from '../permissions/permission.decorator';
 import { PermissionSystem } from 'src/common/enums/permission';
 import { ResponseMessage } from 'src/common/enums/responseMessage';
+import { changeProfilePassword } from './dtos/change-profile-password';
 
 @Controller('users')
 export class UserController {
@@ -85,12 +86,21 @@ export class UserController {
     return updatedUser;
   }
 
-  @Put('change-password/:id')
-  async changePassword(
+  @Put('change-forgot-password/:id')
+  async changeForgotPassword(
     @Param('id') id: string,
     @Body() body: { hashedPassword: string },
   ) {
-    const result = await this.userService.changePassword(id, body);
+    const result = await this.userService.changeForgotPassword(id, body);
+    return createResponse(HttpStatus.OK, result, 'Đổi mật khẩu thành công');
+  }
+
+  @Put('change-profile-password/:id')
+  async changeProfilePassword(
+    @Param('id') id: string,
+    @Body() dto: changeProfilePassword,
+  ) {
+    const result = await this.userService.changeProfilePassword(id, dto);
     return createResponse(HttpStatus.OK, result, 'Đổi mật khẩu thành công');
   }
 

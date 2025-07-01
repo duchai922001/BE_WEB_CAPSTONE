@@ -43,6 +43,10 @@ export class CustomerCreateOrderDto {
   @Type(() => Number)
   totalAmount: number;
 
+  @IsNotEmpty()
+  @IsString()
+  deliveryAddress: string;
+
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => OrderItems)

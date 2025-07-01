@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { OrderRepository } from './order.repository';
 import {
   CustomerCreateOrderDto,
@@ -8,6 +8,7 @@ import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { UpdateOrderDto } from './dtos/update-order.dto';
 import { PaymentRepository } from '../payment/payment.repository';
 import { OrderItemRepository } from '../orderItem/orderItem.repository';
+import { UserService } from '../users/user.service';
 
 @Injectable()
 export class OrderService {
@@ -15,6 +16,7 @@ export class OrderService {
     private readonly orderRepository: OrderRepository,
     private readonly orderItemRepository: OrderItemRepository,
     private readonly paymentRepo: PaymentRepository,
+    private readonly userService: UserService,
   ) {}
 
   async createOrder(data: CustomerCreateOrderDto) {
@@ -103,5 +105,18 @@ export class OrderService {
 
   async searchOrderByOrderCode(orderCode: string) {
     return await this.orderRepository.findByOrderCode(orderCode);
+  }
+
+  async getUserByOrderId(id: string){
+    const order = await this.orderRepository.findById(id);
+    if(!order){
+      throw new BadRequestException("Không tìm thấy Order");
+    }
+    const user = await this.userService.getById(order.userId.toString());
+    if(!user){
+      throw new BadRequestException("Không tìm thấy User theo Order ID");
+    }
+
+    return user;
   }
 }
