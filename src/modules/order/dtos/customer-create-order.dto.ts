@@ -44,8 +44,8 @@ export class CustomerCreateOrderDto {
   totalAmount: number;
 
   @IsNotEmpty()
-  @IsString()
-  deliveryAddress: string;
+  @IsMongoId()
+  addressId: string;
 
   @IsArray()
   @ValidateNested({ each: true })

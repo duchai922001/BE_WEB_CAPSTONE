@@ -47,6 +47,12 @@ export class OrderController {
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
 
+  @Get('get-order-by-id/:orderId')
+    async getOrderById(@Param('orderId') id: string) {
+    const data = await this.orderService.getOrderById(id);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
+
   @Put(':id')
   async update(@Param('id') id: string, @Body() dto: UpdateOrderDto) {
     const data = await this.orderService.update(id, dto);
