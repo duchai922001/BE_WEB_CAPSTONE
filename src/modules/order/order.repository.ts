@@ -45,6 +45,17 @@ export class OrderRepository {
     return order;
   }
 
+  async getOrderById(id: string): Promise<OrderDocument | null> {
+    const order = await this.orderModel
+      .findById(id)
+      .populate({
+        path: 'addressId',
+        select: 'street wards districts provinces',
+      })
+      .exec();
+    return order;
+  }
+
   async update(
     id: string,
     data: UpdateOrderDto,

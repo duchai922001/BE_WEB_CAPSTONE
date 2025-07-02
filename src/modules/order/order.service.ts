@@ -79,6 +79,11 @@ export class OrderService {
     };
   }
 
+    async getOrderById(id: string) {
+    const order = await this.orderRepository.getOrderById(id);
+    return order;
+  }
+
   async update(id: string, data: UpdateOrderDto) {
     return await this.orderRepository.update(id, data);
   }
