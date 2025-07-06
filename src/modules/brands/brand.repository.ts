@@ -33,8 +33,13 @@ export class BrandRepository {
 
   async getAll(query: BaseQueryDto): Promise<Brand[]> {
     const { filter, pagination, sort } = builderQuery(query);
+    const finalFilter = {
+      ...filter,
+      isDelete: false,
+    };
+
     const queryBuilder = this.brandModel
-      .find(filter)
+      .find(finalFilter)
       .skip(pagination.skip)
       .limit(pagination.limit)
       .sort(sort as any);
