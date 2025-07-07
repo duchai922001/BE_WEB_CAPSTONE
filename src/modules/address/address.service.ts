@@ -24,7 +24,12 @@ export class AddressService {
       isDefault,
     } = data;
 
-    if (isDefault) {
+    const existingAddresses = await this.addressRepository.findByUserId(userId);
+    let finalIsDefault = isDefault;
+
+    if (existingAddresses.length === 0) {
+      finalIsDefault = true;
+    } else if (isDefault) {
       await this.addressRepository.updateMany(
         { userId },
         { $set: { isDefault: false } },
@@ -43,7 +48,7 @@ export class AddressService {
       wardCode,
       street,
       postalCode,
-      isDefault,
+      isDefault: finalIsDefault,
     });
 
     return address;
