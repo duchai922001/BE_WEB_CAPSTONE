@@ -167,4 +167,12 @@ export class UserService {
       'CUSTOMER',
     ]);
   }
+  async getCustomers() {
+    return await this.userRepository.findUsersExcludeRoles([
+      'ADMIN',
+      'CONSULTANT',
+      'TECHNICAL STAFF',
+      'EVENT STAFF',
+    ]);
+  }
 }

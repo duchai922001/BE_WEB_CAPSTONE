@@ -55,6 +55,11 @@ export class UserController {
     const data = await this.userService.getUsersExcludeAdminAndCustomer();
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
+  @Get('customers')
+  async getCustomers() {
+    const data = await this.userService.getCustomers();
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
   @Get(':id')
   async getById(@Param('id') id: string) {
     const user = await this.userService.getById(id);
