@@ -17,7 +17,11 @@ export class PromotionRepository {
   }
 
   async findAll(): Promise<PromotionDocument[]> {
-    return this.promotionModel.find().populate('products').exec();
+    return this.promotionModel
+      .find()
+      .populate('products')
+      .populate('createdBy')
+      .exec();
   }
 
   async findById(id: string): Promise<PromotionDocument | null> {
