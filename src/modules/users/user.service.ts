@@ -12,6 +12,7 @@ import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { UpdateUserDto } from './dtos/update.dto';
 import { isValidObjectId, Types } from 'mongoose';
 import { AddressService } from '../address/address.service';
+import { changeProfilePassword } from './dtos/change-profile-password';
 
 @Injectable()
 export class UserService {
@@ -132,7 +133,7 @@ export class UserService {
     }
   }
 
-  async changePassword(
+  async changeForgotPassword(
     id: string,
     payload: { hashedPassword: string },
   ): Promise<any> {
@@ -153,6 +154,28 @@ export class UserService {
       userId: result._id,
     };
   }
+
+  async changeProfilePassword(id: string, data: changeProfilePassword) {
+    if (!isValidObjectId(id)) {
+      throw new BadRequestException('ID người dùng không hợp lệ');
+    }
+    const user = await this.userRepository.findById(id);
+    if (!user) {
+      throw new NotFoundException('Không tìm thấy người dùng');
+    }
+    console.log(user.password);
+    const isMatch = await bcrypt.compare(data.currentPassword, user.password);
+
+    if (!isMatch) {
+      throw new BadRequestException('Mật khẩu hiện tại không hợp lệ');
+    }
+    const hashedPassword = await bcrypt.hash(data.newPassword, 10);
+    const result = await this.userRepository.updatePassword(id, hashedPassword);
+    if (!result) {
+      throw new NotFoundException('Không thể update người dùng');
+    }
+  }
+
   async getUserByEmail(email: string): Promise<UserDocument> {
     const user = await this.userRepository.findByEmail(email);
     if (!user) {

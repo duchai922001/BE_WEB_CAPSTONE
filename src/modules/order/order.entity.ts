@@ -35,6 +35,9 @@ export class Order extends Document {
   @Prop({ default: 0 })
   customerDept: number;
 
+  @Prop({ type: Types.ObjectId, ref: 'Address', required: true })
+  addressId: Types.ObjectId;
+
   @Prop({
     required: true,
     enum: OrderNormalStatus,

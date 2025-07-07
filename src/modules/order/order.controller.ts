@@ -47,6 +47,12 @@ export class OrderController {
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
 
+  @Get('get-order-by-id/:orderId')
+    async getOrderById(@Param('orderId') id: string) {
+    const data = await this.orderService.getOrderById(id);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
+
   @Put(':id')
   async update(@Param('id') id: string, @Body() dto: UpdateOrderDto) {
     const data = await this.orderService.update(id, dto);
@@ -63,6 +69,12 @@ export class OrderController {
   @Get('user')
   async getByUserId(@Request() req) {
     const data = await this.orderService.getByUserId(req.user.userId);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
+
+  @Get('get-user/:orderId')
+  async getUserByOrderId(@Param('orderId') orderId: string){
+    const data = await this.orderService.getUserByOrderId(orderId);
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
 }

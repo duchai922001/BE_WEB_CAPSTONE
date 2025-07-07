@@ -1,7 +1,5 @@
 import {
   IsArray,
-  IsBoolean,
-  IsEnum,
   IsMongoId,
   IsNotEmpty,
   IsNumber,
@@ -45,7 +43,10 @@ export class CustomerCreateOrderDto {
   @Type(() => Number)
   totalAmount: number;
 
-  @IsOptional()
+  @IsNotEmpty()
+  @IsMongoId()
+  addressId: string;
+
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => OrderItems)
