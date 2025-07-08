@@ -32,6 +32,7 @@ import { AttributeKeyModule } from './modules/attribute-key/attribute-key.module
 import { RepairRequestModule } from './modules/repairRequest/repairRequest.module';
 import { RepairServiceModule } from './modules/repairService/repairService.module';
 import { RepairRequestServiceModule } from './modules/repairRequestService/repairRequestService.module';
+import { RepairInvoiceItemModule } from './modules/repair-invoice-item/repair-invoice-item.module';
 
 @Module({
   imports: [
@@ -74,6 +75,7 @@ import { RepairRequestServiceModule } from './modules/repairRequestService/repai
     RepairRequestModule,
     RepairServiceModule,
     RepairRequestServiceModule,
+    RepairInvoiceItemModule,
   ],
   controllers: [AppController],
   providers: [AppService],
