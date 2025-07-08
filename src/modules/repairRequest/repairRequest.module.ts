@@ -5,6 +5,7 @@ import { RepairRequestController } from './repairRequest.controller';
 import { RepairRequestService } from './repairRequest.service';
 import { RepairRequestRepository } from './repairRequest.repository';
 import { RepairRequestServiceModule } from '../repairRequestService/repairRequestService.module';
+import { RepairRequestImageModule } from '../repairRequestImage/repairRequestImage.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { RepairRequestServiceModule } from '../repairRequestService/repairReques
       { name: RepairRequest.name, schema: RepairRequestSchema },
     ]),
     RepairRequestServiceModule,
+    RepairRequestImageModule,
   ],
   controllers: [RepairRequestController],
   providers: [RepairRequestService, RepairRequestRepository],

@@ -20,6 +20,12 @@ export class RepairRequest extends Document {
   @Prop()
   deviceSerial: string;
 
+  @Prop()
+  customerName: string;
+
+  @Prop()
+  customerPhone: string;
+
   @Prop({ required: true })
   deviceName: string;
 

@@ -1,7 +1,5 @@
 import {
   IsArray,
-  IsDate,
-  IsEnum,
   IsMongoId,
   IsNotEmpty,
   IsNumber,
@@ -10,7 +8,6 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { RepairRequestStatus } from '../../../common/enums/repairRequestStatus';
 
 export class RepairRequestServices {
   @IsOptional()
@@ -24,10 +21,6 @@ export class RepairRequestServices {
 
 export class CreateRepairRequestDto {
   @IsNotEmpty()
-  @IsMongoId()
-  userId: string;
-
-  @IsNotEmpty()
   @IsString()
   deviceName: string;
 
@@ -35,22 +28,21 @@ export class CreateRepairRequestDto {
   @IsString()
   issueDescription: string;
 
-  @IsOptional()
-  @IsNumber()
-  estimatedCost?: number;
+  @IsNotEmpty()
+  @IsString()
+  customerName: string;
 
   @IsNotEmpty()
-  @Type(() => Date)
-  @IsDate()
-  preferredDropoffDate: Date;
+  @IsString()
+  customerPhone: string;
 
   @IsOptional()
   @IsNumber()
   customerPaid?: number;
 
   @IsOptional()
-  @IsEnum(RepairRequestStatus)
-  status?: RepairRequestStatus;
+  @IsArray()
+  imageDeviceBefore: string[];
 
   @IsOptional()
   @IsArray()

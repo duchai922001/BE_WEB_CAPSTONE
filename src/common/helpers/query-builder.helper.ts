@@ -78,6 +78,7 @@ export function builderQuery(
       { serials: regex },
       { fullName: regex },
       { email: regex },
+      { repairRequestCode: regex },
     ];
   }
 

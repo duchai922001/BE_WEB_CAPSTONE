@@ -44,10 +44,34 @@ export class RepairRequestRepository {
       .populate(['userId', 'assignedStaffId', 'technicianId']);
   }
 
-  findAll() {
-    return this.repairRequestModel
-      .find()
-      .populate(['userId', 'assignedStaffId', 'technicianId']);
+  async findAll(query: BaseQueryDto) {
+    const { filter, pagination, sort, populate } = builderQuery(query);
+    const pageNumber = parseInt(query.page ?? '1', 10);
+    const limitNumber = parseInt(query.limit ?? '10', 10);
+
+    let dbQuery = this.repairRequestModel
+      .find(filter)
+      .skip(pagination.skip)
+      .limit(pagination.limit)
+      .sort(sort)
+      .populate('userId');
+
+    for (const field of populate) {
+      dbQuery = dbQuery.populate(field);
+    }
+
+    const [data, total] = await Promise.all([
+      dbQuery.exec(),
+      this.repairRequestModel.countDocuments(filter),
+    ]);
+
+    return {
+      data,
+      total,
+      page: pageNumber,
+      limit: limitNumber,
+      totalPages: Math.ceil(total / limitNumber),
+    };
   }
 
   updateStatus(id: string, status: string) {
@@ -60,5 +84,19 @@ export class RepairRequestRepository {
 
   delete(id: string) {
     return this.repairRequestModel.findByIdAndDelete(id);
+  }
+
+  async assignStaffAndTechnician(
+    id: string,
+    assignedStaffId?: string,
+    technicianId?: string,
+  ) {
+    const updatePayload: any = {};
+    if (assignedStaffId) updatePayload.assignedStaffId = assignedStaffId;
+    if (technicianId) updatePayload.technicianId = technicianId;
+
+    return this.repairRequestModel.findByIdAndUpdate(id, updatePayload, {
+      new: true,
+    });
   }
 }
