@@ -15,10 +15,6 @@ export class CreateRepairInvoiceItemDto {
   @IsNumber()
   laborCost: number;
 
-  @IsNumber()
-  @IsOptional()
-  totalPrice?: number;
-
   @IsString()
   @IsOptional()
   note?: string;

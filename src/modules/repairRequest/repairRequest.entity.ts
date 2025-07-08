@@ -38,20 +38,20 @@ export class RepairRequest extends Document {
   @Prop({ default: 0 })
   actualCost: number;
 
-  @Prop()
-  completionDate: Date;
-
-  @Prop()
-  preferredDropoffDate: Date;
-
-  @Prop()
+  @Prop() // Thời gian nhận hàng
   dropoffActualDate: Date;
 
-  @Prop()
+  @Prop() // Thời gian xử lý
+  processingDate: Date;
+
+  @Prop() // Thời gian dự kiến giao hàng
   pickupAppointmentDate: Date;
 
-  @Prop()
-  pickupActualDate: Date;
+  @Prop() // Thời gian hoàn thành đơn
+  completionDate: Date;
+
+  @Prop() // Thời gian hủy đơn
+  cancelledDate: Date;
 
   @Prop({ default: 0 })
   customerPaid: number;

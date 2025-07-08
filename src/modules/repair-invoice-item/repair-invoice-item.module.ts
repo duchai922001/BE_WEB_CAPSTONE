@@ -7,12 +7,14 @@ import {
   RepairInvoiceItem,
   RepairInvoiceItemSchema,
 } from './repair-invoice-item.entity';
+import { RepairServiceModule } from '../repairService/repairService.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: RepairInvoiceItem.name, schema: RepairInvoiceItemSchema },
     ]),
+    RepairServiceModule
   ],
   controllers: [RepairInvoiceItemController],
   providers: [RepairInvoiceItemService, RepairInvoiceItemRepository],

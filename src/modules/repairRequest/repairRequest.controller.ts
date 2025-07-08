@@ -18,6 +18,7 @@ import { RepairRequestService } from './repairRequest.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { AssignRepairRequestDto } from './dtos/assign-staff.dto';
+import { UpdateRepairRequestTimestampDto } from './dtos/update-repair-request-timestamp.dto';
 
 @Controller('repair-requests')
 export class RepairRequestController {
@@ -71,5 +72,11 @@ export class RepairRequestController {
   async delete(@Param('id') id: string) {
     const data = await this.service.delete(id);
     return createResponse(200, data, ResponseMessage.DELETE);
+  }
+
+  @Patch('update-timestamp')
+  async updateTimestamp(@Body() dto: UpdateRepairRequestTimestampDto) {
+    const data = await this.service.updateTimestamp(dto);
+    return createResponse(200, data, ResponseMessage.UPDATE);
   }
 }

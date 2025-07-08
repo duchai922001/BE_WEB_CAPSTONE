@@ -15,7 +15,7 @@ import { UpdateRepairServiceDto } from './dtos/update.dto';
 import { createResponse } from 'src/common/helpers/response.helper';
 import { ResponseMessage } from 'src/common/enums/responseMessage';
 
-@Controller('repair-service')
+@Controller('repair-services')
 export class RepairServiceController {
   constructor(private readonly service: RepairServiceService) {}
 

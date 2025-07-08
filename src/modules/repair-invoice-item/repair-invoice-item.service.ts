@@ -1,14 +1,37 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { RepairInvoiceItemRepository } from './repair-invoice-item.repository';
 import { UpdateRepairInvoiceItemDto } from './dtos/update-repair-invoice-item.dto';
 import { CreateRepairInvoiceItemDto } from './dtos/create-repair-invoice-item.dto';
+import { RepairServiceService } from '../repairService/repairService.service';
 
 @Injectable()
 export class RepairInvoiceItemService {
-  constructor(private readonly repo: RepairInvoiceItemRepository) {}
+  constructor(
+    private readonly repo: RepairInvoiceItemRepository,
+    private readonly repaireServiceSer: RepairServiceService,
+  ) {}
 
   async create(dto: CreateRepairInvoiceItemDto) {
-    return this.repo.create(dto);
+    let totalPrice = dto.laborCost;
+
+    if (dto.repairServiceId) {
+      const service = await this.repaireServiceSer.findById(
+        dto.repairServiceId,
+      );
+      if (!service) {
+        throw new BadRequestException('Thiết bị không tồn tại');
+      }
+      totalPrice += service.sellPrice;
+    }
+
+    return this.repo.create({
+      ...dto,
+      totalPrice,
+    });
   }
 
   async findAll() {

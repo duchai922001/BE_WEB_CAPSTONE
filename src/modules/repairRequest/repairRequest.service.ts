@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { ResponseMessage } from 'src/common/enums/responseMessage';
 import { RepairRequestRepository } from './repairRequest.repository';
 import {
@@ -9,6 +13,7 @@ import { RepairRequestServiceReprository } from '../repairRequestService/repairR
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { RepairRequestImageService } from '../repairRequestImage/repairRequestImage.service';
 import { RepairImageType } from '../repairRequestImage/repairRequestImage.entity';
+import { UpdateRepairRequestTimestampDto } from './dtos/update-repair-request-timestamp.dto';
 
 @Injectable()
 export class RepairRequestService {
@@ -124,6 +129,25 @@ export class RepairRequestService {
       id,
       assignedStaffId,
       technicianId,
+    );
+  }
+
+  async updateTimestamp(dto: UpdateRepairRequestTimestampDto) {
+    const allowedFields = [
+      'dropoffActualDate',
+      'processingDate',
+      'pickupAppointmentDate',
+      'completionDate',
+      'cancelledDate',
+    ];
+
+    if (!allowedFields.includes(dto.field)) {
+      throw new BadRequestException('Field không hợp lệ');
+    }
+
+    return this.repairRequestRepo.updateTimestampByField(
+      dto.repairRequestId,
+      dto.field,
     );
   }
 }

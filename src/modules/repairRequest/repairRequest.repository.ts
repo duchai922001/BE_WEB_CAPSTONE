@@ -99,4 +99,12 @@ export class RepairRequestRepository {
       new: true,
     });
   }
+
+  async updateTimestampByField(repairRequestId: string, field: string) {
+    return this.repairRequestModel.findByIdAndUpdate(
+      repairRequestId,
+      { [field]: new Date() },
+      { new: true },
+    );
+  }
 }
