@@ -14,6 +14,8 @@ import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { RepairRequestImageService } from '../repairRequestImage/repairRequestImage.service';
 import { RepairImageType } from '../repairRequestImage/repairRequestImage.entity';
 import { UpdateRepairRequestTimestampDto } from './dtos/update-repair-request-timestamp.dto';
+import { UpdateRepairRequestInfoDto } from './dtos/update.dto';
+import { RepairRequestStatus } from 'src/common/enums/repairRequestStatus';
 
 @Injectable()
 export class RepairRequestService {
@@ -145,9 +147,47 @@ export class RepairRequestService {
       throw new BadRequestException('Field không hợp lệ');
     }
 
-    return this.repairRequestRepo.updateTimestampByField(
+    const updated = await this.repairRequestRepo.updateTimestampByField(
       dto.repairRequestId,
       dto.field,
     );
+
+    if (dto.field === 'processingDate') {
+      await this.updateStatus(
+        dto.repairRequestId,
+        RepairRequestStatus.WAIT_CUSTOMER_RECEIVE,
+      );
+    }
+
+    if (dto.field === 'completionDate') {
+      await this.updateStatus(
+        dto.repairRequestId,
+        RepairRequestStatus.COMPLETED,
+      );
+    }
+
+    return updated;
+  }
+
+  async updateRepairInfo(id: string, dto: UpdateRepairRequestInfoDto) {
+    await this.repairRequestRepo.updateInfo(id, {
+      deviceSerial: dto.deviceSerial,
+      issueDescription: dto.issueDescription,
+    });
+
+    if (dto.imageAfter?.length) {
+      await Promise.all(
+        dto.imageAfter.map((url) =>
+          this.repairRequestImageService.create({
+            repairRequestId: id,
+            url,
+            note: '',
+            type: RepairImageType.AFTER,
+          }),
+        ),
+      );
+    }
+
+    return { success: true };
   }
 }

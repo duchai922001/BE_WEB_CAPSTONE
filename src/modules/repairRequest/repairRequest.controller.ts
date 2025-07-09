@@ -19,6 +19,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { AssignRepairRequestDto } from './dtos/assign-staff.dto';
 import { UpdateRepairRequestTimestampDto } from './dtos/update-repair-request-timestamp.dto';
+import { UpdateRepairRequestInfoDto } from './dtos/update.dto';
 
 @Controller('repair-requests')
 export class RepairRequestController {
@@ -65,6 +66,15 @@ export class RepairRequestController {
       dto.assignedStaffId,
       dto.technicianId,
     );
+    return createResponse(200, data, ResponseMessage.UPDATE);
+  }
+
+  @Patch(':id/update-info')
+  async updateRepairInfo(
+    @Param('id') id: string,
+    @Body() dto: UpdateRepairRequestInfoDto,
+  ) {
+    const data = await this.service.updateRepairInfo(id, dto);
     return createResponse(200, data, ResponseMessage.UPDATE);
   }
 

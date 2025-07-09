@@ -107,4 +107,9 @@ export class RepairRequestRepository {
       { new: true },
     );
   }
+
+  async updateInfo(id: string, update: any) {
+    console.log({ id, update });
+    return this.repairRequestModel.findByIdAndUpdate(id, update, { new: true });
+  }
 }
