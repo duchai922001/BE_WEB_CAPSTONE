@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsMongoId, IsNotEmpty, IsNumber } from 'class-validator';
+import { IsMongoId, IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
 
 export class CreateOrderItemDto {
   @IsNotEmpty()
@@ -9,6 +9,10 @@ export class CreateOrderItemDto {
   @IsNotEmpty()
   @IsMongoId()
   productId: string;
+
+  @IsMongoId()
+  @IsOptional()
+  variableId: string;
 
   @IsNotEmpty()
   @IsNumber()

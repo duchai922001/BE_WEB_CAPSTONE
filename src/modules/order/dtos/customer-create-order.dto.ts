@@ -14,6 +14,10 @@ export class OrderItems {
   @IsMongoId()
   productId: string;
 
+  @IsMongoId()
+  @IsOptional()
+  variableId: string;
+
   @IsNotEmpty()
   @IsNumber()
   @Type(() => Number)

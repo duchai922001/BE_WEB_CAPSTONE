@@ -58,6 +58,7 @@ export class OrderService {
             orderId: order._id,
             productId: item.productId,
             quantity: item.quantity,
+            variableId: item.variableId,
           }),
         ),
       );
@@ -79,7 +80,7 @@ export class OrderService {
     };
   }
 
-    async getOrderById(id: string) {
+  async getOrderById(id: string) {
     const order = await this.orderRepository.getOrderById(id);
     return order;
   }
@@ -112,14 +113,14 @@ export class OrderService {
     return await this.orderRepository.findByOrderCode(orderCode);
   }
 
-  async getUserByOrderId(id: string){
+  async getUserByOrderId(id: string) {
     const order = await this.orderRepository.findById(id);
-    if(!order){
-      throw new BadRequestException("Không tìm thấy Order");
+    if (!order) {
+      throw new BadRequestException('Không tìm thấy Order');
     }
     const user = await this.userService.getById(order.userId.toString());
-    if(!user){
-      throw new BadRequestException("Không tìm thấy User theo Order ID");
+    if (!user) {
+      throw new BadRequestException('Không tìm thấy User theo Order ID');
     }
 
     return user;

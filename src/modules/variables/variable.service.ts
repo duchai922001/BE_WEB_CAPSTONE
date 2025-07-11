@@ -70,21 +70,7 @@ export class VariableService {
 
   async findByProductId(productId: string): Promise<any[]> {
     const variables = await this.variableRepository.findByProductId(productId);
-
-    const result = await Promise.all(
-      variables.map(async (variable) => {
-        const attributes = await this.attributeService.findByVariableId(
-          variable._id.toString(),
-        );
-
-        return {
-          ...(variable.toObject?.() ?? variable),
-          attribute: attributes,
-        };
-      }),
-    );
-
-    return result;
+    return variables;
   }
 
   async updateById(id: string, dto: Partial<CreateVariableDto>) {
