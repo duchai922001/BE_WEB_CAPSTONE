@@ -510,14 +510,18 @@ export class ProductService {
     };
   }
 
-  async getProductsByBrandName(brandName: string) {
+  async getProductsByBrandName(brandName: string, query: BaseQueryDto) {
     const brand = await this.brandRepo.findByName(brandName);
     if (!brand) {
       throw new NotFoundException(`Brand ${brandName} not found`);
     }
 
+    const { sortBy = 'sellPrice', sortOrder = 'asc' } = query;
+
     const products = await this.productRepository.findByBrandId(
       String(brand._id),
+      sortBy,
+      sortOrder,
     );
     return Promise.all(
       products.map(async (product) => {

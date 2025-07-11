@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Product, ProductDocument } from './product.entity';
-import { Model, Types } from 'mongoose';
+import { Model, SortOrder, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { ICreate } from './dtos/product.interface';
 import { builderQuery } from 'src/common/helpers/query-builder.helper';
@@ -67,9 +67,18 @@ export class ProductRepository {
     };
   }
 
-  async findByBrandId(brandId: string) {
+  async findByBrandId(
+    brandId: string,
+    sortBy: string = 'sellPrice',
+    sortOrder: 'asc' | 'desc' = 'asc',
+  ) {
+    const sort: Record<string, SortOrder> = {
+      [sortBy]: sortOrder === 'asc' ? 1 : -1,
+    };
+
     return this.productModel
-      .find({ brandId: brandId })
+      .find({ brandId })
+      .sort(sort)
       .populate('brandId categoryId')
       .exec();
   }
