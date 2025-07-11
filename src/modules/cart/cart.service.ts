@@ -6,6 +6,7 @@ import { InstalmentCartRepository } from '../instalmentCart/instalmentCart.repos
 import { InstalmentItemRepository } from '../instalmentItem/instalmentItem.repository';
 import { ResponseMessage } from 'src/common/enums/responseMessage';
 import { CartItemRepository } from '../cartItem/cartItem.repository';
+import { ProductImageRepository } from '../productImage/productImage.repository';
 
 @Injectable()
 export class CartService {
@@ -15,6 +16,7 @@ export class CartService {
     private readonly productRepo: ProductRepository,
     private readonly instalmentCartRepo: InstalmentCartRepository,
     private readonly instalmentItemRepo: InstalmentItemRepository,
+    private readonly productImageRepo: ProductImageRepository,
   ) {}
 
   async create(dto: CreateCartDto) {
@@ -36,7 +38,12 @@ export class CartService {
     if (!ok) throw new NotFoundException('Không thể xoá cart');
   }
 
-  async addToCart(userId: string, productId: string, quantity = 1) {
+  async addToCart(
+    userId: string,
+    productId: string,
+    quantity = 1,
+    variableId?: string,
+  ) {
     const product = await this.productRepo.findById(productId);
     if (!product) {
       throw new NotFoundException(ResponseMessage.FILE_NOT_FOUND);
@@ -46,6 +53,7 @@ export class CartService {
       (cart as any)._id.toString(),
       productId,
       quantity,
+      variableId,
     );
 
     if (product.isInstallment) {
@@ -54,6 +62,7 @@ export class CartService {
       await this.instalmentItemRepo.addItem(
         (instalmentCart as any)._id.toString(),
         productId,
+        variableId,
       );
     }
 
@@ -62,12 +71,49 @@ export class CartService {
 
   async getCartItems(userId: string) {
     const cart = await this.cartRepo.getOrCreateCart(userId);
-    return this.cartItemRepo.getItems((cart as any)._id.toString());
+    const items = await this.cartItemRepo.getItems(
+      (cart as any)._id.toString(),
+    );
+
+    const result = await Promise.all(
+      items.map(async (item) => {
+        const productId = item.productId._id.toString();
+
+        const defaultImage =
+          await this.productImageRepo.findDefaultImageByProductId(productId);
+
+        return {
+          ...item.toObject(),
+          image: defaultImage?.url || null,
+        };
+      }),
+    );
+
+    return result;
   }
 
   async getInstalmentItems(userId: string) {
     const cart =
       await this.instalmentCartRepo.getOrCreateInstalmentCart(userId);
-    return this.instalmentItemRepo.getItems((cart as any)._id.toString());
+    const items = await this.instalmentItemRepo.getItems(
+      (cart as any)._id.toString(),
+    );
+
+    const result = await Promise.all(
+      items.map(async (item) => {
+        const productId =
+          item.productId._id?.toString?.() || item.productId.toString();
+
+        const defaultImage =
+          await this.productImageRepo.findDefaultImageByProductId(productId);
+
+        return {
+          ...item.toObject(),
+          image: defaultImage?.url || null,
+        };
+      }),
+    );
+
+    return result;
   }
 }

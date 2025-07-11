@@ -26,3 +26,12 @@ export class Variable extends Document {
 }
 
 export const VariableSchema = SchemaFactory.createForClass(Variable);
+
+VariableSchema.virtual('attributes', {
+  ref: 'Attribute',
+  localField: '_id',
+  foreignField: 'variableId',
+});
+
+VariableSchema.set('toObject', { virtuals: true });
+VariableSchema.set('toJSON', { virtuals: true });

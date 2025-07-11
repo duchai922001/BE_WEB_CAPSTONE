@@ -5,6 +5,14 @@ export class AddToCartDto {
   @IsNotEmpty({ message: 'productId is required' })
   productId: string;
 
+  @IsString()
+  @IsOptional()
+  variableId: string;
+
+  @IsString()
+  @IsOptional()
+  attributeId: string;
+
   @IsNumber()
   @IsOptional()
   quantity: number;
