@@ -83,9 +83,17 @@ export class ProductRepository {
       .exec();
   }
 
-  async findByCategoryId(categoryId: string) {
+  async findByCategoryId(
+    categoryId: string,
+    sortBy: string = 'sellPrice',
+    sortOrder: 'asc' | 'desc' = 'asc',
+  ) {
+    const sort: Record<string, SortOrder> = {
+      [sortBy]: sortOrder === 'asc' ? 1 : -1,
+    };
     return this.productModel
       .find({ categoryId: categoryId })
+      .sort(sort)
       .populate('brandId categoryId')
       .exec();
   }

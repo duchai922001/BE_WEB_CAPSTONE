@@ -546,14 +546,16 @@ export class ProductService {
     );
   }
 
-  async getProductsByCategoryName(categoryName: string) {
+  async getProductsByCategoryName(categoryName: string, query: BaseQueryDto) {
     const category = await this.categoryRepo.findByName(categoryName);
     if (!category) {
       throw new NotFoundException(`Danh mục ${categoryName} không tìm thấy`);
     }
-
+    const { sortBy = 'sellPrice', sortOrder = 'asc' } = query;
     const products = await this.productRepository.findByCategoryId(
       String(category._id),
+      sortBy,
+      sortOrder,
     );
     return Promise.all(
       products.map(async (product) => {
