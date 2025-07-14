@@ -33,6 +33,7 @@ import { RepairRequestModule } from './modules/repairRequest/repairRequest.modul
 import { RepairServiceModule } from './modules/repairService/repairService.module';
 import { RepairRequestServiceModule } from './modules/repairRequestService/repairRequestService.module';
 import { RepairInvoiceItemModule } from './modules/repair-invoice-item/repair-invoice-item.module';
+import { SpecificationsModule } from './modules/specifications/specifications.module';
 
 @Module({
   imports: [
@@ -76,6 +77,7 @@ import { RepairInvoiceItemModule } from './modules/repair-invoice-item/repair-in
     RepairServiceModule,
     RepairRequestServiceModule,
     RepairInvoiceItemModule,
+    SpecificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

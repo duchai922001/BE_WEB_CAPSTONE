@@ -9,62 +9,135 @@ import { UpdateOrderDto } from './dtos/update-order.dto';
 import { PaymentRepository } from '../payment/payment.repository';
 import { OrderItemRepository } from '../orderItem/orderItem.repository';
 import { UserService } from '../users/user.service';
+import { ProductType } from 'src/common/enums/productType';
+import { SerialService } from '../serials/serial.service';
+import { InjectConnection } from '@nestjs/mongoose';
+import { Connection } from 'mongoose';
 
 @Injectable()
 export class OrderService {
   constructor(
+    @InjectConnection() private readonly connection: Connection,
     private readonly orderRepository: OrderRepository,
     private readonly orderItemRepository: OrderItemRepository,
     private readonly paymentRepo: PaymentRepository,
     private readonly userService: UserService,
+    private readonly serialSer: SerialService,
   ) {}
 
   async createOrder(data: CustomerCreateOrderDto) {
-    const { orderItems, ...payloadOther } = data;
-
-    const MAX_RETRIES = 5;
-    let retry = 0;
-    let orderCode: string;
+    const session = await this.connection.startSession(); // 1. Bắt đầu session
     let order: any;
 
-    while (retry < MAX_RETRIES) {
-      orderCode = `${Date.now()}${Math.floor(Math.random() * 1000)
-        .toString()
-        .padStart(3, '0')}`;
+    try {
+      await session.withTransaction(async () => {
+        const { orderItems, ...payloadOther } = data;
 
-      try {
-        order = await this.orderRepository.create({
-          ...payloadOther,
-          orderCode,
-        });
-        break;
-      } catch (error) {
-        if (error.code === 11000 && error.keyPattern?.orderCode) {
-          retry++;
-          continue;
+        // 2. Tạo mã đơn hàng retry như cũ (trong transaction)
+        const MAX_RETRIES = 5;
+        let retry = 0;
+        let orderCode: string;
+
+        while (retry < MAX_RETRIES) {
+          orderCode = `${Date.now()}${Math.floor(Math.random() * 1000)
+            .toString()
+            .padStart(3, '0')}`;
+
+          try {
+            order = await this.orderRepository.create(
+              {
+                ...payloadOther,
+                orderCode,
+              },
+              { session },
+            );
+            break;
+          } catch (error) {
+            if (error.code === 11000 && error.keyPattern?.orderCode) {
+              retry++;
+              continue;
+            }
+            throw error;
+          }
         }
-        throw error;
-      }
-    }
 
-    if (!order) {
-      throw new Error('Could not create unique orderCode after retries');
-    }
+        if (!order) {
+          throw new Error('Could not create unique orderCode after retries');
+        }
 
-    if (orderItems?.length) {
-      await Promise.all(
-        orderItems.map((item: OrderItems) =>
-          this.orderItemRepository.create({
-            orderId: order._id,
-            productId: item.productId,
-            quantity: item.quantity,
-            variableId: item.variableId,
-          }),
-        ),
-      );
-    }
+        // 3. Xử lý từng item
+        for (const item of data.orderItems || []) {
+          const { productId, variableId, quantity, typeProduct } = item;
 
-    return order;
+          if (
+            typeProduct === ProductType.NO_VARIABLE_NO_SERIAL ||
+            typeProduct === ProductType.NORMAL_VARIABLES
+          ) {
+            // Sản phẩm không cần serial
+            await this.orderItemRepository.create(
+              {
+                orderId: order._id,
+                productId,
+                variableId,
+                quantity,
+              },
+              { session },
+            );
+          } else if (
+            typeProduct === ProductType.NORMAL_SERIALS ||
+            typeProduct === ProductType.NORMAL_VARIABLES_SERIALS
+          ) {
+            // Sản phẩm có serial
+            const serials = await this.serialSer.find(
+              {
+                productId,
+                isSold: false,
+                variableId:
+                  typeProduct === ProductType.NORMAL_SERIALS
+                    ? null
+                    : variableId,
+              },
+              quantity,
+              session,
+            );
+
+            if (serials.length < quantity) {
+              throw new BadRequestException('Sản phẩm này đã hết hàng');
+            }
+
+            const serialCodes = serials.map((serial) => serial.serialCode);
+
+            await this.orderItemRepository.create(
+              {
+                orderId: order._id,
+                productId,
+                variableId:
+                  typeProduct === ProductType.NORMAL_SERIALS
+                    ? undefined
+                    : variableId,
+                quantity,
+                serialCodes,
+              },
+              { session },
+            );
+
+            for (const serial of serials) {
+              await this.serialSer.updateById(
+                (serial as any)._id,
+                { isSold: true },
+                session,
+              );
+            }
+          }
+        }
+      });
+
+      return order;
+    } catch (error) {
+      throw error;
+    } finally {
+      await session.endSession();
+    }
   }
 
   async findAll(query: BaseQueryDto) {

@@ -13,6 +13,9 @@ export class OrderItem extends Document {
   @Prop({ type: Types.ObjectId, ref: 'Variable' })
   variableId: Types.ObjectId;
 
+  @Prop({ type: [String], default: [] })
+  serialCodes: string[];
+
   @Prop({ default: 1 })
   quantity: number;
 }

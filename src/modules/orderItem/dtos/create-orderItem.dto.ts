@@ -1,5 +1,13 @@
 import { Type } from 'class-transformer';
-import { IsMongoId, IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
+import {
+  ArrayNotEmpty,
+  IsArray,
+  IsMongoId,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class CreateOrderItemDto {
   @IsNotEmpty()
@@ -12,10 +20,16 @@ export class CreateOrderItemDto {
 
   @IsMongoId()
   @IsOptional()
-  variableId: string;
+  variableId?: string;
 
   @IsNotEmpty()
   @IsNumber()
   @Type(() => Number)
   quantity?: number;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsString({ each: true })
+  serialCodes?: string[];
 }

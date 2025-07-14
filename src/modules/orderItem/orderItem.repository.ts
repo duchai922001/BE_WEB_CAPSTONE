@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { OrderItem, OrderItemDocument } from './orderItem.entity';
-import { Model, Types } from 'mongoose';
+import { ClientSession, Model, Types } from 'mongoose';
 import { CreateOrderItemDto } from './dtos/create-orderItem.dto';
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { builderQuery } from 'src/common/helpers/query-builder.helper';
@@ -15,8 +15,11 @@ export class OrderItemRepository {
     private readonly productImageRepository: ProductImageRepository,
   ) {}
 
-  async create(data: CreateOrderItemDto): Promise<OrderItemDocument> {
-    return new this.OrderItemModel(data).save();
+  async create(
+    data: CreateOrderItemDto,
+    options?: { session?: ClientSession },
+  ): Promise<OrderItemDocument> {
+    return new this.OrderItemModel(data).save({ session: options?.session });
   }
 
   async findAll(query: BaseQueryDto): Promise<OrderItemDocument[]> {
@@ -68,7 +71,7 @@ export class OrderItemRepository {
     const formattedItems = orderItems.map((item) => {
       const { productId, ...rest } = item;
       const imageUrl = imageMap.get(productId._id.toString()) || null;
-      
+
       return {
         ...rest,
         product: productId,
