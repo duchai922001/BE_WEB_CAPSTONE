@@ -18,10 +18,6 @@ export class CreateSpecificationDto {
   @IsOptional()
   @IsString()
   value: string;
-
-  @IsOptional()
-  @IsBoolean()
-  isFilter?: boolean;
 }
 
 export class UpdateSpecificationDto {
@@ -32,8 +28,4 @@ export class UpdateSpecificationDto {
   @IsOptional()
   @IsString()
   value?: string;
-
-  @IsOptional()
-  @IsBoolean()
-  isFilter?: boolean;
 }

@@ -35,6 +35,7 @@ import { RepairRequestServiceModule } from './modules/repairRequestService/repai
 import { RepairInvoiceItemModule } from './modules/repair-invoice-item/repair-invoice-item.module';
 import { SpecificationsModule } from './modules/specifications/specifications.module';
 import { InstalmentRequestModule } from './modules/instalmentRequest/instalmentCart.module';
+import { SpecificationsKeyModule } from './modules/specifications-key/specifications-key.module';
 
 @Module({
   imports: [
@@ -80,6 +81,7 @@ import { InstalmentRequestModule } from './modules/instalmentRequest/instalmentC
     RepairInvoiceItemModule,
     SpecificationsModule,
     InstalmentRequestModule,
+    SpecificationsKeyModule,
   ],
   controllers: [AppController],
   providers: [AppService],

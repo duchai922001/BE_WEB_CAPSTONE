@@ -7,16 +7,27 @@ import {
   IsEnum,
   IsArray,
   ValidateNested,
+  IsBoolean,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ProductType } from 'src/common/enums/productType';
 class AttributeDto {
   @IsString()
-  @IsNotEmpty({ message: 'key of attribute is required' })
+  @IsNotEmpty({ message: 'key của thuộc tính là bắt buộc' })
   key: string;
 
   @IsString()
-  @IsNotEmpty({ message: 'value of attribute is required' })
+  @IsNotEmpty({ message: 'value của thuộc tính là bắt buộc' })
+  value: string;
+}
+
+class SpecificationDto {
+  @IsString()
+  @IsNotEmpty({ message: 'Key của thông số kỹ thuật là bắt buộc' })
+  key: string;
+
+  @IsString()
+  @IsNotEmpty({ message: 'Value của thông số kỹ thuật là bắt buộc' })
   value: string;
 }
 
@@ -102,8 +113,16 @@ export class CreateProductDto {
   @IsOptional()
   mainImage: string;
 
+  @IsBoolean()
+  isInstallment: boolean;
+
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
   listImage: string[];
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => SpecificationDto)
+  specifications: SpecificationDto[];
 }

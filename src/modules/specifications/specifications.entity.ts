@@ -11,9 +11,6 @@ export class Specifications extends Document {
 
   @Prop()
   value: string;
-
-  @Prop({ default: false })
-  isFilter: boolean;
 }
 
 export const SpecificationsSchema =

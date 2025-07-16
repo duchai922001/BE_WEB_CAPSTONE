@@ -24,4 +24,8 @@ export class SpecificationsService {
   update(id: string, data: UpdateSpecificationDto) {
     return this.repo.update(id, data);
   }
+
+  findByProductId(productId: string) {
+    return this.repo.findByProductId(productId);
+  }
 }

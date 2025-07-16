@@ -21,6 +21,10 @@ export class SpecificationsRepository {
     return this.model.insertMany(data);
   }
 
+  async findByProductId(productId: string) {
+    return this.model.find({ productId });
+  }
+
   async getAll(): Promise<Specifications[]> {
     return this.model.find().populate('productId').exec();
   }

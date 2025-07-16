@@ -13,5 +13,6 @@ import { SpecificationsRepository } from './specifications.repository';
   ],
   controllers: [SpecificationsController],
   providers: [SpecificationsService, SpecificationsRepository],
+  exports: [SpecificationsService],
 })
 export class SpecificationsModule {}

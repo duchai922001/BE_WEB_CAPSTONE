@@ -21,6 +21,7 @@ import { Types } from 'mongoose';
 import { BrandRepository } from '../brands/brand.repository';
 import { ProductDetailDto } from './dtos/product-detail.dto';
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
+import { SpecificationsService } from '../specifications/specifications.service';
 
 @Injectable()
 export class ProductService {
@@ -31,6 +32,7 @@ export class ProductService {
     private readonly variableService: VariableService,
     private readonly categoryRepo: CategoryRepository,
     private readonly brandRepo: BrandRepository,
+    private readonly speciSer: SpecificationsService,
   ) {}
   private async handleImages(
     productId: string,
@@ -72,6 +74,8 @@ export class ProductService {
       listImage,
       mainImage,
       typeProduct,
+      isInstallment,
+      specifications,
     } = dto;
 
     const productExited = await this.productRepository.findProductByName(name);
@@ -90,12 +94,20 @@ export class ProductService {
           stock: stock ?? 0,
           typeProduct,
           description,
+          isInstallment,
         });
         await this.handleImages(
           (product as any)._id.toString(),
           mainImage,
           listImage,
         );
+        if (specifications?.length > 0) {
+          const specsWithProductId = specifications.map((spec) => ({
+            ...spec,
+            productId: (product as any)._id.toString(),
+          }));
+          await this.speciSer.createBulk(specsWithProductId);
+        }
         break;
       }
       case ProductType.NORMAL_SERIALS: {
@@ -115,12 +127,20 @@ export class ProductService {
           stock: serials?.length ?? 0,
           typeProduct,
           description,
+          isInstallment,
         });
         await this.handleImages(
           (product as any)._id.toString(),
           mainImage,
           listImage,
         );
+        if (specifications?.length > 0) {
+          const specsWithProductId = specifications.map((spec) => ({
+            ...spec,
+            productId: (product as any)._id.toString(),
+          }));
+          await this.speciSer.createBulk(specsWithProductId);
+        }
         await Promise.all(
           serials?.map((serial) =>
             this.serialService.create({
@@ -152,12 +172,20 @@ export class ProductService {
           stock: totalStock,
           typeProduct,
           description,
+          isInstallment,
         });
         await this.handleImages(
           (product as any)._id.toString(),
           mainImage,
           listImage,
         );
+        if (specifications?.length > 0) {
+          const specsWithProductId = specifications.map((spec) => ({
+            ...spec,
+            productId: (product as any)._id.toString(),
+          }));
+          await this.speciSer.createBulk(specsWithProductId);
+        }
         await Promise.all(
           variables.map((item) =>
             this.variableService.create({
@@ -199,13 +227,20 @@ export class ProductService {
           stock: totalStock,
           typeProduct,
           description,
+          isInstallment,
         });
         await this.handleImages(
           (product as any)._id.toString(),
           mainImage,
           listImage,
         );
-
+        if (specifications?.length > 0) {
+          const specsWithProductId = specifications.map((spec) => ({
+            ...spec,
+            productId: (product as any)._id.toString(),
+          }));
+          await this.speciSer.createBulk(specsWithProductId);
+        }
         await Promise.all(
           variables.map((item) =>
             this.variableService.create({
