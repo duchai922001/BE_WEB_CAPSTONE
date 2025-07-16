@@ -6,19 +6,23 @@ import {
   Param,
   Patch,
   Post,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
 import { CreateInstalmentRequestDto } from './dtos/create.dto';
 import { InstalmentRequestService } from './instalmentRequest.service';
 import { createResponse } from 'src/common/helpers/response.helper';
 import { ResponseMessage } from 'src/common/enums/responseMessage';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('instalment-requests')
 export class InstalmentRequestController {
   constructor(private readonly service: InstalmentRequestService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() dto: CreateInstalmentRequestDto) {
-    const data = this.service.create(dto);
+  create(@Body() dto: CreateInstalmentRequestDto, @Request() req) {
+    const data = this.service.create(req.user.userId, dto);
     return createResponse(HttpStatus.CREATED, data, ResponseMessage.CREATE);
   }
 

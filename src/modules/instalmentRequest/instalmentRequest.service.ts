@@ -7,8 +7,11 @@ import { InstalmentRequestRepository } from './instalmentRequest.repository';
 export class InstalmentRequestService {
   constructor(private readonly repo: InstalmentRequestRepository) {}
 
-  create(dto: CreateInstalmentRequestDto) {
-    return this.repo.create(dto);
+  create(userId: string, dto: CreateInstalmentRequestDto) {
+    return this.repo.create({
+      ...dto,
+      userId,
+    });
   }
 
   findAll() {

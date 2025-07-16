@@ -5,7 +5,6 @@ import {
   InstalmentRequest,
   InstalmentRequestDocument,
 } from './instalmentRequest.entity';
-import { CreateInstalmentRequestDto } from './dtos/create.dto';
 
 @Injectable()
 export class InstalmentRequestRepository {
@@ -14,7 +13,7 @@ export class InstalmentRequestRepository {
     private readonly model: Model<InstalmentRequestDocument>,
   ) {}
 
-  async create(data: CreateInstalmentRequestDto): Promise<InstalmentRequest> {
+  async create(data: any): Promise<InstalmentRequest> {
     return this.model.create(data);
   }
 
