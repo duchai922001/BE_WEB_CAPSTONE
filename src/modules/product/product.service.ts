@@ -479,6 +479,9 @@ export class ProductService {
         name: p.name,
         sellPrice: p.sellPrice,
         image: imageMap[p._id.toString()] || null,
+        isInstallment: p.isInstallment,
+        isPromotion: p.isPromotion,
+        salePrice: p.salePrice,
       }));
 
       const brandIds = [

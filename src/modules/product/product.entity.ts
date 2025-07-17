@@ -23,6 +23,9 @@ export class Product extends Document {
   sellPrice: number;
 
   @Prop({ default: 0 })
+  salePrice: number;
+
+  @Prop({ default: 0 })
   stock: number;
 
   @Prop({ required: true, unique: true })
@@ -33,6 +36,12 @@ export class Product extends Document {
 
   @Prop({ default: false })
   isInstallment: boolean;
+
+  @Prop({ default: false })
+  isPromotion: boolean;
+
+  @Prop({ type: Types.ObjectId, ref: 'Promotion' })
+  promotionId: string;
 
   @Prop({
     type: String,

@@ -137,4 +137,12 @@ export class ProductRepository {
       totalPages: Math.ceil(total / limitNumber),
     };
   }
+
+  async findManyByIds(ids: string[]): Promise<Product[]> {
+    return this.productModel.find({ _id: { $in: ids } });
+  }
+
+  async updateOne(id: string, data: Partial<Product>): Promise<void> {
+    await this.productModel.updateOne({ _id: id }, { $set: data });
+  }
 }
