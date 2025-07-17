@@ -29,4 +29,8 @@ export class InstalmentRequestService {
     if (!updated) throw new NotFoundException(ResponseMessage.FILE_NOT_FOUND);
     return updated;
   }
+
+  async getRequestsByUser(userId: string) {
+    return this.repo.findByUserId(userId);
+  }
 }

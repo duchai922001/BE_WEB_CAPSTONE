@@ -13,6 +13,15 @@ export class InstalmentRequestRepository {
     private readonly model: Model<InstalmentRequestDocument>,
   ) {}
 
+  async findByUserId(userId: string) {
+    return this.model
+      .find({ userId: userId })
+      .populate('instalmentItemId')
+      .populate('assignedStaffId', 'fullName phone')
+      .sort({ createdAt: -1 })
+      .exec();
+  }
+
   async create(data: any): Promise<InstalmentRequest> {
     return this.model.create(data);
   }

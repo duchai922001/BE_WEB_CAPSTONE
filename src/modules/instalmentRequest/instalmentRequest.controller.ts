@@ -32,7 +32,7 @@ export class InstalmentRequestController {
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
 
-  @Get(':id')
+  @Get('get-id/:id')
   findById(@Param('id') id: string) {
     const data = this.service.findById(id);
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
@@ -42,5 +42,12 @@ export class InstalmentRequestController {
   updateStatus(@Param('id') id: string, @Param('status') status: string) {
     const data = this.service.updateStatus(id, status === 'true');
     return createResponse(HttpStatus.OK, data, ResponseMessage.UPDATE);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('user')
+  async getByUserId(@Request() req) {
+    const data = await this.service.getRequestsByUser(req.user.userId);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
 }
