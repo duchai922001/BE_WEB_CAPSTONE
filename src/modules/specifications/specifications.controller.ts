@@ -28,8 +28,13 @@ export class SpecificationsController {
   getAll() {
     return this.service.getAll();
   }
+  @Get('filters')
+  async getFilterableSpecifications() {
+    const data = await this.service.getFilterableSpecifications();
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
 
-  @Get(':productId')
+  @Get('by-product/:productId')
   async getByProductId(@Param('productId') productId: string) {
     const data = await this.service.findByProductId(productId);
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);

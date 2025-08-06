@@ -28,4 +28,8 @@ export class SpecificationsService {
   findByProductId(productId: string) {
     return this.repo.findByProductId(productId);
   }
+
+  async getFilterableSpecifications() {
+    return this.repo.getFilterableSpecifications();
+  }
 }
