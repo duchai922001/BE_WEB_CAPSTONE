@@ -13,22 +13,21 @@ import { UpdateUserDto } from './dtos/update.dto';
 import { isValidObjectId, Types } from 'mongoose';
 import { AddressService } from '../address/address.service';
 import { changeProfilePassword } from './dtos/change-profile-password';
+import { RoleService } from '../roles/role.service';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly addressService: AddressService,
+    private readonly roleService: RoleService,
   ) {}
 
-  //Tìm hiểu xong
-  async create(
-    data: CreateUserDto,
-  ): Promise<UserDocument> /* Chỗ này cũng tương tự */ {
-    const password = data.password;
-    const phone = data.phone;
-    const email = data.email;
+  async create(data: CreateUserDto): Promise<UserDocument> {
+    const { password, phone, email, roleId } = data;
+
     const hashedPassword = await bcrypt.hash(password, 10);
+
     const existingUser = await this.userRepository.findByPhoneOrEmail(
       phone,
       email,
@@ -36,11 +35,24 @@ export class UserService {
     if (existingUser) {
       throw new BadRequestException('Tài khoản đã tồn tại');
     }
+
+    let finalRoleId = roleId;
+
+    if (!roleId) {
+      const customerRole = await this.roleService.findByName('CUSTOMER');
+      if (!customerRole) {
+        throw new BadRequestException('Không tìm thấy role CUSTOMER');
+      }
+      finalRoleId = (customerRole as any)._id;
+    }
+
     const newUser = await this.userRepository.create({
       ...data,
+      roleId: finalRoleId,
       password: hashedPassword,
     });
-    return newUser; // Đang trả ra một UserDocument
+
+    return newUser;
   }
 
   // Done chưa xét page và keyword
