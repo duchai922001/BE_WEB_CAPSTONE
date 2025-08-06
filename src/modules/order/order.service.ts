@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { OrderRepository } from './order.repository';
 import {
   CustomerCreateOrderDto,
@@ -13,6 +17,8 @@ import { ProductType } from 'src/common/enums/productType';
 import { SerialService } from '../serials/serial.service';
 import { InjectConnection } from '@nestjs/mongoose';
 import { Connection } from 'mongoose';
+import { UpdateOrderStatusDto } from './dtos/update-status.dto';
+import { ResponseMessage } from 'src/common/enums/responseMessage';
 
 @Injectable()
 export class OrderService {
@@ -197,5 +203,9 @@ export class OrderService {
     }
 
     return user;
+  }
+
+  async updateStatus(id: string, dto: UpdateOrderStatusDto) {
+    return this.orderRepository.update(id, { status: dto.status });
   }
 }

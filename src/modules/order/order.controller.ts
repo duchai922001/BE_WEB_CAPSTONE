@@ -5,6 +5,7 @@ import {
   Get,
   HttpStatus,
   Param,
+  Patch,
   Post,
   Put,
   Query,
@@ -18,6 +19,7 @@ import { ResponseMessage } from 'src/common/enums/responseMessage';
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { UpdateOrderDto } from './dtos/update-order.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { UpdateOrderStatusDto } from './dtos/update-status.dto';
 
 @Controller('orders')
 export class OrderController {
@@ -48,7 +50,7 @@ export class OrderController {
   }
 
   @Get('get-order-by-id/:orderId')
-    async getOrderById(@Param('orderId') id: string) {
+  async getOrderById(@Param('orderId') id: string) {
     const data = await this.orderService.getOrderById(id);
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
@@ -73,8 +75,17 @@ export class OrderController {
   }
 
   @Get('get-user/:orderId')
-  async getUserByOrderId(@Param('orderId') orderId: string){
+  async getUserByOrderId(@Param('orderId') orderId: string) {
     const data = await this.orderService.getUserByOrderId(orderId);
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
+
+  @Patch(':id/status')
+  async updateOrderStatus(
+    @Param('id') id: string,
+    @Body() dto: UpdateOrderStatusDto,
+  ) {
+    const data = await this.orderService.updateStatus(id, dto);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.UPDATE);
   }
 }

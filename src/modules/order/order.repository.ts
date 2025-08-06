@@ -59,10 +59,7 @@ export class OrderRepository {
     return order;
   }
 
-  async update(
-    id: string,
-    data: UpdateOrderDto,
-  ): Promise<OrderDocument | null> {
+  async update(id: string, data: any): Promise<OrderDocument | null> {
     return this.orderModel.findByIdAndUpdate(id, data, { new: true }).exec();
   }
 
