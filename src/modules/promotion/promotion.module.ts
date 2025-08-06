@@ -5,6 +5,7 @@ import { PromotionService } from './promotion.service';
 import { PromotionRepository } from './promotion.repository';
 import { Promotion, PromotionSchema } from './promotion.entity';
 import { PromotionImageModule } from '../promotionImage/promotionImage.module';
+import { ProductModule } from '../product/product.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { PromotionImageModule } from '../promotionImage/promotionImage.module';
       { name: Promotion.name, schema: PromotionSchema },
     ]),
     PromotionImageModule,
+    ProductModule,
   ],
   controllers: [PromotionController],
   providers: [PromotionService, PromotionRepository],

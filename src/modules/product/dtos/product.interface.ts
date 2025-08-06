@@ -10,4 +10,5 @@ export interface ICreate {
   stock: number;
   barcode: string;
   typeProduct: ProductType;
+  isInstallment: boolean;
 }

@@ -1,6 +1,7 @@
 import { Prop, SchemaFactory, Schema } from '@nestjs/mongoose';
 import { Types, Document } from 'mongoose';
 import { OrderNormalStatus } from 'src/common/enums/orderStatus';
+import { PaymentMethod, PaymentType } from 'src/common/enums/payment';
 
 export type OrderDocument = Order & Document;
 @Schema({ timestamps: true, versionKey: false })
@@ -50,6 +51,18 @@ export class Order extends Document {
 
   @Prop()
   reason: string;
+
+  @Prop({
+    enum: PaymentType,
+    default: PaymentType.FULL_DEPOSIT,
+  })
+  paymentType: PaymentType;
+
+  @Prop({
+    enum: PaymentMethod,
+    required: true,
+  })
+  paymentMethod: PaymentMethod;
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);

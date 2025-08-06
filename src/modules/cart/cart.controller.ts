@@ -32,6 +32,7 @@ export class CartController {
       req.user.userId,
       body.productId,
       body.quantity,
+      body.variableId,
     );
     return createResponse(HttpStatus.OK, data, ResponseMessage.CREATE);
   }

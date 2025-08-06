@@ -10,6 +10,9 @@ export class InstalmentItem {
   @Prop({ type: Types.ObjectId, ref: 'Product', required: true })
   productId: Types.ObjectId;
 
+  @Prop({ type: Types.ObjectId, ref: 'Variable' })
+  variableId: Types.ObjectId;
+
   @Prop({ default: false })
   status: boolean;
 }

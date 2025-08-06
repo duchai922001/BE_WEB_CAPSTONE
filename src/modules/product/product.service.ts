@@ -21,6 +21,7 @@ import { Types } from 'mongoose';
 import { BrandRepository } from '../brands/brand.repository';
 import { ProductDetailDto } from './dtos/product-detail.dto';
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
+import { SpecificationsService } from '../specifications/specifications.service';
 
 @Injectable()
 export class ProductService {
@@ -31,6 +32,7 @@ export class ProductService {
     private readonly variableService: VariableService,
     private readonly categoryRepo: CategoryRepository,
     private readonly brandRepo: BrandRepository,
+    private readonly speciSer: SpecificationsService,
   ) {}
   private async handleImages(
     productId: string,
@@ -72,6 +74,8 @@ export class ProductService {
       listImage,
       mainImage,
       typeProduct,
+      isInstallment,
+      specifications,
     } = dto;
 
     const productExited = await this.productRepository.findProductByName(name);
@@ -90,12 +94,20 @@ export class ProductService {
           stock: stock ?? 0,
           typeProduct,
           description,
+          isInstallment,
         });
         await this.handleImages(
           (product as any)._id.toString(),
           mainImage,
           listImage,
         );
+        if (specifications?.length > 0) {
+          const specsWithProductId = specifications.map((spec) => ({
+            ...spec,
+            productId: (product as any)._id.toString(),
+          }));
+          await this.speciSer.createBulk(specsWithProductId);
+        }
         break;
       }
       case ProductType.NORMAL_SERIALS: {
@@ -115,12 +127,20 @@ export class ProductService {
           stock: serials?.length ?? 0,
           typeProduct,
           description,
+          isInstallment,
         });
         await this.handleImages(
           (product as any)._id.toString(),
           mainImage,
           listImage,
         );
+        if (specifications?.length > 0) {
+          const specsWithProductId = specifications.map((spec) => ({
+            ...spec,
+            productId: (product as any)._id.toString(),
+          }));
+          await this.speciSer.createBulk(specsWithProductId);
+        }
         await Promise.all(
           serials?.map((serial) =>
             this.serialService.create({
@@ -152,12 +172,20 @@ export class ProductService {
           stock: totalStock,
           typeProduct,
           description,
+          isInstallment,
         });
         await this.handleImages(
           (product as any)._id.toString(),
           mainImage,
           listImage,
         );
+        if (specifications?.length > 0) {
+          const specsWithProductId = specifications.map((spec) => ({
+            ...spec,
+            productId: (product as any)._id.toString(),
+          }));
+          await this.speciSer.createBulk(specsWithProductId);
+        }
         await Promise.all(
           variables.map((item) =>
             this.variableService.create({
@@ -199,13 +227,20 @@ export class ProductService {
           stock: totalStock,
           typeProduct,
           description,
+          isInstallment,
         });
         await this.handleImages(
           (product as any)._id.toString(),
           mainImage,
           listImage,
         );
-
+        if (specifications?.length > 0) {
+          const specsWithProductId = specifications.map((spec) => ({
+            ...spec,
+            productId: (product as any)._id.toString(),
+          }));
+          await this.speciSer.createBulk(specsWithProductId);
+        }
         await Promise.all(
           variables.map((item) =>
             this.variableService.create({
@@ -444,6 +479,9 @@ export class ProductService {
         name: p.name,
         sellPrice: p.sellPrice,
         image: imageMap[p._id.toString()] || null,
+        isInstallment: p.isInstallment,
+        isPromotion: p.isPromotion,
+        salePrice: p.salePrice,
       }));
 
       const brandIds = [
@@ -510,14 +548,18 @@ export class ProductService {
     };
   }
 
-  async getProductsByBrandName(brandName: string) {
+  async getProductsByBrandName(brandName: string, query: BaseQueryDto) {
     const brand = await this.brandRepo.findByName(brandName);
     if (!brand) {
       throw new NotFoundException(`Brand ${brandName} not found`);
     }
 
+    const { sortBy = 'sellPrice', sortOrder = 'asc' } = query;
+
     const products = await this.productRepository.findByBrandId(
       String(brand._id),
+      sortBy,
+      sortOrder,
     );
     return Promise.all(
       products.map(async (product) => {
@@ -542,14 +584,16 @@ export class ProductService {
     );
   }
 
-  async getProductsByCategoryName(categoryName: string) {
+  async getProductsByCategoryName(categoryName: string, query: BaseQueryDto) {
     const category = await this.categoryRepo.findByName(categoryName);
     if (!category) {
       throw new NotFoundException(`Danh mục ${categoryName} không tìm thấy`);
     }
-
+    const { sortBy = 'sellPrice', sortOrder = 'asc' } = query;
     const products = await this.productRepository.findByCategoryId(
       String(category._id),
+      sortBy,
+      sortOrder,
     );
     return Promise.all(
       products.map(async (product) => {

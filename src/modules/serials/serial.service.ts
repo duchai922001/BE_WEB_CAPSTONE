@@ -1,7 +1,12 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateSerialDto } from './dtos/create.dto';
 import { SerialRepository } from './serial.repository';
 import { ResponseMessage } from 'src/common/enums/responseMessage';
+import { ClientSession } from 'mongoose';
 
 @Injectable()
 export class SerialService {
@@ -32,9 +37,11 @@ export class SerialService {
     await this.serialRepository.deleteByProductId(productId);
   }
 
-  async updateById(id: string, dto: Partial<CreateSerialDto>) {
-    const serial = await this.serialRepository.updateById(id, dto);
-    if (!serial) throw new NotFoundException(ResponseMessage.FILE_NOT_FOUND);
+  async updateById(id: string, dto: any, session?: ClientSession) {
+    const serial = await this.serialRepository.updateById(id, dto, session);
+    if (!serial) {
+      throw new NotFoundException(ResponseMessage.FILE_NOT_FOUND);
+    }
     return serial;
   }
 
@@ -43,5 +50,9 @@ export class SerialService {
       throw new BadRequestException(ResponseMessage.REQUIRED_FIELD + ' ids');
     }
     return this.serialRepository.deleteManyByIds(ids);
+  }
+
+  async find(condition: any, limit?: number, session?: ClientSession) {
+    return this.serialRepository.find(condition, limit, session);
   }
 }

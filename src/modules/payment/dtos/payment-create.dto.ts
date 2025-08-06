@@ -5,7 +5,7 @@ import {
   IsMongoId,
   IsEnum,
 } from 'class-validator';
-import { PaymentMethod } from 'src/common/enums/paymentMethod';
+import { PaymentMethod } from 'src/common/enums/payment';
 
 export class CreatePaymentDto {
   @IsMongoId()

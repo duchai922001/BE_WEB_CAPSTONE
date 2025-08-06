@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Order, OrderDocument } from './order.entity';
-import { Model } from 'mongoose';
+import { ClientSession, Model } from 'mongoose';
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { builderQuery } from 'src/common/helpers/query-builder.helper';
 import { UpdateOrderDto } from './dtos/update-order.dto';
@@ -14,9 +14,12 @@ export class OrderRepository {
     private readonly orderModel: Model<OrderDocument>,
   ) {}
 
-  async create(data: any): Promise<OrderDocument> {
+  async create(
+    data: any,
+    options?: { session?: ClientSession },
+  ): Promise<OrderDocument> {
     const newOrder = new this.orderModel(data);
-    return newOrder.save();
+    return newOrder.save({ session: options?.session });
   }
 
   async findAll(query: BaseQueryDto): Promise<OrderDocument[]> {
