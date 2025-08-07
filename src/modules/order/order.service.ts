@@ -176,17 +176,6 @@ export class OrderService {
 
   async getByUserId(userId: string) {
     const orders = await this.orderRepository.getByUserId(userId);
-    // const responseData = await Promise.all(
-    //   orders.map(async (order) => {
-    //     const payment = await this.paymentRepo.findByOrderId(
-    //       (order as any)._id.toString(),
-    //     );
-    //     return {
-    //       order,
-    //       payment,
-    //     };
-    //   }),
-    // );
     return orders;
   }
 

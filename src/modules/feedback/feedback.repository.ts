@@ -35,7 +35,7 @@ export class FeedbackRepository {
 
   async findByProductId(productId: string) {
     return this.feedbackModel
-      .find({ productId: new Types.ObjectId(productId) })
+      .find({ productId: productId })
       .populate('userId')
       .exec();
   }
