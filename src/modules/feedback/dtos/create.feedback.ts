@@ -14,11 +14,11 @@ export class CreateFeedbackDto {
   userId: string;
 
   @IsMongoId()
-  @IsNotEmpty()
+  @IsOptional()
   productId: string;
 
   @IsMongoId()
-  @IsNotEmpty()
+  @IsOptional()
   repairRequestId: string;
 
   @IsInt()
