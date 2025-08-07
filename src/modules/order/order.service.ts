@@ -196,6 +196,11 @@ export class OrderService {
     return user;
   }
 
+  async getQuantityByUserId(userId: string) {
+    const count = await this.orderRepository.countQuantityByUserId(userId);
+    return count;
+  }
+
   async updateStatus(id: string, dto: UpdateOrderStatusDto) {
     return this.orderRepository.update(id, { status: dto.status });
   }
