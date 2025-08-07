@@ -19,6 +19,8 @@ import { InjectConnection } from '@nestjs/mongoose';
 import { Connection } from 'mongoose';
 import { UpdateOrderStatusDto } from './dtos/update-status.dto';
 import { ResponseMessage } from 'src/common/enums/responseMessage';
+import { PayDebtDto } from './dtos/pay-debt.dto';
+import { ReturnOrderDto } from './dtos/return-order.dto';
 
 @Injectable()
 export class OrderService {
@@ -207,5 +209,45 @@ export class OrderService {
 
   async updateStatus(id: string, dto: UpdateOrderStatusDto) {
     return this.orderRepository.update(id, { status: dto.status });
+  }
+
+  async payDebt(dto: PayDebtDto) {
+    const order = await this.orderRepository.findById(dto.orderId);
+    if (!order) {
+      throw new NotFoundException('Đơn hàng không tồn tại');
+    }
+
+    if (order.customerDept <= 0) {
+      throw new BadRequestException('Đơn hàng không còn nợ');
+    }
+
+    if (dto.paidAmount > order.customerDept) {
+      throw new BadRequestException('Số tiền trả vượt quá số tiền nợ');
+    }
+
+    return this.orderRepository.payDebt(dto.orderId, dto.paidAmount);
+  }
+
+  async returnOrder(dto: ReturnOrderDto) {
+    const order = await this.orderRepository.findById(dto.orderId);
+    if (!order) {
+      throw new NotFoundException('Đơn hàng không tồn tại');
+    }
+
+    if (order.isReturnedOrder) {
+      throw new BadRequestException('Đơn hàng đã được hoàn trước đó');
+    }
+
+    if (dto.returnAmount > order.customerPaid) {
+      throw new BadRequestException(
+        'Số tiền hoàn vượt quá số tiền khách đã trả',
+      );
+    }
+
+    return this.orderRepository.returnOrder(
+      dto.orderId,
+      dto.returnAmount,
+      dto.reason,
+    );
   }
 }

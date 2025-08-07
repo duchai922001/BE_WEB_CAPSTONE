@@ -20,6 +20,8 @@ import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { UpdateOrderDto } from './dtos/update-order.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UpdateOrderStatusDto } from './dtos/update-status.dto';
+import { PayDebtDto } from './dtos/pay-debt.dto';
+import { ReturnOrderDto } from './dtos/return-order.dto';
 
 @Controller('orders')
 export class OrderController {
@@ -86,6 +88,18 @@ export class OrderController {
     @Body() dto: UpdateOrderStatusDto,
   ) {
     const data = await this.orderService.updateStatus(id, dto);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.UPDATE);
+  }
+
+  @Post('pay-debt')
+  async payDebt(@Body() dto: PayDebtDto) {
+    const data = await this.orderService.payDebt(dto);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.UPDATE);
+  }
+
+  @Post('return')
+  async returnOrder(@Body() dto: ReturnOrderDto) {
+    const data = await this.orderService.returnOrder(dto);
     return createResponse(HttpStatus.OK, data, ResponseMessage.UPDATE);
   }
 }

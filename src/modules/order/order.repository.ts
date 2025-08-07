@@ -90,4 +90,38 @@ export class OrderRepository {
     }
     return order;
   }
+
+  async payDebt(orderId: string, amount: number) {
+    const order = await this.orderModel.findById(orderId);
+    if (!order) throw new Error('Order not found');
+
+    if (order.customerDept <= 0) throw new Error('Không còn nợ để thanh toán');
+
+    if (amount > order.customerDept) throw new Error('Số tiền vượt quá số nợ');
+
+    order.customerPaid += amount;
+    order.customerDept -= amount;
+
+    return order.save();
+  }
+
+  async returnOrder(orderId: string, returnAmount: number, reason: string) {
+    const order = await this.orderModel.findById(orderId);
+    if (!order) throw new Error('Order not found');
+
+    if (order.isReturnedOrder) {
+      throw new Error('Đơn hàng đã được hoàn trước đó');
+    }
+
+    if (returnAmount > order.customerPaid) {
+      throw new Error('Số tiền hoàn vượt quá số tiền khách đã trả');
+    }
+
+    order.isReturnedOrder = true;
+    order.reason = reason;
+    order.customerPaid -= returnAmount;
+    order.customerDept = Math.max(0, order.customerDept - returnAmount);
+
+    return order.save();
+  }
 }
