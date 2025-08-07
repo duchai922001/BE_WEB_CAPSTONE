@@ -70,6 +70,13 @@ export class OrderController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('orderCount')
+  async getQuantityOrderByUserId(@Request() req) {
+    const data = await this.orderService.getQuantityByUserId(req.user.userId);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('user')
   async getByUserId(@Request() req) {
     const data = await this.orderService.getByUserId(req.user.userId);

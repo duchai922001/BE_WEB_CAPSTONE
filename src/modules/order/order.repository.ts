@@ -6,6 +6,7 @@ import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { builderQuery } from 'src/common/helpers/query-builder.helper';
 import { UpdateOrderDto } from './dtos/update-order.dto';
 import { ResponseMessage } from 'src/common/enums/responseMessage';
+import { OrderNormalStatus } from 'src/common/enums/orderStatus';
 
 @Injectable()
 export class OrderRepository {
@@ -81,6 +82,14 @@ export class OrderRepository {
       throw new NotFoundException(ResponseMessage.FILE_NOT_FOUND);
     }
     return orders;
+  }
+
+  async countQuantityByUserId(userId: string): Promise<number> {
+    const count = await this.orderModel.countDocuments({
+      userId,
+      status: OrderNormalStatus.PENDING,
+    });
+    return count;
   }
 
   async findByOrderCode(orderCode: string) {
