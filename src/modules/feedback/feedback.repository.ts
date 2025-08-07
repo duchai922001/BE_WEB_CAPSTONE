@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 import { Feedback } from './feedback.entity';
 import { CreateFeedbackDto } from './dtos/create.feedback';
 import { UpdateFeedbackDto } from './dtos/update.feedback';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class FeedbackRepository {
@@ -30,5 +31,12 @@ export class FeedbackRepository {
 
   delete(id: string) {
     return this.feedbackModel.findByIdAndDelete(id);
+  }
+
+  async findByProductId(productId: string) {
+    return this.feedbackModel
+      .find({ productId: new Types.ObjectId(productId) })
+      .populate('userId')
+      .exec();
   }
 }

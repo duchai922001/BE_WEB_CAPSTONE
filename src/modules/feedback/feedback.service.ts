@@ -32,4 +32,14 @@ export class FeedbackService {
     if (!deleted) throw new NotFoundException('Feedback not found');
     return deleted;
   }
+
+  async getFeedbackByProduct(productId: string) {
+    const feedbacks = await this.feedbackRepo.findByProductId(productId);
+
+    if (!feedbacks || feedbacks.length === 0) {
+      throw new NotFoundException('Không tìm thấy đánh giá cho sản phẩm này');
+    }
+
+    return feedbacks;
+  }
 }

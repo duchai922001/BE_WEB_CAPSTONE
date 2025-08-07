@@ -27,7 +27,13 @@ export class FeedbackController {
   @Get()
   async findAll() {
     const data = await this.feedbackService.findAll();
-    return createResponse(HttpStatus.CREATED, data, ResponseMessage.GET);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
+
+  @Get('product/:productId')
+  async getFeedbackByProduct(@Param('productId') productId: string) {
+    const data = await this.feedbackService.getFeedbackByProduct(productId);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
 
   @Get(':id')
