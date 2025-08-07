@@ -21,7 +21,7 @@ export class RepairServiceRepository {
   }
 
   async findAll(): Promise<RepairService[]> {
-    return this.model.find({ status: true }).sort({ createdAt: -1 }).exec();
+    return this.model.find().sort({ createdAt: -1 }).exec();
   }
 
   async update(
