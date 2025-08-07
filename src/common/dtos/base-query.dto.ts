@@ -1,4 +1,9 @@
-import { IsOptional, IsString, IsNumberString } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsNumberString,
+  IsObject,
+} from 'class-validator';
 
 export class BaseQueryDto {
   @IsOptional()
@@ -32,4 +37,8 @@ export class BaseQueryDto {
   @IsOptional()
   @IsString()
   timeType?: string;
+
+  @IsOptional()
+  @IsObject()
+  filters?: Record<string, string[]>;
 }

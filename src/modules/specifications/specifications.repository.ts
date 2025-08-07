@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 
 import {
   Specifications,
@@ -46,7 +46,7 @@ export class SpecificationsRepository {
 
   async getFilterableSpecifications() {
     const keys = await this.specKeyModel.find({ isFilter: true }).lean();
-    console.log({ keys });
+
     const results = await Promise.all(
       keys.map(async (keyDoc) => {
         const values = await this.model
@@ -60,5 +60,35 @@ export class SpecificationsRepository {
     );
 
     return results;
+  }
+
+  async findMatchedProductIdsBySpecifications(
+    productIds: string[],
+    filters: Record<string, string[]>,
+  ): Promise<string[]> {
+    const matched = await this.model.aggregate([
+      {
+        $match: {
+          productId: { $in: productIds.map((id) => new Types.ObjectId(id)) },
+          $or: Object.entries(filters).map(([key, values]) => ({
+            key,
+            value: { $in: values },
+          })),
+        },
+      },
+      {
+        $group: {
+          _id: '$productId',
+          totalMatched: { $sum: 1 },
+        },
+      },
+      {
+        $match: {
+          totalMatched: Object.keys(filters).length,
+        },
+      },
+    ]);
+
+    return matched.map((m) => m._id.toString());
   }
 }

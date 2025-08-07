@@ -32,4 +32,11 @@ export class SpecificationsService {
   async getFilterableSpecifications() {
     return this.repo.getFilterableSpecifications();
   }
+
+  async getFilteredProductIds(
+    productIds: string[],
+    filters: Record<string, string[]>,
+  ) {
+    return this.repo.findMatchedProductIdsBySpecifications(productIds, filters);
+  }
 }

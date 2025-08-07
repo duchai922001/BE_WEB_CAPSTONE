@@ -554,15 +554,32 @@ export class ProductService {
       throw new NotFoundException(`Brand ${brandName} not found`);
     }
 
-    const { sortBy = 'sellPrice', sortOrder = 'asc' } = query;
+    const { sortBy = 'sellPrice', sortOrder = 'asc', filters } = query;
 
     const products = await this.productRepository.findByBrandId(
       String(brand._id),
       sortBy,
       sortOrder,
     );
+
+    const productIds = products.map((p) => (p as any)._id.toString());
+
+    let filteredProductIds = productIds;
+
+    if (filters && Object.keys(filters).length > 0) {
+      filteredProductIds = await this.speciSer.getFilteredProductIds(
+        productIds,
+        filters,
+      );
+    }
+
+    // B3: Trả về product chi tiết sau khi lọc
+    const filteredProducts = products.filter((p) =>
+      filteredProductIds.includes((p as any)._id.toString()),
+    );
+
     return Promise.all(
-      products.map(async (product) => {
+      filteredProducts.map(async (product) => {
         const images = await this.productImageService.findByProductId(
           String(product._id),
         );
