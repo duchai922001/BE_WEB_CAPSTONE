@@ -206,8 +206,12 @@ export class UserService {
     return await this.userRepository.findUsersExcludeRoles([
       'ADMIN',
       'CONSULTANT',
-      'TECHNICAL STAFF',
-      'EVENT STAFF',
+      'TECHNICIAN',
+      'EVENT_STAFF',
     ]);
+  }
+
+  async getTechnicians() {
+    return this.userRepository.findTechnicians();
   }
 }
