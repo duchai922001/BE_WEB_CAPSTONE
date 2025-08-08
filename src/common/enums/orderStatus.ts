@@ -6,6 +6,7 @@ export enum OrderNormalStatus {
   DELIVERED_FAILED = 'DELIVERED_FAILED',
   CANCELLED = 'CANCELLED',
   REFUNDED = 'REFUNDED',
+  DEBT = 'DEBT',
   DONE = 'DONE',
 }
 

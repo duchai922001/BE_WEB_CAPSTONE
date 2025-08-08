@@ -21,6 +21,7 @@ import { UpdateOrderStatusDto } from './dtos/update-status.dto';
 import { ResponseMessage } from 'src/common/enums/responseMessage';
 import { PayDebtDto } from './dtos/pay-debt.dto';
 import { ReturnOrderDto } from './dtos/return-order.dto';
+import { PaymentMethod } from 'src/common/enums/payment';
 
 @Injectable()
 export class OrderService {
@@ -34,13 +35,16 @@ export class OrderService {
   ) {}
 
   async createOrder(data: CustomerCreateOrderDto) {
-    const session = await this.connection.startSession(); // 1. Bắt đầu session
+    const session = await this.connection.startSession();
     let order: any;
 
     try {
       await session.withTransaction(async () => {
         const { orderItems, ...payloadOther } = data;
-
+        const isOfflinePayment = [
+          PaymentMethod.PAY_IN_STORE,
+          PaymentMethod.COD,
+        ].includes(data.paymentMethod);
         // 2. Tạo mã đơn hàng retry như cũ (trong transaction)
         const MAX_RETRIES = 5;
         let retry = 0;
@@ -56,6 +60,7 @@ export class OrderService {
               {
                 ...payloadOther,
                 orderCode,
+                customerDept: isOfflinePayment ? data.totalAmount : 0,
               },
               { session },
             );
