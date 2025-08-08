@@ -22,6 +22,7 @@ import { ResponseMessage } from 'src/common/enums/responseMessage';
 import { PayDebtDto } from './dtos/pay-debt.dto';
 import { ReturnOrderDto } from './dtos/return-order.dto';
 import { PaymentMethod } from 'src/common/enums/payment';
+import { OrderNormalStatus } from 'src/common/enums/orderStatus';
 
 @Injectable()
 export class OrderService {
@@ -206,8 +207,16 @@ export class OrderService {
     return count;
   }
 
-  async updateStatus(id: string, dto: UpdateOrderStatusDto) {
-    return this.orderRepository.update(id, { status: dto.status });
+  async updateStatus(id: string, dto: UpdateOrderStatusDto, userId: string) {
+    const updatePayload: any = {
+      status: dto.status,
+    };
+
+    if (dto.status === OrderNormalStatus.CONFIRMED && userId) {
+      updatePayload.employeeId = userId;
+    }
+
+    return this.orderRepository.update(id, updatePayload);
   }
 
   async payDebt(dto: PayDebtDto) {

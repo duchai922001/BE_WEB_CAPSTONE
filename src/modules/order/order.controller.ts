@@ -89,12 +89,14 @@ export class OrderController {
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch(':id/status')
   async updateOrderStatus(
     @Param('id') id: string,
     @Body() dto: UpdateOrderStatusDto,
+    @Request() req,
   ) {
-    const data = await this.orderService.updateStatus(id, dto);
+    const data = await this.orderService.updateStatus(id, dto, req.user.userId);
     return createResponse(HttpStatus.OK, data, ResponseMessage.UPDATE);
   }
 
