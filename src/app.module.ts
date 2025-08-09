@@ -36,6 +36,7 @@ import { RepairInvoiceItemModule } from './modules/repair-invoice-item/repair-in
 import { SpecificationsModule } from './modules/specifications/specifications.module';
 import { InstalmentRequestModule } from './modules/instalmentRequest/instalmentCart.module';
 import { SpecificationsKeyModule } from './modules/specifications-key/specifications-key.module';
+import { CheckoutModule } from './modules/checkout/checkout.module';
 
 @Module({
   imports: [
@@ -82,6 +83,7 @@ import { SpecificationsKeyModule } from './modules/specifications-key/specificat
     SpecificationsModule,
     InstalmentRequestModule,
     SpecificationsKeyModule,
+    CheckoutModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -33,7 +33,7 @@ export class UserService {
       email,
     );
     if (existingUser) {
-      throw new BadRequestException('Tài khoản đã tồn tại');
+      throw new BadRequestException('Tài khoản hoặc email đã tồn tại');
     }
 
     let finalRoleId = roleId;
@@ -206,8 +206,12 @@ export class UserService {
     return await this.userRepository.findUsersExcludeRoles([
       'ADMIN',
       'CONSULTANT',
-      'TECHNICAL STAFF',
-      'EVENT STAFF',
+      'TECHNICIAN',
+      'EVENT_STAFF',
     ]);
+  }
+
+  async getTechnicians() {
+    return this.userRepository.findTechnicians();
   }
 }
