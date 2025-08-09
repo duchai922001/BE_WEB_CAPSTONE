@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import axios from 'axios';
 import * as crypto from 'crypto';
 import * as qs from 'qs';
@@ -6,9 +6,9 @@ import * as moment from 'moment';
 
 @Injectable()
 export class ZaloPayService {
-  private readonly app_id = '2553'; // ⚠️ Đổi theo app_id bạn lấy từ ZaloPay Dev
-  private readonly key1 = 'PcY4iZIKFCIdgZvA6ueMcMHHUbRLYjPL'; // ⚠️ key1 sandbox
-  private readonly key2 = 'kLtgPl8HHhfvMuDHPwKfgfsY4Ydm9eIz'; // ⚠️ key2 sandbox
+  private readonly app_id = '2553';
+  private readonly key1 = 'PcY4iZIKFCIdgZvA6ueMcMHHUbRLYjPL';
+  private readonly key2 = 'kLtgPl8HHhfvMuDHPwKfgfsY4Ydm9eIz';
   private readonly endpoint = 'https://sb-openapi.zalopay.vn/v2/create';
 
   async createOrder(amount: number) {
@@ -29,7 +29,10 @@ export class ZaloPayService {
       embed_data: JSON.stringify(embed_data),
       amount,
       description: `Thanh toán đơn hàng #${transID}`,
-      bank_code: 'zalopayapp', // hoặc bỏ trống nếu không chỉ định
+      bank_code: 'zalopayapp',
+      return_url: 'https://fe-web-capstone.vercel.app',
+      callback_url:
+        'https://fe5fe988ccc2.ngrok-free.app/checkout/zalo/callback',
     };
 
     const data = [
@@ -65,6 +68,49 @@ export class ZaloPayService {
         err?.response?.data || err.message,
       );
       throw new Error('ZaloPay create order failed');
+    }
+  }
+
+  async handleCallback(payload: any) {
+    const {
+      appid,
+      apptransid,
+      pmcid,
+      amount,
+      discountamount,
+      status,
+      checksum,
+    } = payload;
+
+    const dataCheck = [
+      appid,
+      apptransid,
+      pmcid,
+      amount,
+      discountamount,
+      status,
+    ].join('|');
+    const checksumCalc = crypto
+      .createHmac('sha256', this.key2)
+      .update(dataCheck)
+      .digest('hex');
+
+    if (checksum !== checksumCalc) {
+      throw new BadRequestException('Checksum không hợp lệ');
+    }
+
+    // Xử lý trạng thái
+    if (status === 1) {
+      // Thanh toán thành công
+      // TODO: cập nhật trạng thái đơn hàng, gửi mail, log, v.v...
+      return { success: true, message: 'Thanh toán thành công', apptransid };
+    } else {
+      // Thanh toán thất bại hoặc hủy
+      return {
+        success: false,
+        message: 'Thanh toán thất bại hoặc bị hủy',
+        status,
+      };
     }
   }
 }

@@ -5,10 +5,11 @@ import {
   Body,
   HttpException,
   HttpStatus,
+  Req,
+  Res,
 } from '@nestjs/common';
 import { ZaloPayService } from './zalopay/zalopay.service';
 import { VnpayService } from './vnpay/vnpay.service';
-
 @Controller('checkout')
 export class CheckoutController {
   private zaloPayService = new ZaloPayService();
@@ -35,6 +36,17 @@ export class CheckoutController {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+  @Post('zalo/callback')
+  async zaloCallback(@Body() payload: any) {
+    console.log('vaop day cho tao');
+    const result = await this.zaloPayService.handleCallback(payload);
+
+    // Trả về dữ liệu theo chuẩn ZaloPay để họ biết server bạn nhận được callback thành công
+    return {
+      returncode: result.success ? 1 : 0,
+      returnmessage: result.message,
+    };
   }
   @Post('vnpay')
   async createVnpayOrder(
