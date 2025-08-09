@@ -27,8 +27,8 @@ export class InstalmentRequestController {
   }
 
   @Get()
-  findAll() {
-    const data = this.service.findAll();
+  async findAll() {
+    const data = await this.service.findAll();
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
 
@@ -40,7 +40,7 @@ export class InstalmentRequestController {
 
   @Patch(':id/status/:status')
   updateStatus(@Param('id') id: string, @Param('status') status: string) {
-    const data = this.service.updateStatus(id, status === 'true');
+    const data = this.service.updateStatus(id, status);
     return createResponse(HttpStatus.OK, data, ResponseMessage.UPDATE);
   }
 

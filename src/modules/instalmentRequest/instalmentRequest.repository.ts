@@ -40,7 +40,7 @@ export class InstalmentRequestRepository {
 
   async updateStatus(
     id: string,
-    status: boolean,
+    status: string,
   ): Promise<InstalmentRequest | null> {
     return this.model.findByIdAndUpdate(id, { status }, { new: true });
   }

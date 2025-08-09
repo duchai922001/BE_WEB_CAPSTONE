@@ -24,7 +24,7 @@ export class InstalmentRequestService {
     return request;
   }
 
-  async updateStatus(id: string, status: boolean) {
+  async updateStatus(id: string, status: string) {
     const updated = await this.repo.updateStatus(id, status);
     if (!updated) throw new NotFoundException(ResponseMessage.FILE_NOT_FOUND);
     return updated;
