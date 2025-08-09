@@ -258,4 +258,21 @@ export class OrderService {
       dto.reason,
     );
   }
+
+  async rollBack(orderId: string) {
+    const findOrder = await this.orderItemRepository.getByOrderId(orderId);
+    if (!findOrder.length) {
+      throw new NotFoundException('Không tìm thấy đơn hàng');
+    }
+
+    for (const item of findOrder) {
+      if (item.serialCodes && item.serialCodes.length > 0) {
+        for (const serialCode of item.serialCodes) {
+          await this.serialSer.updateBySerialCode(serialCode, {
+            isSold: false,
+          });
+        }
+      }
+    }
+  }
 }

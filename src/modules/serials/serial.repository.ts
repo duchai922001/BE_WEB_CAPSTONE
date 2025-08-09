@@ -48,6 +48,15 @@ export class SerialRepository {
       .exec();
   }
 
+  async updateBySerialCode(
+    serialCode: string,
+    data: Partial<CreateSerialDto>,
+  ): Promise<SerialDocument | null> {
+    return this.serialModel
+      .findOneAndUpdate({ serialCode }, data, { new: true })
+      .exec();
+  }
+
   async find(
     condition: any,
     limit?: number,

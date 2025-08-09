@@ -45,6 +45,14 @@ export class SerialService {
     return serial;
   }
 
+  async updateBySerialCode(id: string, dto: any) {
+    const serial = await this.serialRepository.updateBySerialCode(id, dto);
+    if (!serial) {
+      throw new NotFoundException(ResponseMessage.FILE_NOT_FOUND);
+    }
+    return serial;
+  }
+
   async deleteManyByIds(ids: string[]) {
     if (!ids || ids.length === 0) {
       throw new BadRequestException(ResponseMessage.REQUIRED_FIELD + ' ids');

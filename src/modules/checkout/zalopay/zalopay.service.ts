@@ -1,23 +1,28 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import axios from 'axios';
 import * as crypto from 'crypto';
 import * as qs from 'qs';
 import * as moment from 'moment';
+import { OrderRepository } from 'src/modules/order/order.repository';
 
 @Injectable()
 export class ZaloPayService {
+  constructor(private readonly orderRepository: OrderRepository) {}
   private readonly app_id = '2553';
   private readonly key1 = 'PcY4iZIKFCIdgZvA6ueMcMHHUbRLYjPL';
   private readonly key2 = 'kLtgPl8HHhfvMuDHPwKfgfsY4Ydm9eIz';
   private readonly endpoint = 'https://sb-openapi.zalopay.vn/v2/create';
 
-  async createOrder(amount: number) {
+  async createOrder(amount: number, orderId: string) {
     const transID = Math.floor(Math.random() * 1000000);
     const app_trans_id = `${moment().format('YYMMDD')}_${transID}`;
     const app_time = Date.now();
     const app_user = 'user123';
 
-    const embed_data = {};
+    const embed_data = {
+      redirecturl: `http://localhost:5173/payment-result?orderId=${orderId}`,
+      orderId: orderId,
+    };
     const items = [{}];
 
     const order = {
@@ -30,9 +35,8 @@ export class ZaloPayService {
       amount,
       description: `Thanh toán đơn hàng #${transID}`,
       bank_code: 'zalopayapp',
-      return_url: 'https://fe-web-capstone.vercel.app/payment-result',
       callback_url:
-        'https://be-web-bluetooth-v1.onrender.com/checkout/zalo/callback',
+        'https://fcfeccf27db6.ngrok-free.app/checkout/zalo/callback',
     };
 
     const data = [
@@ -80,37 +84,18 @@ export class ZaloPayService {
       discountamount,
       status,
       checksum,
+      embed_data,
     } = payload;
 
-    const dataCheck = [
-      appid,
-      apptransid,
-      pmcid,
-      amount,
-      discountamount,
-      status,
-    ].join('|');
-    const checksumCalc = crypto
-      .createHmac('sha256', this.key2)
-      .update(dataCheck)
-      .digest('hex');
-
-    if (checksum !== checksumCalc) {
-      throw new BadRequestException('Checksum không hợp lệ');
+    let embedDataObj = {};
+    try {
+      embedDataObj = embed_data ? JSON.parse(embed_data) : {};
+    } catch (e) {
+      console.warn('Embed data parse error', e);
     }
 
-    // Xử lý trạng thái
-    if (status === 1) {
-      // Thanh toán thành công
-      // TODO: cập nhật trạng thái đơn hàng, gửi mail, log, v.v...
-      return { success: true, message: 'Thanh toán thành công', apptransid };
-    } else {
-      // Thanh toán thất bại hoặc hủy
-      return {
-        success: false,
-        message: 'Thanh toán thất bại hoặc bị hủy',
-        status,
-      };
-    }
+    const orderId = embedDataObj['orderId'];
+
+    await this.orderRepository.update(orderId, { customerPaid: amount });
   }
 }

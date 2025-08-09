@@ -6,20 +6,23 @@ import {
   HttpException,
   HttpStatus,
   Req,
-  Res,
 } from '@nestjs/common';
 import { ZaloPayService } from './zalopay/zalopay.service';
 import { VnpayService } from './vnpay/vnpay.service';
+import { Request } from 'express';
 @Controller('checkout')
 export class CheckoutController {
-  private zaloPayService = new ZaloPayService();
-  private vnpayService = new VnpayService();
-
+  constructor(
+    private readonly zaloPayService: ZaloPayService,
+    private readonly vnpayService: VnpayService,
+  ) {}
   @Post('zalopay')
-  async createZaloOrder(@Body() body: { amount: number }): Promise<any> {
-    const { amount } = body;
+  async createZaloOrder(
+    @Body() body: { amount: number; orderId: string },
+  ): Promise<any> {
+    const { amount, orderId } = body;
 
-    if (!amount) {
+    if (!amount || !orderId) {
       throw new HttpException(
         'Thiếu thông tin thanh toán',
         HttpStatus.BAD_REQUEST,
@@ -27,7 +30,7 @@ export class CheckoutController {
     }
 
     try {
-      const result = await this.zaloPayService.createOrder(amount);
+      const result = await this.zaloPayService.createOrder(amount, orderId);
       return result;
     } catch (error) {
       console.error('Lỗi tạo đơn hàng ZaloPay:', error);
@@ -38,14 +41,13 @@ export class CheckoutController {
     }
   }
   @Post('zalo/callback')
-  async zaloCallback(@Body() payload: any) {
-    console.log('vaop day cho tao');
-    const result = await this.zaloPayService.handleCallback(payload);
+  async zaloCallback(@Req() req: Request) {
+    const payload = req.body?.data ? JSON.parse(req.body.data) : req.body;
 
-    // Trả về dữ liệu theo chuẩn ZaloPay để họ biết server bạn nhận được callback thành công
+    await this.zaloPayService.handleCallback(payload);
+
     return {
-      returncode: result.success ? 1 : 0,
-      returnmessage: result.message,
+      message: 'Callback',
     };
   }
   @Post('vnpay')

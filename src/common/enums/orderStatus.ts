@@ -8,6 +8,7 @@ export enum OrderNormalStatus {
   REFUNDED = 'REFUNDED',
   DEBT = 'DEBT',
   DONE = 'DONE',
+  PAID_FAIL = 'PAID_FAIL',
 }
 
 export enum OrderRepairStatus {
