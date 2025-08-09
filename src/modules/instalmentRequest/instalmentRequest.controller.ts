@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -14,6 +15,7 @@ import { InstalmentRequestService } from './instalmentRequest.service';
 import { createResponse } from 'src/common/helpers/response.helper';
 import { ResponseMessage } from 'src/common/enums/responseMessage';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 
 @Controller('instalment-requests')
 export class InstalmentRequestController {
@@ -46,8 +48,11 @@ export class InstalmentRequestController {
 
   @UseGuards(JwtAuthGuard)
   @Get('user')
-  async getByUserId(@Request() req) {
-    const data = await this.service.getRequestsByUser(req.user.userId);
-    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  async getByUserId(
+    @Request() req,
+    @Query() query: BaseQueryDto,
+  ) {
+      const userId = req.user.userId;
+    return await this.service.getRequestsByUser(userId, query);
   }
 }
