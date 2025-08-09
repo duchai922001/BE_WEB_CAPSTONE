@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateSpecificationsKeyDto } from './dto/create-specifications-key.dto';
 import { UpdateSpecificationsKeyDto } from './dto/update-specifications-key.dto';
 import { SpecificationsKeyRepository } from './specifications-key.repository';
@@ -8,7 +8,11 @@ import { ResponseMessage } from 'src/common/enums/responseMessage';
 export class SpecificationsKeyService {
   constructor(private readonly repo: SpecificationsKeyRepository) {}
 
-  create(dto: CreateSpecificationsKeyDto) {
+  async create(dto: CreateSpecificationsKeyDto) {
+    const existing = await this.repo.findByKey(dto.key);
+    if (existing) {
+      throw new BadRequestException(`Key '${dto.key}' đã tồn tại`);
+    }
     return this.repo.create(dto);
   }
 

@@ -25,6 +25,10 @@ export class SpecificationsKeyRepository {
     return this.model.findById(id).exec();
   }
 
+  findByKey(key: string) {
+    return this.model.findOne({ key }).exec();
+  }
+
   update(id: string, data: Partial<SpecificationsKey>) {
     return this.model.findByIdAndUpdate(id, data, { new: true }).exec();
   }
