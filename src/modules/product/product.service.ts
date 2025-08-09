@@ -525,6 +525,7 @@ export class ProductService {
       brands: brand?.name || '',
       categoryName: category?.name || '',
       typeProduct: product.typeProduct,
+      isInstallment: product.isInstallment,
     });
   }
 
