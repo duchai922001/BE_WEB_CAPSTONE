@@ -94,4 +94,14 @@ export class UserRepository {
       return !excludedRoles.includes(roleName);
     });
   }
+
+  async findTechnicians() {
+    return this.userModel
+      .find()
+      .populate({
+        path: 'roleId',
+        match: { name: 'TECHNICIAN' },
+      })
+      .then((users) => users.filter((user) => user.roleId));
+  }
 }

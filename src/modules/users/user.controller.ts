@@ -51,6 +51,12 @@ export class UserController {
       data: user,
     };
   }
+
+  @Get('technicians')
+  async getTechnicians() {
+    const data = await this.userService.getTechnicians();
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
   @Get('staff-system')
   async getStaffSystem() {
     const data = await this.userService.getUsersExcludeAdminAndCustomer();
