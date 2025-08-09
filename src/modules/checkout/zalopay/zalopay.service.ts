@@ -32,7 +32,7 @@ export class ZaloPayService {
       bank_code: 'zalopayapp',
       return_url: 'https://fe-web-capstone.vercel.app',
       callback_url:
-        'https://fe5fe988ccc2.ngrok-free.app/checkout/zalo/callback',
+        'https://be-web-bluetooth-v1.onrender.com/checkout/zalo/callback',
     };
 
     const data = [
