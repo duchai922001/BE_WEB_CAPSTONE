@@ -19,22 +19,22 @@ export class Address extends Document {
   @Prop({ required: true })
   provinces: string;
 
-  @Prop({ required: true })
+  @Prop()
   districtCode: number;
 
-  @Prop({ required: true })
+  @Prop()
   districts: string;
 
-  @Prop({ required: true })
+  @Prop()
   wardCode: number;
 
-  @Prop({ required: true })
+  @Prop()
   wards: string;
 
-  @Prop({ required: true })
+  @Prop()
   street: string;
 
-  @Prop({ required: true })
+  @Prop()
   postalCode: string;
 
   @Prop({ default: false })
