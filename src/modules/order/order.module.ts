@@ -9,6 +9,7 @@ import { OrderItemModule } from '../orderItem/orderItem.module';
 import { UserModule } from '../users/user.module';
 import { AddressModule } from '../address/address.module';
 import { SerialModule } from '../serials/serial.module';
+import { CartItemModule } from '../cartItem/cartItem.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { SerialModule } from '../serials/serial.module';
     UserModule,
     AddressModule,
     SerialModule,
+    CartItemModule,
   ],
   providers: [OrderService, OrderRepository],
   controllers: [OrderController],

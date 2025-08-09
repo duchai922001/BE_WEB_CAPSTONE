@@ -23,6 +23,7 @@ import { PayDebtDto } from './dtos/pay-debt.dto';
 import { ReturnOrderDto } from './dtos/return-order.dto';
 import { PaymentMethod } from 'src/common/enums/payment';
 import { OrderNormalStatus } from 'src/common/enums/orderStatus';
+import { CartItemRepository } from '../cartItem/cartItem.repository';
 
 @Injectable()
 export class OrderService {
@@ -33,6 +34,7 @@ export class OrderService {
     private readonly paymentRepo: PaymentRepository,
     private readonly userService: UserService,
     private readonly serialSer: SerialService,
+    private readonly cartItemRepository: CartItemRepository,
   ) {}
 
   async createOrder(data: CustomerCreateOrderDto) {
@@ -145,7 +147,7 @@ export class OrderService {
           }
         }
       });
-
+      await this.cartItemRepository.deleteManyByIds(data.cartItemIds || []);
       return order;
     } catch (error) {
       throw error;

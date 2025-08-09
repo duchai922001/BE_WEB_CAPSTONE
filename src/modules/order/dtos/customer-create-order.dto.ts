@@ -73,4 +73,8 @@ export class CustomerCreateOrderDto {
   @ValidateNested({ each: true })
   @Type(() => OrderItems)
   orderItems?: OrderItems[];
+
+  @IsArray()
+  @IsString({ each: true })
+  cartItemIds: string[];
 }
