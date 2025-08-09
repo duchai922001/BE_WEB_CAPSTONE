@@ -30,7 +30,7 @@ export class ZaloPayService {
       amount,
       description: `Thanh toán đơn hàng #${transID}`,
       bank_code: 'zalopayapp',
-      return_url: 'https://fe-web-capstone.vercel.app',
+      return_url: 'https://fe-web-capstone.vercel.app/payment-result',
       callback_url:
         'https://be-web-bluetooth-v1.onrender.com/checkout/zalo/callback',
     };
