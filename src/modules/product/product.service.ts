@@ -221,9 +221,9 @@ export class ProductService {
           barcode,
           brandId,
           categoryId,
-          costPrice: 0,
+          costPrice: variables?.[0]?.costPrice,
           name,
-          sellPrice: 0,
+          sellPrice: variables?.[0]?.sellPrice,
           stock: totalStock,
           typeProduct,
           description,
@@ -524,6 +524,7 @@ export class ProductService {
       variables,
       brands: brand?.name || '',
       categoryName: category?.name || '',
+      typeProduct: product.typeProduct,
     });
   }
 
