@@ -36,6 +36,9 @@ export class RepairRequest extends Document {
   estimatedCost: number;
 
   @Prop({ default: 0 })
+  countWarranty: number;
+
+  @Prop({ default: 0 })
   actualCost: number;
 
   @Prop() // Thời gian nhận hàng

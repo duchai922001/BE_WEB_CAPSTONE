@@ -112,4 +112,30 @@ export class RepairRequestRepository {
     console.log({ id, update });
     return this.repairRequestModel.findByIdAndUpdate(id, update, { new: true });
   }
+
+  async searchRepairRequest(keyword: string) {
+    const filter = keyword
+      ? {
+          $or: [
+            { customerName: { $regex: keyword, $options: 'i' } },
+            { customerPhone: { $regex: keyword, $options: 'i' } },
+            { repairRequestCode: { $regex: keyword, $options: 'i' } },
+          ],
+        }
+      : {};
+
+    const requests = await this.repairRequestModel.aggregate([
+      { $match: filter },
+    ]);
+
+    return requests;
+  }
+
+  async incrementCountWarranty(repairRequestId: string) {
+    return this.repairRequestModel.findByIdAndUpdate(
+      repairRequestId,
+      { $inc: { countWarranty: 1 } },
+      { new: true },
+    );
+  }
 }

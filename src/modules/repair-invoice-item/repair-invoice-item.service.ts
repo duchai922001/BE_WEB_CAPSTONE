@@ -7,29 +7,44 @@ import { RepairInvoiceItemRepository } from './repair-invoice-item.repository';
 import { UpdateRepairInvoiceItemDto } from './dtos/update-repair-invoice-item.dto';
 import { CreateRepairInvoiceItemDto } from './dtos/create-repair-invoice-item.dto';
 import { RepairServiceService } from '../repairService/repairService.service';
+import { RepairRequestRepository } from '../repairRequest/repairRequest.repository';
 
 @Injectable()
 export class RepairInvoiceItemService {
   constructor(
     private readonly repo: RepairInvoiceItemRepository,
     private readonly repaireServiceSer: RepairServiceService,
+    private readonly repairRequestRepo: RepairRequestRepository,
   ) {}
 
   async create(dto: CreateRepairInvoiceItemDto) {
-    let totalPrice = dto.laborCost;
+    let totalPrice = 0;
+    let laborCost = 0;
 
-    if (dto.repairServiceId) {
-      const service = await this.repaireServiceSer.findById(
-        dto.repairServiceId,
-      );
-      if (!service) {
-        throw new BadRequestException('Thiết bị không tồn tại');
+    if (dto.typeRepair === 'WARRANTY') {
+      // Bảo hành: tất cả chi phí = 0
+      laborCost = 0;
+      totalPrice = 0;
+      await this.repairRequestRepo.incrementCountWarranty(dto.repairRequestId);
+    } else {
+      // Normal: tính như hiện tại
+      laborCost = dto.laborCost;
+      totalPrice = laborCost;
+
+      if (dto.repairServiceId) {
+        const service = await this.repaireServiceSer.findById(
+          dto.repairServiceId,
+        );
+        if (!service) {
+          throw new BadRequestException('Thiết bị không tồn tại');
+        }
+        totalPrice += service.sellPrice;
       }
-      totalPrice += service.sellPrice;
     }
 
     return this.repo.create({
       ...dto,
+      laborCost,
       totalPrice,
     });
   }

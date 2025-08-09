@@ -37,6 +37,7 @@ import { SpecificationsModule } from './modules/specifications/specifications.mo
 import { InstalmentRequestModule } from './modules/instalmentRequest/instalmentCart.module';
 import { SpecificationsKeyModule } from './modules/specifications-key/specifications-key.module';
 import { CheckoutModule } from './modules/checkout/checkout.module';
+import { RepairWarrantyPolicyModule } from './modules/repair-warranty-policy/repair-warranty-policy.module';
 
 @Module({
   imports: [
@@ -84,6 +85,7 @@ import { CheckoutModule } from './modules/checkout/checkout.module';
     InstalmentRequestModule,
     SpecificationsKeyModule,
     CheckoutModule,
+    RepairWarrantyPolicyModule,
   ],
   controllers: [AppController],
   providers: [AppService],

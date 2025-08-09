@@ -16,13 +16,27 @@ import { RepairImageType } from '../repairRequestImage/repairRequestImage.entity
 import { UpdateRepairRequestTimestampDto } from './dtos/update-repair-request-timestamp.dto';
 import { UpdateRepairRequestInfoDto } from './dtos/update.dto';
 import { RepairRequestStatus } from 'src/common/enums/repairRequestStatus';
+import { RepairRequest, RepairRequestDocument } from './repairRequest.entity';
+import { Model, Types } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
+import { RepairInvoiceItemRepository } from '../repair-invoice-item/repair-invoice-item.repository';
+import { RepairWarrantyPolicyRepository } from '../repair-warranty-policy/repair-warranty-policy.repository';
+import { RepairServiceRepository } from '../repairService/repairService.repository';
+import { RepairInvoiceItem } from '../repair-invoice-item/repair-invoice-item.entity';
+import { RepairWarrantyPolicy } from '../repair-warranty-policy/repair-warranty-policy.entity';
+import { formatTimeLeft, parseDuration } from 'src/common/utils/parseDuration';
 
 @Injectable()
 export class RepairRequestService {
   constructor(
+    @InjectModel(RepairRequest.name)
+    private readonly model: Model<RepairRequestDocument>,
     private readonly repairRequestRepo: RepairRequestRepository,
     private readonly repairRequestSeviceRepo: RepairRequestServiceReprository,
     private readonly repairRequestImageService: RepairRequestImageService,
+    private readonly repairWarrantyPolicyRepo: RepairWarrantyPolicyRepository,
+    private readonly repairInvoiceItemRepo: RepairInvoiceItemRepository,
+    private readonly repairServiceRepo: RepairServiceRepository,
   ) {}
 
   async create(userId: string, data: CreateRepairRequestDto) {
@@ -189,5 +203,63 @@ export class RepairRequestService {
     }
 
     return { success: true };
+  }
+  async searchWithWarranty(keyword: string) {
+    const repairRequests =
+      await this.repairRequestRepo.searchRepairRequest(keyword);
+
+    if (!repairRequests || repairRequests.length === 0) {
+      throw new NotFoundException('Không tìm thấy đơn sửa chữa');
+    }
+
+    const results = await Promise.all(
+      repairRequests.map(async (req) => {
+        const invoiceItems =
+          await this.repairInvoiceItemRepo.findByRepairRequestIdWithPolicy(
+            String(req._id),
+          );
+        const itemsWithWarranty = invoiceItems.map((item) => {
+          const plainItem = item.toObject();
+
+          const completionDateRaw = (plainItem.repairRequestId as any)
+            ?.completionDate;
+          const completionDate = completionDateRaw
+            ? new Date(completionDateRaw)
+            : new Date();
+
+          const durationStr =
+            (plainItem.repairServiceId as any)?.repairWarrantyPolicyId
+              ?.duration || '3m';
+
+          const durationMs = parseDuration(durationStr);
+
+          const expiryDate = new Date(completionDate.getTime() + durationMs);
+
+          const now = new Date();
+          const isExpired = now > expiryDate;
+
+          const timeLeftMs = isExpired
+            ? 0
+            : expiryDate.getTime() - now.getTime();
+
+          return {
+            ...plainItem,
+            warranty: {
+              duration: durationStr,
+              expiryDate,
+              isExpired,
+              timeLeft: formatTimeLeft(timeLeftMs),
+            },
+          };
+        });
+
+        return {
+          ...req,
+          invoiceItems: itemsWithWarranty,
+        };
+      }),
+    );
+
+    return results;
   }
 }

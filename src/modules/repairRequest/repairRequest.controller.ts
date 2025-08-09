@@ -39,6 +39,12 @@ export class RepairRequestController {
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
 
+  @Get('search')
+  async search(@Query('keyword') keyword: string) {
+    const data = await this.service.searchWithWarranty(keyword || '');
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
+
   @Get('')
   async findAll(@Query() query: BaseQueryDto) {
     const data = await this.service.findAll(query);

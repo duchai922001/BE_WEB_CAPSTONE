@@ -40,4 +40,20 @@ export class RepairInvoiceItemRepository {
       .find({ repairRequestId })
       .populate('repairRequestId repairServiceId');
   }
+
+  async findByRepairRequestIdWithPolicy(repairRequestId: string) {
+    return this.model
+      .find({ repairRequestId })
+      .populate({
+        path: 'repairServiceId',
+        populate: {
+          path: 'repairWarrantyPolicyId',
+          model: 'RepairWarrantyPolicy',
+        },
+      })
+      .populate({
+        path: 'repairRequestId',
+      })
+      .exec();
+  }
 }
