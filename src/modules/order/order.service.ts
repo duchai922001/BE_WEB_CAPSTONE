@@ -147,7 +147,9 @@ export class OrderService {
           }
         }
       });
-      await this.cartItemRepository.deleteManyByIds(data.cartItemIds || []);
+      if (data.cartItemIds.length) {
+        await this.cartItemRepository.deleteManyByIds(data.cartItemIds || []);
+      }
       return order;
     } catch (error) {
       throw error;

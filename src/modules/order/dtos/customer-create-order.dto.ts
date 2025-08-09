@@ -76,5 +76,6 @@ export class CustomerCreateOrderDto {
 
   @IsArray()
   @IsString({ each: true })
+  @IsOptional()
   cartItemIds: string[];
 }
