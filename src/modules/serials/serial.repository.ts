@@ -1,6 +1,6 @@
 import { InjectModel } from '@nestjs/mongoose';
 import { Serial, SerialDocument } from './serial.entity';
-import { Model } from 'mongoose';
+import { ClientSession, Model } from 'mongoose';
 import { Injectable } from '@nestjs/common';
 import { CreateSerialDto } from './dtos/create.dto';
 
@@ -41,7 +41,25 @@ export class SerialRepository {
   async updateById(
     id: string,
     data: Partial<CreateSerialDto>,
+    session?: ClientSession,
   ): Promise<SerialDocument | null> {
-    return this.serialModel.findByIdAndUpdate(id, data, { new: true }).exec();
+    return this.serialModel
+      .findByIdAndUpdate(id, data, { new: true, session })
+      .exec();
+  }
+
+  async find(
+    condition: any,
+    limit?: number,
+    session?: ClientSession,
+  ): Promise<Serial[]> {
+    const query = this.serialModel.find(condition);
+    if (limit) {
+      query.limit(limit);
+    }
+    if (session) {
+      query.session(session);
+    }
+    return query.exec();
   }
 }

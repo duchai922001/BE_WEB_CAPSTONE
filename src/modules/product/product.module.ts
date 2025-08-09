@@ -10,6 +10,7 @@ import { VariableModule } from '../variables/variable.module';
 import { CategoryModule } from '../categories/category.module';
 import { BrandModule } from '../brands/brand.module';
 import { Brand, BrandSchema } from '../brands/brand.entity';
+import { SpecificationsModule } from '../specifications/specifications.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { Brand, BrandSchema } from '../brands/brand.entity';
     ProductImageModule,
     VariableModule,
     CategoryModule,
+    SpecificationsModule,
     forwardRef(() => BrandModule),
   ],
   providers: [ProductRepository, ProductService],

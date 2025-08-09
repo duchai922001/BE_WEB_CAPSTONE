@@ -4,4 +4,10 @@ export enum PaymentMethod {
   CREDIT_CARD = 'CREDIT_CARD',
   ZALO_PAY = 'ZALO_PAY',
   MOMO = 'MOMO',
+  COD = 'COD',
+}
+
+export enum PaymentType {
+  FULL_DEPOSIT = 'FULL_DEPOSIT', // 100%
+  PARTIAL_DEPOSIT = 'PARTIAL_DEPOSIT', // cọc
 }

@@ -26,12 +26,19 @@ import { PromotionImageModule } from './modules/promotionImage/promotionImage.mo
 import { AddressModule } from './modules/address/address.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { OtpModule } from './modules/otp/otp.module';
-import { Payment } from './modules/payment/payment.entity';
 import { PaymentModule } from './modules/payment/payment.module';
 import { FavoriteModule } from './modules/favorites/favorites.module';
 import { AttributeKeyModule } from './modules/attribute-key/attribute-key.module';
 import { RepairRequestModule } from './modules/repairRequest/repairRequest.module';
 import { RepairServiceModule } from './modules/repairService/repairService.module';
+import { RepairRequestServiceModule } from './modules/repairRequestService/repairRequestService.module';
+import { RepairInvoiceItemModule } from './modules/repair-invoice-item/repair-invoice-item.module';
+import { SpecificationsModule } from './modules/specifications/specifications.module';
+import { InstalmentRequestModule } from './modules/instalmentRequest/instalmentCart.module';
+import { SpecificationsKeyModule } from './modules/specifications-key/specifications-key.module';
+import { CheckoutModule } from './modules/checkout/checkout.module';
+import { RepairWarrantyPolicyModule } from './modules/repair-warranty-policy/repair-warranty-policy.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -72,6 +79,13 @@ import { RepairServiceModule } from './modules/repairService/repairService.modul
     AttributeKeyModule,
     RepairRequestModule,
     RepairServiceModule,
+    RepairRequestServiceModule,
+    RepairInvoiceItemModule,
+    SpecificationsModule,
+    InstalmentRequestModule,
+    SpecificationsKeyModule,
+    CheckoutModule,
+    RepairWarrantyPolicyModule,
   ],
   controllers: [AppController],
   providers: [AppService],

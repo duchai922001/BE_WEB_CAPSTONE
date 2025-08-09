@@ -7,8 +7,11 @@ import { InstalmentRequestRepository } from './instalmentRequest.repository';
 export class InstalmentRequestService {
   constructor(private readonly repo: InstalmentRequestRepository) {}
 
-  create(dto: CreateInstalmentRequestDto) {
-    return this.repo.create(dto);
+  create(userId: string, dto: CreateInstalmentRequestDto) {
+    return this.repo.create({
+      ...dto,
+      userId,
+    });
   }
 
   findAll() {
@@ -25,5 +28,9 @@ export class InstalmentRequestService {
     const updated = await this.repo.updateStatus(id, status);
     if (!updated) throw new NotFoundException(ResponseMessage.FILE_NOT_FOUND);
     return updated;
+  }
+
+  async getRequestsByUser(userId: string) {
+    return this.repo.findByUserId(userId);
   }
 }

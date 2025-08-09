@@ -12,34 +12,47 @@ import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { UpdateUserDto } from './dtos/update.dto';
 import { isValidObjectId, Types } from 'mongoose';
 import { AddressService } from '../address/address.service';
+import { changeProfilePassword } from './dtos/change-profile-password';
+import { RoleService } from '../roles/role.service';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly addressService: AddressService,
+    private readonly roleService: RoleService,
   ) {}
 
-  //Tìm hiểu xong
-  async create(
-    data: CreateUserDto,
-  ): Promise<UserDocument> /* Chỗ này cũng tương tự */ {
-    const password = data.password;
-    const phone = data.phone;
-    const email = data.email;
+  async create(data: CreateUserDto): Promise<UserDocument> {
+    const { password, phone, email, roleId } = data;
+
     const hashedPassword = await bcrypt.hash(password, 10);
+
     const existingUser = await this.userRepository.findByPhoneOrEmail(
       phone,
       email,
     );
     if (existingUser) {
-      throw new BadRequestException('Tài khoản đã tồn tại');
+      throw new BadRequestException('Tài khoản hoặc email đã tồn tại');
     }
+
+    let finalRoleId = roleId;
+
+    if (!roleId) {
+      const customerRole = await this.roleService.findByName('CUSTOMER');
+      if (!customerRole) {
+        throw new BadRequestException('Không tìm thấy role CUSTOMER');
+      }
+      finalRoleId = (customerRole as any)._id;
+    }
+
     const newUser = await this.userRepository.create({
       ...data,
+      roleId: finalRoleId,
       password: hashedPassword,
     });
-    return newUser; // Đang trả ra một UserDocument
+
+    return newUser;
   }
 
   // Done chưa xét page và keyword
@@ -132,7 +145,7 @@ export class UserService {
     }
   }
 
-  async changePassword(
+  async changeForgotPassword(
     id: string,
     payload: { hashedPassword: string },
   ): Promise<any> {
@@ -153,6 +166,28 @@ export class UserService {
       userId: result._id,
     };
   }
+
+  async changeProfilePassword(id: string, data: changeProfilePassword) {
+    if (!isValidObjectId(id)) {
+      throw new BadRequestException('ID người dùng không hợp lệ');
+    }
+    const user = await this.userRepository.findById(id);
+    if (!user) {
+      throw new NotFoundException('Không tìm thấy người dùng');
+    }
+    console.log(user.password);
+    const isMatch = await bcrypt.compare(data.currentPassword, user.password);
+
+    if (!isMatch) {
+      throw new BadRequestException('Mật khẩu hiện tại không hợp lệ');
+    }
+    const hashedPassword = await bcrypt.hash(data.newPassword, 10);
+    const result = await this.userRepository.updatePassword(id, hashedPassword);
+    if (!result) {
+      throw new NotFoundException('Không thể update người dùng');
+    }
+  }
+
   async getUserByEmail(email: string): Promise<UserDocument> {
     const user = await this.userRepository.findByEmail(email);
     if (!user) {
@@ -166,5 +201,17 @@ export class UserService {
       'ADMIN',
       'CUSTOMER',
     ]);
+  }
+  async getCustomers() {
+    return await this.userRepository.findUsersExcludeRoles([
+      'ADMIN',
+      'CONSULTANT',
+      'TECHNICIAN',
+      'EVENT_STAFF',
+    ]);
+  }
+
+  async getTechnicians() {
+    return this.userRepository.findTechnicians();
   }
 }

@@ -1,6 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { PromotionDiscountType } from 'src/common/enums/promotion';
+import {
+  PromotionDiscountType,
+  PromotionStatus,
+} from 'src/common/enums/promotion';
 export type PromotionDocument = Promotion & Document;
 
 @Schema({ timestamps: true, versionKey: false })
@@ -29,8 +32,12 @@ export class Promotion {
   @Prop({ required: true })
   endDate: Date;
 
-  @Prop({ default: true })
-  status: boolean;
+  @Prop({
+    type: String,
+    enum: PromotionStatus,
+    default: PromotionStatus.PENDING,
+  })
+  status: PromotionStatus;
 }
 
 export const PromotionSchema = SchemaFactory.createForClass(Promotion);

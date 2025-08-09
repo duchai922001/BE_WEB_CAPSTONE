@@ -41,15 +41,28 @@ export class InstalmentItemRepository {
     await this.model.findByIdAndDelete(id).exec();
   }
 
-  async addItem(instalmentCartId: string, productId: string) {
+  async addItem(
+    instalmentCartId: string,
+    productId: string,
+    variableId?: string,
+  ) {
     return this.model.findOneAndUpdate(
-      { instalmentCartId: instalmentCartId, productId },
+      { instalmentCartId: instalmentCartId, productId, variableId },
       { $set: { status: false } },
       { upsert: true, new: true },
     );
   }
 
   async getItems(instalmentCartId: string) {
-    return this.model.find({ instalmentCartId }).populate('productId');
+    return this.model
+      .find({ instalmentCartId })
+      .populate('productId')
+      .populate({
+        path: 'variableId',
+        populate: {
+          path: 'attributes',
+          model: 'Attribute',
+        },
+      });
   }
 }

@@ -18,4 +18,10 @@ export class RepairRequestImageService {
     if (!image) throw new NotFoundException(ResponseMessage.FILE_NOT_FOUND);
     return image;
   }
+
+  async findByRepairRequestIdGrouped(repairRequestId: string) {
+    return await this.repairRequestImageRepository.findByRepairRequestIdGrouped(
+      repairRequestId,
+    );
+  }
 }

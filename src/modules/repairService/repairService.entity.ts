@@ -6,6 +6,9 @@ export class RepairService extends Document {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   createBy: Types.ObjectId;
 
+  @Prop({ type: Types.ObjectId, ref: 'RepairWarrantyPolicy', required: true })
+  repairWarrantyPolicyId: Types.ObjectId;
+
   @Prop({ required: true, unique: true })
   name: string;
 
@@ -20,9 +23,6 @@ export class RepairService extends Document {
 
   @Prop({ type: String, required: true })
   estimatedTime: string;
-
-  @Prop({ type: String, required: true })
-  warrantlyPeriod: string;
 
   @Prop({ type: Boolean, default: false })
   status: boolean;

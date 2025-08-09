@@ -15,6 +15,10 @@ export class CreateRepairServiceDto {
 
   @IsString()
   @IsNotEmpty()
+  repairWarrantyPolicyId: string;
+
+  @IsString()
+  @IsNotEmpty()
   name: string;
 
   @IsString()
@@ -34,10 +38,6 @@ export class CreateRepairServiceDto {
   @IsString()
   @IsNotEmpty()
   estimatedTime: string;
-
-  @IsString()
-  @IsNotEmpty()
-  warrantlyPeriod: string;
 
   @IsBoolean()
   @IsOptional()

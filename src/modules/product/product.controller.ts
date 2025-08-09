@@ -47,14 +47,26 @@ export class ProductController {
   }
 
   @Get('brand/:brandName')
-  async getByBrandName(@Param('brandName') brandName: string) {
-    const data = await this.productService.getProductsByBrandName(brandName);
+  async getByBrandName(
+    @Param('brandName') brandName: string,
+    @Query() query: BaseQueryDto,
+  ) {
+    const data = await this.productService.getProductsByBrandName(
+      brandName,
+      query,
+    );
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
 
   @Get('category/:categoryName')
-  async getByCategoryName(@Param('categoryName') brandName: string) {
-    const data = await this.productService.getProductsByCategoryName(brandName);
+  async getByCategoryName(
+    @Param('categoryName') brandName: string,
+    @Query() query: BaseQueryDto,
+  ) {
+    const data = await this.productService.getProductsByCategoryName(
+      brandName,
+      query,
+    );
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
 }

@@ -24,7 +24,11 @@ export class VariableRepository {
     return this.variableModel.findById(id).exec();
   }
   async findByProductId(productId: string): Promise<VariableDocument[]> {
-    return this.variableModel.find({ productId }).exec();
+    return this.variableModel
+      .find({ productId })
+      .populate('attributes')
+      .lean()
+      .exec();
   }
 
   async deleteById(id: string): Promise<void> {

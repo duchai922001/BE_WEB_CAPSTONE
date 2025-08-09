@@ -19,6 +19,7 @@ export class CreateUserDto {
 
   @IsString()
   @IsNotEmpty({ message: 'RoleId is required' })
+  @IsOptional()
   roleId: string;
 
   @IsString()

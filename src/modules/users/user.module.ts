@@ -19,10 +19,7 @@ import { AddressModule } from '../address/address.module';
     AddressModule,
     forwardRef(() => AuthModule),
   ],
-  providers: [
-    UserRepository,
-    UserService,
-  ],
+  providers: [UserRepository, UserService],
   exports: [UserRepository, UserService],
   controllers: [UserController],
 })

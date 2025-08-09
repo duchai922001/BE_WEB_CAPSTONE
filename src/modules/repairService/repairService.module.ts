@@ -13,6 +13,6 @@ import { RepairService, RepairServiceSchema } from './repairService.entity';
   ],
   controllers: [RepairServiceController],
   providers: [RepairServiceService, RepairServiceRepository],
-  exports: [RepairServiceService],
+  exports: [RepairServiceService, RepairServiceRepository],
 })
 export class RepairServiceModule {}

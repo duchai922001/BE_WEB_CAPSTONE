@@ -29,27 +29,27 @@ export class CreateAddressDto {
   provinces: string;
 
   @IsNumber()
-  @IsNotEmpty()
+  @IsOptional()
   districtCode: number;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   districts: string;
 
   @IsNumber()
-  @IsNotEmpty()
+  @IsOptional()
   wardCode: number;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   wards: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   street: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   postalCode: string;
 
   @IsBoolean()

@@ -49,7 +49,7 @@ export class VariableService {
       await Promise.all(
         attributes.map((attribute) =>
           this.attributeService.create({
-            variableId: (variable._id as any).toString(),
+            variableId: variable._id,
             key: attribute.key,
             value: attribute.value,
           }),
@@ -70,21 +70,7 @@ export class VariableService {
 
   async findByProductId(productId: string): Promise<any[]> {
     const variables = await this.variableRepository.findByProductId(productId);
-
-    const result = await Promise.all(
-      variables.map(async (variable) => {
-        const attributes = await this.attributeService.findByVariableId(
-          variable._id.toString(),
-        );
-
-        return {
-          ...(variable.toObject?.() ?? variable),
-          attribute: attributes,
-        };
-      }),
-    );
-
-    return result;
+    return variables;
   }
 
   async updateById(id: string, dto: Partial<CreateVariableDto>) {
@@ -103,7 +89,7 @@ export class VariableService {
 
   async deleteByProductId(productId: string) {
     const variables = await this.findByProductId(productId);
-    const variableIds = variables.map((v) => (v as any)._id.toString());
+    const variableIds = variables.map((v) => v._id.toString());
 
     await Promise.all([
       this.serialService.deleteManyByIds(variableIds),

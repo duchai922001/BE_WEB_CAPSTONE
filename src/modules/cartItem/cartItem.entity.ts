@@ -10,11 +10,13 @@ export class CartItem extends Document {
   @Prop({ type: Types.ObjectId, ref: 'Product', required: true })
   productId: Types.ObjectId;
 
+  @Prop({ type: Types.ObjectId, ref: 'Variable' })
+  variableId: Types.ObjectId;
+
   @Prop({ default: 1 })
   quantity: number;
 
-  @Prop({default: false})
+  @Prop({ default: false })
   isSelect: boolean;
-
 }
 export const CartItemSchema = SchemaFactory.createForClass(CartItem);

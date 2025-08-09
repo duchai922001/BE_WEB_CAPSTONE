@@ -17,11 +17,15 @@ export class RepairServiceRepository {
   }
 
   findById(id: string) {
-    return this.model.findById(id).populate('createBy');
+    return this.model
+      .findById(id)
+      .populate('createBy', 'name')
+      .select('repairWarrantyPolicyId name description sellPrice')
+      .lean();
   }
 
   async findAll(): Promise<RepairService[]> {
-    return this.model.find({ status: true }).sort({ createdAt: -1 }).exec();
+    return this.model.find().sort({ createdAt: -1 }).exec();
   }
 
   async update(

@@ -1,6 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 export type RepairRequestImageDocument = RepairRequestImage & Document;
+export enum RepairImageType {
+  BEFORE = 'before',
+  AFTER = 'after',
+}
 @Schema({ timestamps: true, versionKey: false })
 export class RepairRequestImage extends Document {
   @Prop({ type: Types.ObjectId, ref: 'RepairRequest', required: true })
@@ -11,6 +15,9 @@ export class RepairRequestImage extends Document {
 
   @Prop()
   note: string;
+
+  @Prop({ type: String, enum: RepairImageType, required: true })
+  type: RepairImageType;
 
   @Prop({ default: false })
   status: boolean;

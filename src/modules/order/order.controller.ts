@@ -5,6 +5,7 @@ import {
   Get,
   HttpStatus,
   Param,
+  Patch,
   Post,
   Put,
   Query,
@@ -18,6 +19,9 @@ import { ResponseMessage } from 'src/common/enums/responseMessage';
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { UpdateOrderDto } from './dtos/update-order.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { UpdateOrderStatusDto } from './dtos/update-status.dto';
+import { PayDebtDto } from './dtos/pay-debt.dto';
+import { ReturnOrderDto } from './dtos/return-order.dto';
 
 @Controller('orders')
 export class OrderController {
@@ -47,6 +51,12 @@ export class OrderController {
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
 
+  @Get('get-order-by-id/:orderId')
+  async getOrderById(@Param('orderId') id: string) {
+    const data = await this.orderService.getOrderById(id);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
+
   @Put(':id')
   async update(@Param('id') id: string, @Body() dto: UpdateOrderDto) {
     const data = await this.orderService.update(id, dto);
@@ -60,9 +70,45 @@ export class OrderController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('orderCount')
+  async getQuantityOrderByUserId(@Request() req) {
+    const data = await this.orderService.getQuantityByUserId(req.user.userId);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('user')
   async getByUserId(@Request() req) {
     const data = await this.orderService.getByUserId(req.user.userId);
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
+
+  @Get('get-user/:orderId')
+  async getUserByOrderId(@Param('orderId') orderId: string) {
+    const data = await this.orderService.getUserByOrderId(orderId);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id/status')
+  async updateOrderStatus(
+    @Param('id') id: string,
+    @Body() dto: UpdateOrderStatusDto,
+    @Request() req,
+  ) {
+    const data = await this.orderService.updateStatus(id, dto, req.user.userId);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.UPDATE);
+  }
+
+  @Post('pay-debt')
+  async payDebt(@Body() dto: PayDebtDto) {
+    const data = await this.orderService.payDebt(dto);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.UPDATE);
+  }
+
+  @Post('return')
+  async returnOrder(@Body() dto: ReturnOrderDto) {
+    const data = await this.orderService.returnOrder(dto);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.UPDATE);
   }
 }

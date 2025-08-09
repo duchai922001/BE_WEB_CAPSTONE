@@ -27,11 +27,29 @@ export class CartItemRepository {
     return queryBuilder.exec();
   }
 
-  async addItem(cartId: string, productId: string, quantity: number) {
+  async addItem(
+    cartId: string,
+    productId: string,
+    quantity: number,
+    variableId?: string,
+  ) {
     return this.cartItemModel.findOneAndUpdate(
-      { cartId, productId },
-      { $inc: { quantity }, $setOnInsert: { isSelec: true } },
-      { upsert: true, new: true },
+      {
+        cartId,
+        productId,
+        variableId: variableId || null,
+      },
+      {
+        $inc: { quantity },
+        $setOnInsert: {
+          isSelect: true,
+          variableId: variableId || null,
+        },
+      },
+      {
+        upsert: true,
+        new: true,
+      },
     );
   }
 
@@ -60,6 +78,15 @@ export class CartItemRepository {
   }
 
   async getItems(cartId: string) {
-    return this.cartItemModel.find({ cartId }).populate('productId');
+    return this.cartItemModel
+      .find({ cartId })
+      .populate('productId')
+      .populate({
+        path: 'variableId',
+        populate: {
+          path: 'attributes',
+          model: 'Attribute',
+        },
+      });
   }
 }
