@@ -7,6 +7,7 @@ export enum OrderNormalStatus {
   CANCELLED = 'CANCELLED',
   REFUNDED = 'REFUNDED',
   DEBT = 'DEBT',
+  PAID = 'PAID',
   DONE = 'DONE',
   PAID_FAIL = 'PAID_FAIL',
 }

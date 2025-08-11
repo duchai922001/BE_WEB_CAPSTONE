@@ -236,6 +236,12 @@ export class OrderService {
     if (dto.paidAmount > order.customerDept) {
       throw new BadRequestException('Số tiền trả vượt quá số tiền nợ');
     }
+    const newDept = Math.max(0, (order.customerDept || 0) - dto.paidAmount);
+    if (newDept === 0) {
+      await this.orderRepository.update(dto.orderId, {
+        status: OrderNormalStatus.PAID,
+      });
+    }
 
     return this.orderRepository.payDebt(dto.orderId, dto.paidAmount);
   }
