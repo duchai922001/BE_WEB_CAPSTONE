@@ -156,6 +156,7 @@ export class RepairRequestService {
       'processingDate',
       'pickupAppointmentDate',
       'completionDate',
+      'customerConfirm',
       'cancelledDate',
     ];
 
@@ -167,6 +168,16 @@ export class RepairRequestService {
       dto.repairRequestId,
       dto.field,
     );
+
+    if (dto.field === 'customerConfirm') {
+      await this.updateStatus(
+        dto.repairRequestId,
+        RepairRequestStatus.CUSTOMER_CONFIRMED,
+      );
+      await this.repairRequestRepo.updateInfo(dto.repairRequestId, {
+        customerDept: dto.customerDebt,
+      });
+    }
 
     if (dto.field === 'processingDate') {
       await this.updateStatus(

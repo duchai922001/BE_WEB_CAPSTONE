@@ -1,4 +1,4 @@
-import { IsMongoId, IsIn } from 'class-validator';
+import { IsMongoId, IsIn, IsNumber, IsOptional, Min } from 'class-validator';
 
 export class UpdateRepairRequestTimestampDto {
   @IsMongoId()
@@ -10,6 +10,12 @@ export class UpdateRepairRequestTimestampDto {
     'pickupAppointmentDate',
     'completionDate',
     'cancelledDate',
+    'customerConfirm',
   ])
   field: string;
+
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  customerDebt: number;
 }
