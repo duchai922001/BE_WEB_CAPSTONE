@@ -28,6 +28,10 @@ export class OrderRepository {
     const queryBuilder = this.orderModel
       .find(filter)
       .populate({
+        path: 'userId',
+        select: 'fullName',
+      })
+      .populate({
         path: 'addressId',
         select: 'street wards districts provinces',
       })
