@@ -20,7 +20,7 @@ export class ZaloPayService {
     const app_user = 'user123';
 
     const embed_data = {
-      redirecturl: `http://localhost:5173/payment-result?orderId=${orderId}`,
+      redirecturl: `https://fe-web-capstone.vercel.app/payment-result?orderId=${orderId}`,
       orderId: orderId,
     };
     const items = [{}];
