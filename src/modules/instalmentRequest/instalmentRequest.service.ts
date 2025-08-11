@@ -5,7 +5,7 @@ import { InstalmentRequestRepository } from './instalmentRequest.repository';
 import * as nodemailer from 'nodemailer';
 import { InstalmentRequest } from './instalmentRequest.entity';
 import { InstalmentRequestStatus } from 'src/common/enums/instalmentRequest';
-import dayjs from 'dayjs';
+import * as dayjs from 'dayjs';
 @Injectable()
 export class InstalmentRequestService {
   constructor(private readonly repo: InstalmentRequestRepository) {}

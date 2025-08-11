@@ -138,4 +138,20 @@ export class RepairRequestRepository {
       { new: true },
     );
   }
+
+  async updateCustomerPaid(id: string, amountToAdd: number) {
+    const doc = await this.repairRequestModel.findById(id).exec();
+    if (!doc) return null;
+
+    const currentPaid = doc.customerPaid || 0;
+    const currentDept = doc.customerDept || 0;
+
+    const newPaid = currentPaid + amountToAdd;
+    const newDept = Math.max(0, currentDept - amountToAdd);
+
+    doc.customerPaid = newPaid;
+    doc.customerDept = newDept;
+
+    return doc.save();
+  }
 }
