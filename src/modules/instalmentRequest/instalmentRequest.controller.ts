@@ -39,8 +39,12 @@ export class InstalmentRequestController {
   }
 
   @Patch(':id/status/:status')
-  updateStatus(@Param('id') id: string, @Param('status') status: string) {
-    const data = this.service.updateStatus(id, status);
+  updateStatus(
+    @Param('id') id: string,
+    @Param('status') status: string,
+    @Body('resultImage') resultImage?: string,
+  ) {
+    const data = this.service.updateStatus(id, status, resultImage);
     return createResponse(HttpStatus.OK, data, ResponseMessage.UPDATE);
   }
 
@@ -49,5 +53,15 @@ export class InstalmentRequestController {
   async getByUserId(@Request() req) {
     const data = await this.service.getRequestsByUser(req.user.userId);
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
+
+  @Post(':id/send-email')
+  async sendEmail(@Param('id') id: string) {
+    const data = await this.service.sendRequestEmail(id);
+    return createResponse(
+      HttpStatus.OK,
+      data,
+      'Email đã được gửi tới ngân hàng',
+    );
   }
 }

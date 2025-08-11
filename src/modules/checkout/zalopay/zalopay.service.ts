@@ -36,7 +36,7 @@ export class ZaloPayService {
       description: `Thanh toán đơn hàng #${transID}`,
       bank_code: 'zalopayapp',
       callback_url:
-        'https://fcfeccf27db6.ngrok-free.app/checkout/zalo/callback',
+        'https://be-web-bluetooth-v1.onrender.com/checkout/zalo/callback',
     };
 
     const data = [
