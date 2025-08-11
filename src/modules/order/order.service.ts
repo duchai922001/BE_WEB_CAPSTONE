@@ -21,9 +21,10 @@ import { UpdateOrderStatusDto } from './dtos/update-status.dto';
 import { ResponseMessage } from 'src/common/enums/responseMessage';
 import { PayDebtDto } from './dtos/pay-debt.dto';
 import { ReturnOrderDto } from './dtos/return-order.dto';
-import { PaymentMethod } from 'src/common/enums/payment';
+import { PaymentMethod, PaymentType } from 'src/common/enums/payment';
 import { OrderNormalStatus } from 'src/common/enums/orderStatus';
 import { CartItemRepository } from '../cartItem/cartItem.repository';
+import * as dayjs from 'dayjs';
 
 @Injectable()
 export class OrderService {
@@ -48,6 +49,15 @@ export class OrderService {
           PaymentMethod.PAY_IN_STORE,
           PaymentMethod.COD,
         ].includes(data.paymentMethod);
+
+        let customerDept = 0;
+        let depositDeadline: Date | undefined = undefined;
+        if (data.paymentType === PaymentType.PARTIAL_DEPOSIT) {
+          customerDept = data.totalAmount - data.totalAmount * 0.1;
+          depositDeadline = dayjs().add(14, 'day').toDate();
+        } else if (isOfflinePayment) {
+          customerDept = data.totalAmount;
+        }
         // 2. Tạo mã đơn hàng retry như cũ (trong transaction)
         const MAX_RETRIES = 5;
         let retry = 0;
@@ -63,7 +73,8 @@ export class OrderService {
               {
                 ...payloadOther,
                 orderCode,
-                customerDept: isOfflinePayment ? data.totalAmount : 0,
+                customerDept,
+                ...(depositDeadline && { depositDeadline }),
               },
               { session },
             );

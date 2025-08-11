@@ -63,6 +63,9 @@ export class Order extends Document {
     required: true,
   })
   paymentMethod: PaymentMethod;
+
+  @Prop({ type: Date, required: false })
+  depositDeadline?: Date;
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);
