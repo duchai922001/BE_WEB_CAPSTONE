@@ -33,7 +33,7 @@ export class UserService {
       email,
     );
     if (existingUser) {
-      throw new BadRequestException('Tài khoản hoặc email đã tồn tại');
+      throw new BadRequestException('Email hoặc số điện thoại đã tồn tại');
     }
 
     let finalRoleId = roleId;
