@@ -40,6 +40,7 @@ import { CheckoutModule } from './modules/checkout/checkout.module';
 import { RepairWarrantyPolicyModule } from './modules/repair-warranty-policy/repair-warranty-policy.module';
 import { ChatboxAIModule } from './modules/chatbox-ai/chatbox-ai.module';
 import { AdviseModule } from './modules/advise/advise.module';
+import { InstalmentBankModule } from './modules/instalmentBank/instalment-bank.module';
 
 @Module({
   imports: [
@@ -90,6 +91,7 @@ import { AdviseModule } from './modules/advise/advise.module';
     RepairWarrantyPolicyModule,
     ChatboxAIModule,
     AdviseModule,
+    InstalmentBankModule,
   ],
   controllers: [AppController],
   providers: [AppService],
