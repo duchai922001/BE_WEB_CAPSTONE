@@ -38,6 +38,8 @@ import { InstalmentRequestModule } from './modules/instalmentRequest/instalmentC
 import { SpecificationsKeyModule } from './modules/specifications-key/specifications-key.module';
 import { CheckoutModule } from './modules/checkout/checkout.module';
 import { RepairWarrantyPolicyModule } from './modules/repair-warranty-policy/repair-warranty-policy.module';
+import { ChatboxAIModule } from './modules/chatbox-ai/chatbox-ai.module';
+import { AdviseModule } from './modules/advise/advise.module';
 
 @Module({
   imports: [
@@ -86,6 +88,8 @@ import { RepairWarrantyPolicyModule } from './modules/repair-warranty-policy/rep
     SpecificationsKeyModule,
     CheckoutModule,
     RepairWarrantyPolicyModule,
+    ChatboxAIModule,
+    AdviseModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -4,7 +4,6 @@ import { Order, OrderDocument } from './order.entity';
 import { ClientSession, Model } from 'mongoose';
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { builderQuery } from 'src/common/helpers/query-builder.helper';
-import { UpdateOrderDto } from './dtos/update-order.dto';
 import { ResponseMessage } from 'src/common/enums/responseMessage';
 import { OrderNormalStatus } from 'src/common/enums/orderStatus';
 
