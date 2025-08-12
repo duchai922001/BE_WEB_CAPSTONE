@@ -25,7 +25,9 @@ import { RepairServiceRepository } from '../repairService/repairService.reposito
 import { RepairInvoiceItem } from '../repair-invoice-item/repair-invoice-item.entity';
 import { RepairWarrantyPolicy } from '../repair-warranty-policy/repair-warranty-policy.entity';
 import { formatTimeLeft, parseDuration } from 'src/common/utils/parseDuration';
-
+import * as nodemailer from 'nodemailer';
+import * as dayjs from 'dayjs';
+import { UpdateCustomerPaidDto } from './dtos/customer-paid.dto';
 @Injectable()
 export class RepairRequestService {
   constructor(
@@ -154,6 +156,7 @@ export class RepairRequestService {
       'processingDate',
       'pickupAppointmentDate',
       'completionDate',
+      'customerConfirm',
       'cancelledDate',
     ];
 
@@ -165,6 +168,16 @@ export class RepairRequestService {
       dto.repairRequestId,
       dto.field,
     );
+
+    if (dto.field === 'customerConfirm') {
+      await this.updateStatus(
+        dto.repairRequestId,
+        RepairRequestStatus.CUSTOMER_CONFIRMED,
+      );
+      await this.repairRequestRepo.updateInfo(dto.repairRequestId, {
+        customerDept: dto.customerDebt,
+      });
+    }
 
     if (dto.field === 'processingDate') {
       await this.updateStatus(
@@ -178,6 +191,46 @@ export class RepairRequestService {
         dto.repairRequestId,
         RepairRequestStatus.COMPLETED,
       );
+    }
+    if (dto.field === 'pickupAppointmentDate') {
+      const repairRequest = await this.repairRequestRepo.findById(
+        dto.repairRequestId,
+      );
+      if (!repairRequest) {
+        throw new NotFoundException('Không tìm thấy yêu cầu sửa chữa');
+      }
+      const email = (repairRequest.userId as any)?.email;
+      const fullName = (repairRequest.userId as any)?.fullName || 'Khách hàng';
+      if (email) {
+        const fromDate = dayjs().add(1, 'day');
+        const toDate = dayjs().add(7, 'day');
+        const transporter = nodemailer.createTransport({
+          service: 'gmail',
+          auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+          },
+        });
+
+        const mailOptions = {
+          from: `"Thông báo nhận hàng" <${process.env.EMAIL_USER}>`,
+          to: email, // lấy email từ user
+          subject: 'Thông báo lịch hẹn nhận hàng',
+          html: `
+          <h3>Xin chào ${fullName || ''}</h3>
+          <p>Đơn sửa chữa của bạn đã sẵn sàng để nhận.</p>
+           <p>Mã đơn hàng: ${repairRequest.repairRequestCode}</p>
+           <i>Bạn đến cửa hàng đọc mã đơn hàng cho nhân viên để được hổ trợ nhanh nhất</i>
+         <p><b>Ngày hẹn nhận:</b> 
+    ${fromDate.format('DD-MM-YYYY HH:mm')} 
+    → 
+    ${toDate.format('DD-MM-YYYY HH:mm')}
+  </p>
+          <p>Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi!</p>
+        `,
+        };
+        await transporter.sendMail(mailOptions);
+      }
     }
 
     return updated;
@@ -261,5 +314,31 @@ export class RepairRequestService {
     );
 
     return results;
+  }
+
+  async updateCustomerPaid(dto: UpdateCustomerPaidDto) {
+    const repairRequest = await this.repairRequestRepo.findById(
+      dto.repairRequestId,
+    );
+    if (!repairRequest) {
+      throw new NotFoundException('Repair request not found');
+    }
+
+    if (dto.amount <= 0) {
+      throw new BadRequestException('Số tiền phải lớn hơn 0');
+    }
+
+    const currentDept = repairRequest.customerDept || 0;
+
+    if (dto.amount > currentDept) {
+      throw new BadRequestException(
+        `Số tiền không được vượt quá số còn nợ: ${currentDept}`,
+      );
+    }
+
+    return this.repairRequestRepo.updateCustomerPaid(
+      dto.repairRequestId,
+      dto.amount,
+    );
   }
 }

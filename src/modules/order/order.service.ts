@@ -21,8 +21,10 @@ import { UpdateOrderStatusDto } from './dtos/update-status.dto';
 import { ResponseMessage } from 'src/common/enums/responseMessage';
 import { PayDebtDto } from './dtos/pay-debt.dto';
 import { ReturnOrderDto } from './dtos/return-order.dto';
-import { PaymentMethod } from 'src/common/enums/payment';
+import { PaymentMethod, PaymentType } from 'src/common/enums/payment';
 import { OrderNormalStatus } from 'src/common/enums/orderStatus';
+import { CartItemRepository } from '../cartItem/cartItem.repository';
+import * as dayjs from 'dayjs';
 
 @Injectable()
 export class OrderService {
@@ -33,6 +35,7 @@ export class OrderService {
     private readonly paymentRepo: PaymentRepository,
     private readonly userService: UserService,
     private readonly serialSer: SerialService,
+    private readonly cartItemRepository: CartItemRepository,
   ) {}
 
   async createOrder(data: CustomerCreateOrderDto) {
@@ -46,6 +49,15 @@ export class OrderService {
           PaymentMethod.PAY_IN_STORE,
           PaymentMethod.COD,
         ].includes(data.paymentMethod);
+
+        let customerDept = 0;
+        let depositDeadline: Date | undefined = undefined;
+        if (data.paymentType === PaymentType.PARTIAL_DEPOSIT) {
+          customerDept = data.totalAmount - data.totalAmount * 0.1;
+          depositDeadline = dayjs().add(14, 'day').toDate();
+        } else if (isOfflinePayment) {
+          customerDept = data.totalAmount;
+        }
         // 2. Tạo mã đơn hàng retry như cũ (trong transaction)
         const MAX_RETRIES = 5;
         let retry = 0;
@@ -61,7 +73,8 @@ export class OrderService {
               {
                 ...payloadOther,
                 orderCode,
-                customerDept: isOfflinePayment ? data.totalAmount : 0,
+                customerDept,
+                ...(depositDeadline && { depositDeadline }),
               },
               { session },
             );
@@ -145,7 +158,9 @@ export class OrderService {
           }
         }
       });
-
+      if (data.cartItemIds.length) {
+        await this.cartItemRepository.deleteManyByIds(data.cartItemIds || []);
+      }
       return order;
     } catch (error) {
       throw error;
@@ -232,6 +247,12 @@ export class OrderService {
     if (dto.paidAmount > order.customerDept) {
       throw new BadRequestException('Số tiền trả vượt quá số tiền nợ');
     }
+    const newDept = Math.max(0, (order.customerDept || 0) - dto.paidAmount);
+    if (newDept === 0) {
+      await this.orderRepository.update(dto.orderId, {
+        status: OrderNormalStatus.PAID,
+      });
+    }
 
     return this.orderRepository.payDebt(dto.orderId, dto.paidAmount);
   }
@@ -257,5 +278,22 @@ export class OrderService {
       dto.returnAmount,
       dto.reason,
     );
+  }
+
+  async rollBack(orderId: string) {
+    const findOrder = await this.orderItemRepository.getByOrderId(orderId);
+    if (!findOrder.length) {
+      throw new NotFoundException('Không tìm thấy đơn hàng');
+    }
+
+    for (const item of findOrder) {
+      if (item.serialCodes && item.serialCodes.length > 0) {
+        for (const serialCode of item.serialCodes) {
+          await this.serialSer.updateBySerialCode(serialCode, {
+            isSold: false,
+          });
+        }
+      }
+    }
   }
 }

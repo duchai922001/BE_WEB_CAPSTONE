@@ -19,11 +19,13 @@ export class AdviseGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {}
 
   connectedClients = new Map<string, Socket>(); // lưu client.id và socket
-  handleDisconnect(client: any) {
-    this.connectedClients.set(client.id, client);
-  }
-  handleConnection(client: any, ...args: any[]) {
+
+  handleDisconnect(client: Socket) {
     this.connectedClients.delete(client.id);
+  }
+
+  handleConnection(client: Socket, ...args: any[]) {
+    this.connectedClients.set(client.id, client);
   }
 
   @SubscribeMessage('request_advise')
@@ -36,8 +38,13 @@ export class AdviseGateway implements OnGatewayConnection, OnGatewayDisconnect {
     },
   ) {
     const { name, phone, message } = payload;
-    // Gửi đến tất cả staff yêu cầu tư vấn mới
+    // Lấy id client hiện tại làm requestId
     const requestId = client.id;
+
+    // Lưu client vào danh sách connectedClients
+    this.connectedClients.set(client.id, client);
+
+    // Gửi đến tất cả staff yêu cầu tư vấn mới
     this.server.emit('new_advise_request', {
       requestId,
       name,
@@ -70,10 +77,11 @@ export class AdviseGateway implements OnGatewayConnection, OnGatewayDisconnect {
     staff.join(roomId);
     customer.join(roomId);
 
-    // Gửi cho cả 2 người bắt đầu cuộc tư vấn
+    // Gửi cho cả 2 người bắt đầu cuộc tư vấn, bổ sung requestId
     this.server.to(roomId).emit('start_chat', {
       roomId,
       staffName,
+      requestId, // Bổ sung trường này
     });
 
     staff.data.roomId = roomId;

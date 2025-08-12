@@ -41,7 +41,12 @@ export class InstalmentRequestRepository {
   async updateStatus(
     id: string,
     status: string,
+    resultImage?: string,
   ): Promise<InstalmentRequest | null> {
-    return this.model.findByIdAndUpdate(id, { status }, { new: true });
+    const updateData: any = { status };
+    if (resultImage) {
+      updateData.resultImage = resultImage;
+    }
+    return this.model.findByIdAndUpdate(id, updateData, { new: true });
   }
 }

@@ -20,6 +20,7 @@ import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { AssignRepairRequestDto } from './dtos/assign-staff.dto';
 import { UpdateRepairRequestTimestampDto } from './dtos/update-repair-request-timestamp.dto';
 import { UpdateRepairRequestInfoDto } from './dtos/update.dto';
+import { UpdateCustomerPaidDto } from './dtos/customer-paid.dto';
 
 @Controller('repair-requests')
 export class RepairRequestController {
@@ -94,5 +95,15 @@ export class RepairRequestController {
   async updateTimestamp(@Body() dto: UpdateRepairRequestTimestampDto) {
     const data = await this.service.updateTimestamp(dto);
     return createResponse(200, data, ResponseMessage.UPDATE);
+  }
+
+  @Patch('customer-paid')
+  async updateCustomerPaid(@Body() dto: UpdateCustomerPaidDto) {
+    const data = await this.service.updateCustomerPaid(dto);
+    return createResponse(
+      HttpStatus.OK,
+      data,
+      'Cập nhật thanh toán thành công',
+    );
   }
 }

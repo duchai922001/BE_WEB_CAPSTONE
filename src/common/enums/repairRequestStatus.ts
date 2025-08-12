@@ -6,4 +6,5 @@ export enum RepairRequestStatus {
   CUSTOMER_CONFIRMED = 'CUSTOMER_CONFIRMED',
   COMPLETED = 'COMPLETED',
   CANCELLED = 'CANCELLED',
+  DEBT = 'DEBT',
 }

@@ -60,6 +60,9 @@ export class InstalmentRequest {
 
   @Prop({ type: String, required: true })
   address: string;
+
+  @Prop({ type: String })
+  resultImage: string;
 }
 
 export const InstalmentRequestSchema =

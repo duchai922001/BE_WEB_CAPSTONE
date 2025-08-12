@@ -109,7 +109,6 @@ export class RepairRequestRepository {
   }
 
   async updateInfo(id: string, update: any) {
-    console.log({ id, update });
     return this.repairRequestModel.findByIdAndUpdate(id, update, { new: true });
   }
 
@@ -137,5 +136,21 @@ export class RepairRequestRepository {
       { $inc: { countWarranty: 1 } },
       { new: true },
     );
+  }
+
+  async updateCustomerPaid(id: string, amountToAdd: number) {
+    const doc = await this.repairRequestModel.findById(id).exec();
+    if (!doc) return null;
+
+    const currentPaid = doc.customerPaid || 0;
+    const currentDept = doc.customerDept || 0;
+
+    const newPaid = currentPaid + amountToAdd;
+    const newDept = Math.max(0, currentDept - amountToAdd);
+
+    doc.customerPaid = newPaid;
+    doc.customerDept = newDept;
+
+    return doc.save();
   }
 }
