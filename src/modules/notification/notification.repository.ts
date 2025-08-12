@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { CreateNotificationDto } from './dtos/create.dto';
 import { Notification, NotificationDocument } from './notification.entity';
 import { Model } from 'mongoose';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class NotificationRepository {
@@ -35,5 +36,20 @@ export class NotificationRepository {
     return this.notificationModel
       .findByIdAndUpdate({ _id: id }, data, { new: true })
       .exec();
+  }
+
+  async getNotifications(userId: string | Types.ObjectId, limit = 20) {
+    return this.notificationModel
+      .find({ userId })
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .exec();
+  }
+  async markAsRead(notificationId: string) {
+    return this.notificationModel.findByIdAndUpdate(
+      notificationId,
+      { isRead: true },
+      { new: true },
+    );
   }
 }
