@@ -28,6 +28,8 @@ import { formatTimeLeft, parseDuration } from 'src/common/utils/parseDuration';
 import * as nodemailer from 'nodemailer';
 import * as dayjs from 'dayjs';
 import { UpdateCustomerPaidDto } from './dtos/customer-paid.dto';
+import { NotificationService } from '../notification/notification.service';
+import { NotificationGateway } from '../notification/notification.gateway';
 @Injectable()
 export class RepairRequestService {
   constructor(
@@ -39,6 +41,8 @@ export class RepairRequestService {
     private readonly repairWarrantyPolicyRepo: RepairWarrantyPolicyRepository,
     private readonly repairInvoiceItemRepo: RepairInvoiceItemRepository,
     private readonly repairServiceRepo: RepairServiceRepository,
+    private readonly notificationService: NotificationService,
+    private readonly notificationGateway: NotificationGateway,
   ) {}
 
   async create(userId: string, data: CreateRepairRequestDto) {
@@ -143,11 +147,26 @@ export class RepairRequestService {
     assignedStaffId?: string,
     technicianId?: string,
   ) {
-    return this.repairRequestRepo.assignStaffAndTechnician(
-      id,
-      assignedStaffId,
-      technicianId,
-    );
+    const updatedRequest =
+      await this.repairRequestRepo.assignStaffAndTechnician(
+        id,
+        assignedStaffId,
+        technicianId,
+      );
+    if (!updatedRequest) {
+      throw new NotFoundException('Repair request not found');
+    }
+    if (technicianId) {
+      const notif = await this.notificationService.create({
+        userId: technicianId,
+        title: 'Bạn được giao làm kỹ thuật viên',
+        message: `Bạn vừa được giao làm kỹ thuật viên cho đơn ${updatedRequest.repairRequestCode}`,
+        type: 'assign_technician',
+        targetUrl: `/permission/manage-orders`,
+      });
+      this.notificationGateway.sendNotification(technicianId, notif);
+    }
+    return updatedRequest;
   }
 
   async updateTimestamp(dto: UpdateRepairRequestTimestampDto) {
@@ -168,6 +187,9 @@ export class RepairRequestService {
       dto.repairRequestId,
       dto.field,
     );
+    if (!updated) {
+      throw new NotFoundException('Repair request not found');
+    }
 
     if (dto.field === 'customerConfirm') {
       await this.updateStatus(
@@ -177,12 +199,34 @@ export class RepairRequestService {
       await this.repairRequestRepo.updateInfo(dto.repairRequestId, {
         customerDept: dto.customerDebt,
       });
+      const notif = await this.notificationService.create({
+        userId: updated?.technicianId?.toString(),
+        title: 'Khách hàng đã xác nhận sửa chữa',
+        message: `Tiến hành sữa chữa đơn hàng ${dto.repairRequestId}`,
+        type: 'assign_technician',
+        targetUrl: `/permission/manage-orders`,
+      });
+      this.notificationGateway.sendNotification(
+        updated?.technicianId?.toString(),
+        notif,
+      );
     }
 
     if (dto.field === 'processingDate') {
       await this.updateStatus(
         dto.repairRequestId,
         RepairRequestStatus.WAIT_CUSTOMER_RECEIVE,
+      );
+      const notif = await this.notificationService.create({
+        userId: updated?.assignedStaffId?.toString(),
+        title: 'Nhân viên kỹ thuật đã hoàn thành sữa chữa',
+        message: `Kiểm tra lại đơn hàng ${dto.repairRequestId}`,
+        type: 'assign_technician',
+        targetUrl: `/permission/manage-orders`,
+      });
+      this.notificationGateway.sendNotification(
+        updated?.assignedStaffId?.toString(),
+        notif,
       );
     }
 

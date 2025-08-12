@@ -9,6 +9,7 @@ import { RepairRequestImageModule } from '../repairRequestImage/repairRequestIma
 import { RepairWarrantyPolicyModule } from '../repair-warranty-policy/repair-warranty-policy.module';
 import { RepairInvoiceItemModule } from '../repair-invoice-item/repair-invoice-item.module';
 import { RepairServiceModule } from '../repairService/repairService.module';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { RepairServiceModule } from '../repairService/repairService.module';
     RepairWarrantyPolicyModule,
     RepairInvoiceItemModule,
     RepairServiceModule,
+    NotificationModule,
   ],
   controllers: [RepairRequestController],
   providers: [RepairRequestService, RepairRequestRepository],

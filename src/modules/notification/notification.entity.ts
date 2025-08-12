@@ -18,5 +18,8 @@ export class Notification extends Document {
 
   @Prop()
   targetUrl: string;
+
+  @Prop({ default: false })
+  isRead: boolean;
 }
 export const NotificationSchema = SchemaFactory.createForClass(Notification);
