@@ -502,6 +502,25 @@ export class OrderService {
       );
     }
 
+    if (dto.status === OrderNormalStatus.REFUNDED) {
+      if (!dto.products?.length) {
+        throw new BadRequestException(
+          'products là bắt buộc khi xác nhận đơn hàng',
+        );
+      }
+      await Promise.all(
+        dto.products.map((p) =>
+          this.updateStockQuantity(
+            p.productId,
+            p.typeProduct,
+            p.variableId,
+            p.serialCodes,
+            p.quantity,
+          ),
+        ),
+      );
+    }
+
     return this.orderRepository.update(id, updatePayload);
   }
 
