@@ -198,7 +198,6 @@ export class OrderService {
       throw new NotFoundException('Không tìm thấy đơn hàng');
     }
 
-    // Lấy tất cả variableId của sản phẩm type 300/400
     const variableIds = orderItems
       .filter(
         (item) =>
@@ -479,24 +478,29 @@ export class OrderService {
       });
     }
 
-    // if (dto.status === OrderNormalStatus.REFUNDED) {
-    //   if (!dto.products?.length) {
-    //     throw new BadRequestException(
-    //       'products là bắt buộc khi xác nhận đơn hàng',
-    //     );
-    //   }
-    //   await Promise.all(
-    //     dto.products.map((p) =>
-    //       this.restoreStockQuantity(
-    //         p.productId,
-    //         p.typeProduct,
-    //         p.variableId,
-    //         p.serialCodes,
-    //         p.quantity,
-    //       ),
-    //     ),
-    //   );
-    // }
+    if (dto.status === OrderNormalStatus.CANCELLED) {
+      if (!dto.products?.length) {
+        throw new BadRequestException(
+          'products là bắt buộc khi xác nhận đơn hàng',
+        );
+      }
+      await Promise.all(
+        dto.products.map(async (p) => {
+          if (p.typeProduct === 300) {
+            await this.serialRepo.markAsUnsold(
+              p.productId,
+              p.serialCodes ?? [],
+            );
+          } else if (p.typeProduct === 400) {
+            await this.serialRepo.markVariableAsUnsold(
+              p.productId,
+              p.serialCodes ?? [],
+              p.variableId,
+            );
+          }
+        }),
+      );
+    }
 
     return this.orderRepository.update(id, updatePayload);
   }
