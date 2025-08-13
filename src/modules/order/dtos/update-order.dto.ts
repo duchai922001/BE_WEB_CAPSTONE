@@ -9,12 +9,9 @@ import {
   IsString,
 } from 'class-validator';
 import { OrderNormalStatus } from 'src/common/enums/orderStatus';
+import { ShippingProvider } from 'src/common/enums/shipping-provider';
 
 export class UpdateOrderDto {
-  @IsNotEmpty()
-  @IsMongoId()
-  employeeId: string;
-
   @IsOptional()
   @IsString()
   discountType: string;
@@ -60,4 +57,12 @@ export class UpdateOrderDto {
   @IsOptional()
   @IsString()
   reason?: string;
+
+  @IsOptional()
+  @IsEnum(ShippingProvider)
+  shippingProvider?: ShippingProvider;
+
+  @IsOptional()
+  @IsString()
+  trackingCode?: string;
 }

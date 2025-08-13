@@ -2,6 +2,7 @@ import { Prop, SchemaFactory, Schema } from '@nestjs/mongoose';
 import { Types, Document } from 'mongoose';
 import { OrderNormalStatus } from 'src/common/enums/orderStatus';
 import { PaymentMethod, PaymentType } from 'src/common/enums/payment';
+import { ShippingProvider } from 'src/common/enums/shipping-provider';
 
 export type OrderDocument = Order & Document;
 @Schema({ timestamps: true, versionKey: false })
@@ -66,6 +67,15 @@ export class Order extends Document {
 
   @Prop({ type: Date, required: false })
   depositDeadline?: Date;
+
+  @Prop({
+    enum: ShippingProvider,
+    default: ShippingProvider.GHN,
+  })
+  shippingProvider?: ShippingProvider;
+
+  @Prop({ type: String, required: false })
+  trackingCode?: string;
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);
