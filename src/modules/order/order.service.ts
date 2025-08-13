@@ -189,10 +189,56 @@ export class OrderService {
 
   async findById(id: string) {
     const orderItems = await this.orderItemRepository.getByOrderId(id);
+    if (!orderItems || orderItems.length === 0) {
+      throw new NotFoundException('Không tìm thấy OrderItem cho đơn hàng này');
+    }
+
     const order = await this.orderRepository.findById(id);
+    if (!order) {
+      throw new NotFoundException('Không tìm thấy đơn hàng');
+    }
+
+    // Lấy tất cả variableId của sản phẩm type 300/400
+    const variableIds = orderItems
+      .filter(
+        (item) =>
+          [300, 400].includes(Number(item.product.typeProduct)) &&
+          item.variableId,
+      )
+      .map((item) => item.variableId.toString());
+
+    let variablesMap = new Map<string, any>();
+    if (variableIds.length) {
+      const variables = await this.variRepo.findByIds(variableIds);
+      variablesMap = new Map(variables.map((v) => [v._id.toString(), v]));
+    }
+
+    const formattedItems = orderItems.map((item) => {
+      const typeProduct = Number(item.product.typeProduct);
+      let sellPrice = 0;
+      let costPrice = 0;
+
+      if ([100, 200].includes(typeProduct)) {
+        sellPrice = item.product.sellPrice;
+        costPrice = item.product.costPrice;
+      } else if ([300, 400].includes(typeProduct) && item.variableId) {
+        const variable = variablesMap.get(item.variableId.toString());
+        if (variable) {
+          sellPrice = variable.sellPrice;
+          costPrice = variable.costPrice;
+        }
+      }
+
+      return {
+        ...item,
+        sellPrice,
+        costPrice,
+      };
+    });
+
     return {
       order,
-      orderItems,
+      orderItems: formattedItems,
     };
   }
 

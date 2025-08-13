@@ -105,4 +105,18 @@ export class VariableRepository {
       variable,
     };
   }
+
+  async findByIds(ids: string[]) {
+    const objectIds = ids
+      .filter((id) => Types.ObjectId.isValid(id))
+      .map((id) => new Types.ObjectId(id));
+
+    if (!objectIds.length) {
+      return [];
+    }
+
+    return this.variableModel.find({
+      _id: { $in: objectIds },
+    });
+  }
 }
