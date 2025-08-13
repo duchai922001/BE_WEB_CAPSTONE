@@ -195,6 +195,14 @@ export class UserService {
     }
     return user;
   }
+  async getUserByEmailOrPhone(
+    email: string,
+    phone: string,
+  ): Promise<UserDocument | null> {
+    const user = await this.userRepository.getUserByEmailOrPhone(email, phone);
+
+    return user;
+  }
 
   async getUsersExcludeAdminAndCustomer() {
     return await this.userRepository.findUsersExcludeRoles([

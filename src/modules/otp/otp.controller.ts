@@ -6,6 +6,18 @@ import { OtpType } from 'src/common/enums/otp';
 export class OtpController {
   constructor(private readonly otpService: OtpService) {}
 
+  @Post('register-account')
+  async registerAccountOtp(
+    @Body() body: { email: string; phone: string; purpose: OtpType },
+  ) {
+    await this.otpService.registerAccountOTP(
+      body.email,
+      body.phone,
+      body.purpose,
+    );
+    return { message: 'OTP đã được gửi' };
+  }
+
   @Post('request')
   async requestOtp(@Body() body: { email: string; purpose: OtpType }) {
     await this.otpService.generateOtp(body.email, body.purpose);

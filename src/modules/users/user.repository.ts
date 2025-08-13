@@ -62,6 +62,17 @@ export class UserRepository {
     return this.userModel.findOne({ email }).exec();
   }
 
+  async getUserByEmailOrPhone(
+    email: string,
+    phone: string,
+  ): Promise<UserDocument | null> {
+    const user = await this.userModel.findOne({
+      $or: [{ email }, { phone }],
+    });
+
+    return user;
+  }
+
   async update(id: string, data: UpdateUserDto): Promise<UserDocument | null> {
     return this.userModel
       .findByIdAndUpdate(id, data, { new: true })
