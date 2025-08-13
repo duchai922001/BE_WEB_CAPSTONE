@@ -81,4 +81,28 @@ export class VariableRepository {
       variable,
     };
   }
+
+  async increaseStock(variableId: string, quantity: number) {
+    if (!Types.ObjectId.isValid(variableId)) {
+      throw new BadRequestException('ID biến thể không hợp lệ');
+    }
+
+    if (quantity <= 0) {
+      throw new BadRequestException('Số lượng phải lớn hơn 0');
+    }
+
+    // Tìm biến thể
+    const variable = await this.variableModel.findById(variableId);
+    if (!variable) {
+      throw new NotFoundException('Không tìm thấy biến thể');
+    }
+
+    variable.stock += quantity;
+    await variable.save();
+
+    return {
+      message: 'Tăng tồn kho biến thể thành công',
+      variable,
+    };
+  }
 }

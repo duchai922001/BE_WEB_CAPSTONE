@@ -162,13 +162,13 @@ export class OrderService {
               { session },
             );
 
-            // for (const serial of serials) {
-            //   await this.serialSer.updateById(
-            //     (serial as any)._id,
-            //     { isSold: true },
-            //     session,
-            //   );
-            // }
+            for (const serial of serials) {
+              await this.serialSer.updateById(
+                (serial as any)._id,
+                { isSold: true },
+                session,
+              );
+            }
           }
         }
       });
@@ -315,6 +315,76 @@ export class OrderService {
     }
   }
 
+  async restoreStockQuantity(
+    productId: string,
+    typeProduct: number,
+    variableId?: string,
+    serialCodes?: string[],
+    quantity?: number,
+  ) {
+    if (!Types.ObjectId.isValid(productId)) {
+      throw new BadRequestException('productId không hợp lệ');
+    }
+
+    switch (typeProduct) {
+      case ProductType.NO_VARIABLE_NO_SERIAL: {
+        if (!quantity) {
+          throw new BadRequestException('quantity bắt buộc');
+        }
+        await this.productRepo.increaseStock(productId, quantity);
+        break;
+      }
+
+      case ProductType.NORMAL_VARIABLES: {
+        if (!variableId || !quantity) {
+          throw new BadRequestException('quantity và variableId bắt buộc');
+        }
+        if (!Types.ObjectId.isValid(variableId)) {
+          throw new BadRequestException('variableId không hợp lệ');
+        }
+        await this.variRepo.increaseStock(variableId, quantity);
+        break;
+      }
+
+      case ProductType.NORMAL_SERIALS: {
+        if (!serialCodes?.length) {
+          throw new BadRequestException('serialCodes bắt buộc');
+        }
+        const quantity = serialCodes.length;
+        await this.serialRepo.markAsUnsold(productId, serialCodes);
+        await this.productRepo.increaseStock(productId, quantity);
+        break;
+      }
+
+      case ProductType.NORMAL_VARIABLES_SERIALS: {
+        if (!serialCodes?.length || !variableId) {
+          throw new BadRequestException('serialCodes và variableId bắt buộc');
+        }
+        if (!Types.ObjectId.isValid(variableId)) {
+          throw new BadRequestException('variableId không hợp lệ');
+        }
+        const quantity = serialCodes.length;
+        await this.serialRepo.markVariableAsUnsold(
+          productId,
+          serialCodes,
+          variableId,
+        );
+        await this.productRepo.increaseStock(productId, quantity);
+        await this.variRepo.increaseStock(variableId, quantity);
+        break;
+      }
+
+      default:
+        throw new BadRequestException(
+          `${ResponseMessage.TYPE_NOT_FOUND} ${typeProduct}`,
+        );
+    }
+  }
+  async customerCancelOrder(id: string) {
+    return await this.orderRepository.update(id, {
+      status: OrderNormalStatus.CANCELLED,
+    });
+  }
   async updateStatus(id: string, dto: UpdateOrderStatusDto, userId: string) {
     const updatePayload: any = {
       status: dto.status,
@@ -362,6 +432,25 @@ export class OrderService {
   `,
       });
     }
+
+    // if (dto.status === OrderNormalStatus.REFUNDED) {
+    //   if (!dto.products?.length) {
+    //     throw new BadRequestException(
+    //       'products là bắt buộc khi xác nhận đơn hàng',
+    //     );
+    //   }
+    //   await Promise.all(
+    //     dto.products.map((p) =>
+    //       this.restoreStockQuantity(
+    //         p.productId,
+    //         p.typeProduct,
+    //         p.variableId,
+    //         p.serialCodes,
+    //         p.quantity,
+    //       ),
+    //     ),
+    //   );
+    // }
 
     return this.orderRepository.update(id, updatePayload);
   }

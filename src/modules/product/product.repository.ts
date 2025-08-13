@@ -176,4 +176,27 @@ export class ProductRepository {
       product,
     };
   }
+
+  async increaseStock(productId: string, quantity: number) {
+    if (!Types.ObjectId.isValid(productId)) {
+      throw new BadRequestException('ID sản phẩm không hợp lệ');
+    }
+
+    if (quantity <= 0) {
+      throw new BadRequestException('Số lượng phải lớn hơn 0');
+    }
+
+    const product = await this.productModel.findById(productId);
+    if (!product) {
+      throw new NotFoundException('Không tìm thấy sản phẩm');
+    }
+
+    product.stock += quantity;
+    await product.save();
+
+    return {
+      message: 'Cập nhật tồn kho thành công',
+      product,
+    };
+  }
 }
