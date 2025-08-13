@@ -28,8 +28,8 @@ export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
   @Get('search')
-  async searchByOrderCode(@Query('orderCode') orderCode: string) {
-    const data = await this.orderService.searchOrderByOrderCode(orderCode);
+  async searchByOrderCode(@Query('keyword') keyword: string) {
+    const data = await this.orderService.searchOrderByOrderCode(keyword);
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
 

@@ -101,12 +101,66 @@ export class OrderRepository {
     return count;
   }
 
-  async findByOrderCode(orderCode: string) {
-    const order = await this.orderModel.findOne({ orderCode });
-    if (!order) {
-      throw new NotFoundException(ResponseMessage.FILE_NOT_FOUND);
+  async findByKeyword(keyword: string) {
+    keyword = String(keyword).trim(); // đảm bảo là string
+
+    const orders = await this.orderModel.aggregate([
+      // lookup với User, convert _id thành string để so với userId trong Order
+      {
+        $lookup: {
+          from: 'users',
+          let: { userIdStr: '$userId' }, // userId trong Order là string
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: [{ $toString: '$_id' }, '$$userIdStr'],
+                },
+              },
+            },
+            {
+              $project: {
+                fullName: 1,
+                phone: 1,
+              },
+            },
+          ],
+          as: 'customer',
+        },
+      },
+      { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
+
+      // match theo orderCode, phone hoặc fullName
+      {
+        $match: {
+          $or: [
+            { orderCode: { $regex: keyword, $options: 'i' } },
+            { 'customer.phone': { $regex: keyword, $options: 'i' } },
+            { 'customer.fullName': { $regex: keyword, $options: 'i' } },
+          ],
+        },
+      },
+
+      // chọn field cần trả về
+      {
+        $project: {
+          orderCode: 1,
+          status: 1,
+          totalAmount: 1,
+          discountValue: 1,
+          customerPaid: 1,
+          customerDept: 1,
+          'customer.fullName': 1,
+          'customer.phone': 1,
+        },
+      },
+    ]);
+
+    if (!orders.length) {
+      throw new NotFoundException('Không tìm thấy đơn hàng');
     }
-    return order;
+
+    return orders;
   }
 
   async payDebt(orderId: string, amount: number) {

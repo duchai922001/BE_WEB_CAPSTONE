@@ -272,8 +272,8 @@ export class OrderService {
     return orders;
   }
 
-  async searchOrderByOrderCode(orderCode: string) {
-    return await this.orderRepository.findByOrderCode(orderCode);
+  async searchOrderByOrderCode(keyword: string) {
+    return await this.orderRepository.findByKeyword(keyword);
   }
 
   async getUserByOrderId(id: string) {
