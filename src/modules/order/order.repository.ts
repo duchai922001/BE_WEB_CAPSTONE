@@ -28,7 +28,7 @@ export class OrderRepository {
       .find(filter)
       .populate({
         path: 'userId',
-        select: 'fullName',
+        select: 'fullName phone',
       })
       .populate({
         path: 'addressId',
@@ -44,10 +44,16 @@ export class OrderRepository {
   async findById(id: string): Promise<OrderDocument | null> {
     const order = await this.orderModel
       .findById(id)
-      .populate({
-        path: 'addressId',
-        select: 'street wards districts provinces',
-      })
+      .populate([
+        {
+          path: 'addressId',
+          select: 'street wards districts provinces',
+        },
+        {
+          path: 'userId',
+          select: 'fullName email phone', // hoặc các field cần thiết
+        },
+      ])
       .exec();
     return order;
   }

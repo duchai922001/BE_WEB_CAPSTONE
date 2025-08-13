@@ -25,7 +25,7 @@ import { PaymentMethod, PaymentType } from 'src/common/enums/payment';
 import { OrderNormalStatus } from 'src/common/enums/orderStatus';
 import { CartItemRepository } from '../cartItem/cartItem.repository';
 import * as dayjs from 'dayjs';
-
+import * as nodemailer from 'nodemailer';
 @Injectable()
 export class OrderService {
   constructor(
@@ -37,7 +37,15 @@ export class OrderService {
     private readonly serialSer: SerialService,
     private readonly cartItemRepository: CartItemRepository,
   ) {}
-
+  private transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
   async createOrder(data: CustomerCreateOrderDto) {
     const session = await this.connection.startSession();
     let order: any;
@@ -188,6 +196,19 @@ export class OrderService {
   }
 
   async update(id: string, data: UpdateOrderDto) {
+    const findOrder = await this.orderRepository.findById(id);
+    if (!findOrder) {
+      throw new NotFoundException('Không tìm thấy đơn hàng');
+    }
+    if (data.shippingProvider) {
+      await this.transporter.sendMail({
+        from: '"Bluetooth Mobile" khangnvmse171448@fpt.edu.vn', // Tên hiển thị + email
+        to: (findOrder.userId as any).email,
+        subject: `Đơn hàng của bạn đã được giao`,
+        text: `ĐƠN HÀNG`,
+        html: `<p>Đơn vị vận chuyển: <b>${data.shippingProvider}</b></p><p>Mã đơn hàng của bạn là: <b>${data.trackingCode ?? '-'}</b></p><p>Có gì liên hệ với bluetooth mobile. Cảm ơn bạn</p>`,
+      });
+    }
     return await this.orderRepository.update(id, data);
   }
 
@@ -226,9 +247,32 @@ export class OrderService {
     const updatePayload: any = {
       status: dto.status,
     };
-
+    const findOrder = await this.orderRepository.findById(id);
+    if (!findOrder) {
+      throw new NotFoundException('Không tìm thấy đơn hàng');
+    }
     if (dto.status === OrderNormalStatus.CONFIRMED && userId) {
       updatePayload.employeeId = userId;
+      await this.transporter.sendMail({
+        from: '"Bluetooth Mobile" <khangnvmse171448@fpt.edu.vn>', // Tên hiển thị + email
+        to: (findOrder.userId as any).email,
+        subject: `Xác nhận giao hàng - Đơn hàng #${findOrder.orderCode}`,
+        text: `Xin chào ${(findOrder.userId as any).fullName || 'Quý khách'}`,
+        html: `
+    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+      <h2 style="color: #1890ff;">Xác nhận đơn hàng</h2>
+      <p>Xin chào <b>${(findOrder.userId as any).fullName || 'Quý khách'}</b>,</p>
+      <p>Đơn hàng <b>#${findOrder.orderCode}</b> của bạn đã xác nhận.</p>
+   
+      
+      <hr/>
+      <p style="font-size: 14px; color: #666;">
+        Cảm ơn bạn đã mua sắm tại <b>Bluetooth Mobile</b>.  
+        Nếu có thắc mắc, vui lòng liên hệ hotline <b>0123 456 789</b> hoặc email hỗ trợ: <b>support@bluetoothmobile.vn</b>.
+      </p>
+    </div>
+  `,
+      });
     }
 
     return this.orderRepository.update(id, updatePayload);

@@ -79,7 +79,6 @@ export class OtpService {
     )) as OtpDocument & { createdAt: Date };
 
     const user = await this.userService.getUserByEmailOrPhone(email, phone);
-    console.log({ user });
     if (user) {
       throw new BadRequestException(
         'Email hoặc số điện thoại người dùng đã tồn tại',
