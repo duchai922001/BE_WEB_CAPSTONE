@@ -9,13 +9,12 @@ export class InstalmentBank {
   name: string;
 
   @Prop({ required: true })
-  logo: string; // URL ảnh logo
+  logo: string;
+  @Prop({ required: true })
+  interestRate: number;
 
   @Prop({ required: true })
-  interestRate: number; // ví dụ 0.012 (1.2%)
-
-  @Prop({ required: true })
-  term: number; // số tháng: 6, 9, 12
+  term: number;
 }
 
 export const InstalmentBankSchema =
