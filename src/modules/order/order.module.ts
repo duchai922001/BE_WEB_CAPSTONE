@@ -10,6 +10,8 @@ import { UserModule } from '../users/user.module';
 import { AddressModule } from '../address/address.module';
 import { SerialModule } from '../serials/serial.module';
 import { CartItemModule } from '../cartItem/cartItem.module';
+import { ProductModule } from '../product/product.module';
+import { VariableModule } from '../variables/variable.module';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { CartItemModule } from '../cartItem/cartItem.module';
     AddressModule,
     SerialModule,
     CartItemModule,
+    ProductModule,
+    VariableModule,
   ],
   providers: [OrderService, OrderRepository],
   controllers: [OrderController],

@@ -18,7 +18,7 @@ import { Attribute, AttributeSchema } from '../attributes/attribute.entity';
     AttributeModule,
   ],
   providers: [VariableRepository, VariableService],
-  exports: [VariableService],
+  exports: [VariableService, VariableRepository],
   controllers: [VariableController],
 })
 export class VariableModule {}

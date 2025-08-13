@@ -1,7 +1,7 @@
 import { InjectModel } from '@nestjs/mongoose';
 import { Serial, SerialDocument } from './serial.entity';
-import { ClientSession, Model } from 'mongoose';
-import { Injectable } from '@nestjs/common';
+import { ClientSession, Model, Types } from 'mongoose';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateSerialDto } from './dtos/create.dto';
 
 @Injectable()
@@ -70,5 +70,61 @@ export class SerialRepository {
       query.session(session);
     }
     return query.exec();
+  }
+  async markAsSold(productId: string, serialCodes: string[]) {
+    if (!Types.ObjectId.isValid(productId)) {
+      throw new BadRequestException('productId không hợp lệ');
+    }
+    if (!serialCodes || !serialCodes.length) {
+      throw new BadRequestException('Danh sách serialCodes là bắt buộc');
+    }
+
+    const result = await this.serialModel.updateMany(
+      {
+        productId: productId,
+        serialCode: { $in: serialCodes },
+        isSold: false,
+      },
+      { $set: { isSold: true } },
+    );
+
+    return {
+      message: `Cập nhật thành công ${result.modifiedCount} serial`,
+      modifiedCount: result.modifiedCount,
+    };
+  }
+
+  async markVariableAsSold(
+    productId: string,
+    serialCodes: string[],
+    variableId?: string,
+  ) {
+    if (!Types.ObjectId.isValid(productId)) {
+      throw new BadRequestException('productId không hợp lệ');
+    }
+    if (variableId && !Types.ObjectId.isValid(variableId)) {
+      throw new BadRequestException('variableId không hợp lệ');
+    }
+    if (!serialCodes || !serialCodes.length) {
+      throw new BadRequestException('serialCodes là bắt buộc');
+    }
+
+    const filter: any = {
+      productId: productId,
+      serialCode: { $in: serialCodes },
+      isSold: false,
+    };
+    if (variableId) {
+      filter.variableId = variableId;
+    }
+
+    const result = await this.serialModel.updateMany(filter, {
+      $set: { isSold: true },
+    });
+
+    return {
+      message: `Đã cập nhật ${result.modifiedCount} serial thành sold`,
+      modifiedCount: result.modifiedCount,
+    };
   }
 }

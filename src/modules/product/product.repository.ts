@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Product, ProductDocument } from './product.entity';
 import { Model, SortOrder, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
@@ -144,5 +148,32 @@ export class ProductRepository {
 
   async updateOne(id: string, data: Partial<Product>): Promise<void> {
     await this.productModel.updateOne({ _id: id }, { $set: data });
+  }
+
+  async decreaseStock(productId: string, quantity: number) {
+    if (!Types.ObjectId.isValid(productId)) {
+      throw new BadRequestException('ID sản phẩm không hợp lệ');
+    }
+
+    if (quantity <= 0) {
+      throw new BadRequestException('Số lượng phải lớn hơn 0');
+    }
+
+    const product = await this.productModel.findById(productId);
+    if (!product) {
+      throw new NotFoundException('Không tìm thấy sản phẩm');
+    }
+
+    if (product.stock < quantity) {
+      throw new BadRequestException('Tồn kho không đủ');
+    }
+
+    product.stock -= quantity;
+    await product.save();
+
+    return {
+      message: 'Cập nhật tồn kho thành công',
+      product,
+    };
   }
 }

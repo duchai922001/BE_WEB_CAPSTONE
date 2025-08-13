@@ -16,7 +16,7 @@ import { UserService } from '../users/user.service';
 import { ProductType } from 'src/common/enums/productType';
 import { SerialService } from '../serials/serial.service';
 import { InjectConnection } from '@nestjs/mongoose';
-import { Connection } from 'mongoose';
+import { Connection, Types } from 'mongoose';
 import { UpdateOrderStatusDto } from './dtos/update-status.dto';
 import { ResponseMessage } from 'src/common/enums/responseMessage';
 import { PayDebtDto } from './dtos/pay-debt.dto';
@@ -26,6 +26,9 @@ import { OrderNormalStatus } from 'src/common/enums/orderStatus';
 import { CartItemRepository } from '../cartItem/cartItem.repository';
 import * as dayjs from 'dayjs';
 import * as nodemailer from 'nodemailer';
+import { ProductRepository } from '../product/product.repository';
+import { VariableRepository } from '../variables/variable.repository';
+import { SerialRepository } from '../serials/serial.repository';
 @Injectable()
 export class OrderService {
   constructor(
@@ -34,8 +37,11 @@ export class OrderService {
     private readonly orderItemRepository: OrderItemRepository,
     private readonly paymentRepo: PaymentRepository,
     private readonly userService: UserService,
+    private readonly serialRepo: SerialRepository,
     private readonly serialSer: SerialService,
     private readonly cartItemRepository: CartItemRepository,
+    private readonly productRepo: ProductRepository,
+    private readonly variRepo: VariableRepository,
   ) {}
   private transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
@@ -156,13 +162,13 @@ export class OrderService {
               { session },
             );
 
-            for (const serial of serials) {
-              await this.serialSer.updateById(
-                (serial as any)._id,
-                { isSold: true },
-                session,
-              );
-            }
+            // for (const serial of serials) {
+            //   await this.serialSer.updateById(
+            //     (serial as any)._id,
+            //     { isSold: true },
+            //     session,
+            //   );
+            // }
           }
         }
       });
@@ -243,6 +249,72 @@ export class OrderService {
     return count;
   }
 
+  async updateStockQuantity(
+    productId: string,
+    typeProduct: number,
+    variableId?: string,
+    serialCodes?: string[],
+    quantity?: number,
+  ) {
+    if (!Types.ObjectId.isValid(productId)) {
+      throw new BadRequestException('productId không hợp lệ');
+    }
+
+    switch (typeProduct) {
+      case ProductType.NO_VARIABLE_NO_SERIAL: {
+        if (!quantity) {
+          throw new BadRequestException('quantity bắt buộc');
+        }
+        await this.productRepo.decreaseStock(productId, quantity);
+        break;
+      }
+
+      case ProductType.NORMAL_VARIABLES: {
+        if (!variableId || !quantity) {
+          throw new BadRequestException('quantity và variableId bắt buộc');
+        }
+        if (!Types.ObjectId.isValid(variableId)) {
+          throw new BadRequestException('variableId không hợp lệ');
+        }
+        await this.variRepo.decreaseStock(variableId, quantity);
+        break;
+      }
+
+      case ProductType.NORMAL_SERIALS: {
+        if (!serialCodes?.length) {
+          throw new BadRequestException('serialCodes bắt buộc');
+        }
+        const quantity = serialCodes.length;
+        await this.serialRepo.markAsSold(productId, serialCodes);
+        await this.productRepo.decreaseStock(productId, quantity);
+        break;
+      }
+
+      case ProductType.NORMAL_VARIABLES_SERIALS: {
+        if (!serialCodes?.length || !variableId) {
+          throw new BadRequestException('serialCodes và variableId bắt buộc');
+        }
+        if (!Types.ObjectId.isValid(variableId)) {
+          throw new BadRequestException('variableId không hợp lệ');
+        }
+        const quantity = serialCodes.length;
+        await this.serialRepo.markVariableAsSold(
+          productId,
+          serialCodes,
+          variableId,
+        );
+        await this.productRepo.decreaseStock(productId, quantity);
+        await this.variRepo.decreaseStock(variableId, quantity);
+        break;
+      }
+
+      default:
+        throw new BadRequestException(
+          `${ResponseMessage.TYPE_NOT_FOUND} ${typeProduct}`,
+        );
+    }
+  }
+
   async updateStatus(id: string, dto: UpdateOrderStatusDto, userId: string) {
     const updatePayload: any = {
       status: dto.status,
@@ -252,7 +324,23 @@ export class OrderService {
       throw new NotFoundException('Không tìm thấy đơn hàng');
     }
     if (dto.status === OrderNormalStatus.CONFIRMED && userId) {
+      if (!dto.products?.length) {
+        throw new BadRequestException(
+          'products là bắt buộc khi xác nhận đơn hàng',
+        );
+      }
       updatePayload.employeeId = userId;
+      await Promise.all(
+        dto.products.map((p) =>
+          this.updateStockQuantity(
+            p.productId,
+            p.typeProduct,
+            p.variableId,
+            p.serialCodes,
+            p.quantity,
+          ),
+        ),
+      );
       await this.transporter.sendMail({
         from: '"Bluetooth Mobile" <khangnvmse171448@fpt.edu.vn>', // Tên hiển thị + email
         to: (findOrder.userId as any).email,
