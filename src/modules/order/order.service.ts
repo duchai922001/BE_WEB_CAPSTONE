@@ -510,7 +510,7 @@ export class OrderService {
       }
       await Promise.all(
         dto.products.map((p) =>
-          this.updateStockQuantity(
+          this.restoreStockQuantity(
             p.productId,
             p.typeProduct,
             p.variableId,
