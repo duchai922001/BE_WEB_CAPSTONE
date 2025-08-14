@@ -2,11 +2,10 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { UserRepository } from './user.repository';
 import { CreateUserDto } from './dtos/create.dto';
-import { User, UserDocument } from './user.entity';
+import { UserDocument } from './user.entity';
 import * as bcrypt from 'bcrypt';
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { UpdateUserDto } from './dtos/update.dto';
@@ -14,6 +13,8 @@ import { isValidObjectId, Types } from 'mongoose';
 import { AddressService } from '../address/address.service';
 import { changeProfilePassword } from './dtos/change-profile-password';
 import { RoleService } from '../roles/role.service';
+import { RepairRequestRepository } from '../repairRequest/repairRequest.repository';
+import { RepairInvoiceItemRepository } from '../repair-invoice-item/repair-invoice-item.repository';
 
 @Injectable()
 export class UserService {
@@ -21,6 +22,8 @@ export class UserService {
     private readonly userRepository: UserRepository,
     private readonly addressService: AddressService,
     private readonly roleService: RoleService,
+    private readonly repairRequestRepo: RepairRequestRepository,
+    private readonly repairInvoiceItemRepo: RepairInvoiceItemRepository,
   ) {}
 
   async create(data: CreateUserDto): Promise<UserDocument> {
@@ -220,6 +223,84 @@ export class UserService {
   }
 
   async getTechnicians() {
-    return this.userRepository.findTechnicians();
+    const technicals = await this.userRepository.findTechnicians();
+    const results: any[] = [];
+
+    for (const tech of technicals) {
+      const repairs = await this.repairRequestRepo.findActiveByTechnician(
+        (tech as any)._id.toString(),
+      );
+
+      let maxCompletionTime: Date | null = null;
+      const repairsWithInvoices: any[] = [];
+
+      for (const repair of repairs) {
+        const invoiceItems =
+          await this.repairInvoiceItemRepo.findByRepairRequestId(
+            (repair as any)._id.toString(),
+          );
+
+        // Tính thời gian hoàn thành cho từng repair
+        let repairCompletionTime: Date | null = null;
+
+        for (const item of invoiceItems) {
+          // estimatedTime: "2h", "3d", "45m"
+          let estimatedHours = 0;
+
+          if (
+            item.repairServiceId &&
+            (item.repairServiceId as any).estimatedTime
+          ) {
+            const match = (item.repairServiceId as any).estimatedTime.match(
+              /(\d+)([dhm])/i,
+            );
+            if (match) {
+              const value = parseInt(match[1], 10);
+              const unit = match[2].toLowerCase();
+              if (unit === 'd') estimatedHours = value * 24;
+              else if (unit === 'h') estimatedHours = value;
+              else if (unit === 'm') estimatedHours = value / 60;
+            }
+          } else {
+            estimatedHours = 12;
+          }
+
+          const customerConfirmDate = new Date(
+            (repair as any).customerConfirmDate,
+          );
+          const completionTime = new Date(
+            customerConfirmDate.getTime() + estimatedHours * 3600000,
+          );
+
+          if (!repairCompletionTime || completionTime > repairCompletionTime) {
+            repairCompletionTime = completionTime;
+          }
+        }
+
+        if (
+          repairCompletionTime &&
+          (!maxCompletionTime || repairCompletionTime > maxCompletionTime)
+        ) {
+          maxCompletionTime = repairCompletionTime;
+        }
+
+        repairsWithInvoices.push({
+          ...(repair.toObject?.() ?? repair),
+          invoiceItems,
+        });
+      }
+
+      results.push({
+        infoTech: {
+          _id: tech._id,
+          phone: tech.phone,
+          fullName: tech.fullName,
+        },
+        estimatedCompletionTime: maxCompletionTime ? maxCompletionTime : null,
+        ongoingRepairCount: repairs?.length ?? 0,
+      });
+    }
+
+    return results;
   }
 }

@@ -175,7 +175,7 @@ export class RepairRequestService {
       'processingDate',
       'pickupAppointmentDate',
       'completionDate',
-      'customerConfirm',
+      'customerConfirmDate',
       'cancelledDate',
     ];
 
@@ -191,7 +191,7 @@ export class RepairRequestService {
       throw new NotFoundException('Repair request not found');
     }
 
-    if (dto.field === 'customerConfirm') {
+    if (dto.field === 'customerConfirmDate') {
       await this.updateStatus(
         dto.repairRequestId,
         RepairRequestStatus.CUSTOMER_CONFIRMED,
@@ -199,6 +199,7 @@ export class RepairRequestService {
       await this.repairRequestRepo.updateInfo(dto.repairRequestId, {
         customerDept: dto.customerDebt,
       });
+
       const notif = await this.notificationService.create({
         userId: updated?.technicianId?.toString(),
         title: 'Khách hàng đã xác nhận sửa chữa',

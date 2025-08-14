@@ -10,6 +10,8 @@ import { RolesGuard } from '../roles/guards/role.guard';
 import { AuthModule } from '../auth/auth.module';
 import { PermissionModule } from '../permissions/permission.module';
 import { AddressModule } from '../address/address.module';
+import { RepairRequestModule } from '../repairRequest/repairRequest.module';
+import { RepairInvoiceItemModule } from '../repair-invoice-item/repair-invoice-item.module';
 
 @Module({
   imports: [
@@ -17,6 +19,8 @@ import { AddressModule } from '../address/address.module';
     RoleModule,
     PermissionModule,
     AddressModule,
+    RepairRequestModule,
+    RepairInvoiceItemModule,
     forwardRef(() => AuthModule),
   ],
   providers: [UserRepository, UserService],

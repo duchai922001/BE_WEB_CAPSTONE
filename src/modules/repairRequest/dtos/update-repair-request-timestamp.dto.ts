@@ -10,7 +10,7 @@ export class UpdateRepairRequestTimestampDto {
     'pickupAppointmentDate',
     'completionDate',
     'cancelledDate',
-    'customerConfirm',
+    'customerConfirmDate',
   ])
   field: string;
 

@@ -47,6 +47,9 @@ export class RepairRequest extends Document {
   @Prop() // Thời gian xử lý
   processingDate: Date;
 
+  @Prop() // Thời gian xử lý
+  customerConfirmDate: Date;
+
   @Prop() // Thời gian dự kiến giao hàng
   pickupAppointmentDate: Date;
 

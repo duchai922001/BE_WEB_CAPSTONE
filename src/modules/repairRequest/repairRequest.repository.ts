@@ -5,6 +5,7 @@ import { RepairRequest, RepairRequestDocument } from './repairRequest.entity';
 import { builderQuery } from 'src/common/helpers/query-builder.helper';
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { ResponseMessage } from 'src/common/enums/responseMessage';
+import { RepairRequestStatus } from 'src/common/enums/repairRequestStatus';
 @Injectable()
 export class RepairRequestRepository {
   constructor(
@@ -119,12 +120,38 @@ export class RepairRequestRepository {
             { customerName: { $regex: keyword, $options: 'i' } },
             { customerPhone: { $regex: keyword, $options: 'i' } },
             { repairRequestCode: { $regex: keyword, $options: 'i' } },
+            { deviceSerial: { $regex: keyword, $options: 'i' } },
           ],
         }
       : {};
 
     const requests = await this.repairRequestModel.aggregate([
       { $match: filter },
+      {
+        $lookup: {
+          from: 'users',
+          let: { techId: { $toObjectId: '$technicianId' } }, // ép string sang ObjectId
+          pipeline: [
+            { $match: { $expr: { $eq: ['$_id', '$$techId'] } } },
+            { $project: { fullName: 1, phone: 1, email: 1 } }, // chỉ lấy field cần thiết
+          ],
+          as: 'technician',
+        },
+      },
+      { $unwind: { path: '$technician', preserveNullAndEmptyArrays: true } },
+
+      {
+        $lookup: {
+          from: 'users',
+          let: { staffId: { $toObjectId: '$assignedStaffId' } },
+          pipeline: [
+            { $match: { $expr: { $eq: ['$_id', '$$staffId'] } } },
+            { $project: { fullName: 1, phone: 1, email: 1 } },
+          ],
+          as: 'assignedStaff',
+        },
+      },
+      { $unwind: { path: '$assignedStaff', preserveNullAndEmptyArrays: true } },
     ]);
 
     return requests;
@@ -152,5 +179,19 @@ export class RepairRequestRepository {
     doc.customerDept = newDept;
 
     return doc.save();
+  }
+
+  async findActiveByTechnician(
+    technicianId: string,
+  ): Promise<RepairRequestDocument[]> {
+    return this.repairRequestModel.find({
+      technicianId: technicianId,
+      status: {
+        $in: [
+          RepairRequestStatus.ASSIGNED_TECHNICAL,
+          RepairRequestStatus.CUSTOMER_CONFIRMED,
+        ],
+      },
+    });
   }
 }
