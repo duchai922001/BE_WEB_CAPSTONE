@@ -76,6 +76,9 @@ export class Order extends Document {
 
   @Prop({ type: String, required: false })
   trackingCode?: string;
+
+  @Prop({ type: Number, required: false })
+  feeShip?: number;
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);

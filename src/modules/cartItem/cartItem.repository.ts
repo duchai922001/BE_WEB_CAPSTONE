@@ -103,4 +103,10 @@ export class CartItemRepository {
 
     return result;
   }
+
+  async countItemsByCartId(cartId: string): Promise<number> {
+    return this.cartItemModel.countDocuments({
+      cartId,
+    });
+  }
 }

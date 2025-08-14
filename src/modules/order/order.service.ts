@@ -251,13 +251,20 @@ export class OrderService {
     if (!findOrder) {
       throw new NotFoundException('Không tìm thấy đơn hàng');
     }
+    const totalAmountOrder = findOrder.totalAmount + (data.feeShip ?? 0);
     if (data.shippingProvider) {
       await this.transporter.sendMail({
         from: '"Bluetooth Mobile" khangnvmse171448@fpt.edu.vn', // Tên hiển thị + email
         to: (findOrder.userId as any).email,
         subject: `Đơn hàng của bạn đã được giao`,
         text: `ĐƠN HÀNG`,
-        html: `<p>Đơn vị vận chuyển: <b>${data.shippingProvider}</b></p><p>Mã đơn hàng của bạn là: <b>${data.trackingCode ?? '-'}</b></p><p>Có gì liên hệ với bluetooth mobile. Cảm ơn bạn</p>`,
+        html: `
+        <p>Đơn vị vận chuyển: <b>${data.shippingProvider}</b></p>
+        <p>Mã đơn hàng của bạn là: <b>${data.trackingCode ?? '-'}</b></p>
+        <p>Tổng tiền đơn hàng: <b>${findOrder.totalAmount ?? '-'}</b></p>
+        <p>Phí ship: <b>${data.feeShip ?? '-'}</b></p>
+        <p>Tổng hóa đơn: <b>${totalAmountOrder ?? '-'}</b></p>
+        <p>Có gì liên hệ với bluetooth mobile. Cảm ơn bạn</p>`,
       });
     }
     return await this.orderRepository.update(id, data);

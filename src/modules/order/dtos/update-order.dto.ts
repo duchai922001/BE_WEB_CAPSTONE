@@ -65,4 +65,8 @@ export class UpdateOrderDto {
   @IsOptional()
   @IsString()
   trackingCode?: string;
+
+  @IsOptional()
+  @IsNumber()
+  feeShip?: number;
 }

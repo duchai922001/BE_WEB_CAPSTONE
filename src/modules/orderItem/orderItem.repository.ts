@@ -46,7 +46,7 @@ export class OrderItemRepository {
     })
       .populate({
         path: 'productId',
-        select: 'name brand costPrice sellPrice typeProduct',
+        select: 'name brand costPrice sellPrice typeProduct barcode',
       })
       .sort({ createdAt: -1 })
       .lean()
