@@ -33,8 +33,8 @@ export class InstalmentRequestController {
   }
 
   @Get('get-id/:id')
-  findById(@Param('id') id: string) {
-    const data = this.service.findById(id);
+  async findById(@Param('id') id: string) {
+    const data = await this.service.findById(id);
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
 
