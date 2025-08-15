@@ -33,6 +33,12 @@ export class OrderController {
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
 
+  @Get('stats')
+  async getOrderStats() {
+    const data = await this.orderService.getOrderStats();
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
+
   @Patch(':id/customer-cancel-order')
   async customerCancelOrder(@Param('id') id: string) {
     const data = await this.orderService.customerCancelOrder(id);

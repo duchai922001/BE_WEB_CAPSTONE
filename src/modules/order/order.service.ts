@@ -593,4 +593,8 @@ export class OrderService {
       }
     }
   }
+
+  async getOrderStats() {
+    return await this.orderRepository.getOrderStats();
+  }
 }

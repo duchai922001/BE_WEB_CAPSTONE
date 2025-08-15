@@ -196,4 +196,34 @@ export class OrderRepository {
 
     return order.save();
   }
+
+  async getOrderStats() {
+    const totalOrders = await this.orderModel.countDocuments();
+
+    const pendingOrders = await this.orderModel.countDocuments({
+      status: OrderNormalStatus.PENDING,
+    });
+
+    const processingOrders = await this.orderModel.countDocuments({
+      status: {
+        $in: [
+          OrderNormalStatus.CONFIRMED,
+          OrderNormalStatus.PACKING,
+          OrderNormalStatus.DELIVERED,
+          OrderNormalStatus.DEBT,
+        ],
+      },
+    });
+
+    const doneOrders = await this.orderModel.countDocuments({
+      status: OrderNormalStatus.DONE,
+    });
+
+    return {
+      totalOrders,
+      pendingOrders,
+      processingOrders,
+      doneOrders,
+    };
+  }
 }
