@@ -115,4 +115,14 @@ export class UserRepository {
       })
       .then((users) => users.filter((user) => user.roleId));
   }
+
+  async findConsultants() {
+    return this.userModel
+      .find()
+      .populate({
+        path: 'roleId',
+        match: { name: 'CONSULTANT' },
+      })
+      .then((users) => users.filter((user) => user.roleId));
+  }
 }

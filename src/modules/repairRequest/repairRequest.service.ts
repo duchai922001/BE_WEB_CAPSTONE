@@ -31,6 +31,7 @@ import { UpdateCustomerPaidDto } from './dtos/customer-paid.dto';
 import { NotificationService } from '../notification/notification.service';
 import { NotificationGateway } from '../notification/notification.gateway';
 import { NotificationType } from 'src/common/enums/notification-type';
+import { UserService } from '../users/user.service';
 @Injectable()
 export class RepairRequestService {
   constructor(
@@ -44,6 +45,7 @@ export class RepairRequestService {
     private readonly repairServiceRepo: RepairServiceRepository,
     private readonly notificationService: NotificationService,
     private readonly notificationGateway: NotificationGateway,
+    private readonly userService: UserService,
   ) {}
 
   async create(userId: string, data: CreateRepairRequestDto) {
@@ -65,6 +67,22 @@ export class RepairRequestService {
           userId: userId,
           repairRequestCode,
         });
+        const consultants = await this.userService.getConsultants();
+
+        for (const consultant of consultants) {
+          const notif = await this.notificationService.create({
+            userId: (consultant as any)._id.toString(),
+            title: 'Đơn sửa chữa vừa được tạo',
+            message: `Đơn sửa chữa có mã đơn ${repairRequestCode} vừa được tạo`,
+            type: NotificationType.ORDER,
+            targetUrl: `/permission/manage-repair-request?repairRequestCode=${repairRequestCode}`,
+          });
+
+          this.notificationGateway.sendNotification(
+            (consultant as any)._id.toString(),
+            notif,
+          );
+        }
         break;
       } catch (error) {
         if (error.code === 11000 && error.keyPattern?.repairRequestCode) {
@@ -386,5 +404,9 @@ export class RepairRequestService {
       dto.repairRequestId,
       dto.amount,
     );
+  }
+
+  async getTechnicianStats(technicianId: string) {
+    return await this.repairRequestRepo.getTechnicianStats(technicianId);
   }
 }

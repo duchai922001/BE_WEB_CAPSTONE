@@ -12,6 +12,7 @@ import { SerialModule } from '../serials/serial.module';
 import { CartItemModule } from '../cartItem/cartItem.module';
 import { ProductModule } from '../product/product.module';
 import { VariableModule } from '../variables/variable.module';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { VariableModule } from '../variables/variable.module';
     CartItemModule,
     ProductModule,
     VariableModule,
+    NotificationModule,
   ],
   providers: [OrderService, OrderRepository],
   controllers: [OrderController],

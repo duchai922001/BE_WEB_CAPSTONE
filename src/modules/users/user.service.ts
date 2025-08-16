@@ -222,6 +222,10 @@ export class UserService {
     ]);
   }
 
+  async getConsultants() {
+    return await this.userRepository.findConsultants();
+  }
+
   async getTechnicians() {
     const technicals = await this.userRepository.findTechnicians();
     const results: any[] = [];

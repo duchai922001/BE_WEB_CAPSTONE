@@ -34,6 +34,13 @@ export class RepairRequestController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('technician-stats')
+  async getTechnicianStats(@Request() req) {
+    const data = await this.service.getTechnicianStats(req.user.userId);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('user')
   async getByUserId(@Request() req) {
     const data = await this.service.getByUserId(req.user.userId);

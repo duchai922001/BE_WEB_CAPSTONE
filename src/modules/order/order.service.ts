@@ -29,6 +29,9 @@ import * as nodemailer from 'nodemailer';
 import { ProductRepository } from '../product/product.repository';
 import { VariableRepository } from '../variables/variable.repository';
 import { SerialRepository } from '../serials/serial.repository';
+import { NotificationService } from '../notification/notification.service';
+import { NotificationGateway } from '../notification/notification.gateway';
+import { NotificationType } from 'src/common/enums/notification-type';
 @Injectable()
 export class OrderService {
   constructor(
@@ -42,6 +45,8 @@ export class OrderService {
     private readonly cartItemRepository: CartItemRepository,
     private readonly productRepo: ProductRepository,
     private readonly variRepo: VariableRepository,
+    private readonly notificationService: NotificationService,
+    private readonly notificationGateway: NotificationGateway,
   ) {}
   private transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
@@ -72,7 +77,6 @@ export class OrderService {
         } else if (isOfflinePayment) {
           customerDept = data.totalAmount;
         }
-        // 2. Tạo mã đơn hàng retry như cũ (trong transaction)
         const MAX_RETRIES = 5;
         let retry = 0;
         let orderCode: string;
@@ -92,6 +96,7 @@ export class OrderService {
               },
               { session },
             );
+
             break;
           } catch (error) {
             if (error.code === 11000 && error.keyPattern?.orderCode) {
@@ -175,6 +180,23 @@ export class OrderService {
       if (data.cartItemIds.length) {
         await this.cartItemRepository.deleteManyByIds(data.cartItemIds || []);
       }
+      const consultants = await this.userService.getConsultants();
+
+      for (const consultant of consultants) {
+        const notif = await this.notificationService.create({
+          userId: (consultant as any)._id.toString(),
+          title: 'Đơn hàng vừa được tạo',
+          message: `Đơn hàng có mã đơn ${order.orderCode} vừa được tạo`,
+          type: NotificationType.ORDER,
+          targetUrl: `/permission/manage-orders?orderCode=${order.orderCode}`,
+        });
+
+        this.notificationGateway.sendNotification(
+          (consultant as any)._id.toString(),
+          notif,
+        );
+      }
+
       return order;
     } catch (error) {
       throw error;

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { RepairRequest, RepairRequestSchema } from './repairRequest.entity';
 import { RepairRequestController } from './repairRequest.controller';
@@ -10,6 +10,7 @@ import { RepairWarrantyPolicyModule } from '../repair-warranty-policy/repair-war
 import { RepairInvoiceItemModule } from '../repair-invoice-item/repair-invoice-item.module';
 import { RepairServiceModule } from '../repairService/repairService.module';
 import { NotificationModule } from '../notification/notification.module';
+import { UserModule } from '../users/user.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { NotificationModule } from '../notification/notification.module';
     RepairInvoiceItemModule,
     RepairServiceModule,
     NotificationModule,
+    forwardRef(() => UserModule),
   ],
   controllers: [RepairRequestController],
   providers: [RepairRequestService, RepairRequestRepository],

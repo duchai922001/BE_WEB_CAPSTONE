@@ -194,4 +194,46 @@ export class RepairRequestRepository {
       },
     });
   }
+
+  async getTechnicianStats(technicianId: string) {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+    );
+
+    const filter = {
+      technicianId: technicianId,
+      createdAt: { $gte: startOfMonth, $lte: endOfMonth },
+    };
+
+    const total = await this.repairRequestModel.countDocuments(filter);
+
+    const waiting = await this.repairRequestModel.countDocuments({
+      ...filter,
+      status: RepairRequestStatus.ASSIGNED_TECHNICAL,
+    });
+
+    const processing = await this.repairRequestModel.countDocuments({
+      ...filter,
+      status: RepairRequestStatus.CUSTOMER_CONFIRMED,
+    });
+
+    const completed = await this.repairRequestModel.countDocuments({
+      ...filter,
+      status: RepairRequestStatus.WAIT_CUSTOMER_RECEIVE,
+    });
+
+    return {
+      total,
+      waiting,
+      processing,
+      completed,
+    };
+  }
 }
