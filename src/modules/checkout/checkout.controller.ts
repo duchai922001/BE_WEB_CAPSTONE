@@ -40,6 +40,35 @@ export class CheckoutController {
       );
     }
   }
+
+  @Post('zalopay-customer-paid')
+  async createOrderCustomer(
+    @Body() body: { amount: number; orderId: string },
+  ): Promise<any> {
+    const { amount, orderId } = body;
+
+    if (!amount || !orderId) {
+      throw new HttpException(
+        'Thiếu thông tin thanh toán',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    try {
+      const result = await this.zaloPayService.createOrderCustomer(
+        amount,
+        orderId,
+      );
+      return result;
+    } catch (error) {
+      console.error('Lỗi tạo đơn hàng ZaloPay:', error);
+      throw new HttpException(
+        'Không thể tạo đơn hàng ZaloPay',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   @Post('zalo/callback')
   async zaloCallback(@Req() req: Request) {
     const payload = req.body?.data ? JSON.parse(req.body.data) : req.body;

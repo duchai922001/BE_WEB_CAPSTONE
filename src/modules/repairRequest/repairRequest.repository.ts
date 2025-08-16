@@ -236,4 +236,16 @@ export class RepairRequestRepository {
       completed,
     };
   }
+  async getRequestsByUser(userId: string) {
+    return this.repairRequestModel
+      .find({
+        $or: [
+          { status: 'PENDING' },
+          { technicianId: userId },
+          { assignedStaffId: userId },
+        ],
+      })
+      .sort({ updatedAt: -1 })
+      .exec();
+  }
 }

@@ -124,7 +124,7 @@ export class OrderController {
     return createResponse(HttpStatus.OK, data, ResponseMessage.UPDATE);
   }
 
-  @Get('roll-back/:orderId')
+  @Post('roll-back/:orderId')
   async rollBack(@Param('orderId') orderId: string) {
     const data = await this.orderService.rollBack(orderId);
     return createResponse(HttpStatus.OK, data, ResponseMessage.UPDATE);

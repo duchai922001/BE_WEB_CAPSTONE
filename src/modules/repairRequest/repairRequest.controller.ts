@@ -30,13 +30,20 @@ export class RepairRequestController {
   @Post()
   async create(@Body() dto: CreateRepairRequestDto, @Request() req) {
     const data = await this.service.create(req.user.userId, dto);
-    return createResponse(201, data, ResponseMessage.CREATE);
+    return createResponse(HttpStatus.CREATED, data, ResponseMessage.CREATE);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('technician-stats')
   async getTechnicianStats(@Request() req) {
     const data = await this.service.getTechnicianStats(req.user.userId);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('requests-by-user')
+  async getRequestByUser(@Request() req) {
+    const data = await this.service.getRequestsByUser(req.user.userId);
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
 

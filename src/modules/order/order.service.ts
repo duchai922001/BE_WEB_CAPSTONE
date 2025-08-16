@@ -559,21 +559,28 @@ export class OrderService {
       throw new NotFoundException('Đơn hàng không tồn tại');
     }
 
-    if (order.customerDept <= 0) {
+    if ((order.customerDept || 0) <= 0) {
       throw new BadRequestException('Đơn hàng không còn nợ');
     }
 
-    if (dto.paidAmount > order.customerDept) {
+    if (dto.paidAmount > (order.customerDept || 0)) {
       throw new BadRequestException('Số tiền trả vượt quá số tiền nợ');
     }
-    const newDept = Math.max(0, (order.customerDept || 0) - dto.paidAmount);
-    if (newDept === 0) {
+
+    // Trả nợ
+    const updatedOrder = await this.orderRepository.payDebt(
+      dto.orderId,
+      dto.paidAmount,
+    );
+
+    // Nếu hết nợ thì update status = PAID
+    if (updatedOrder.customerDept === 0) {
       await this.orderRepository.update(dto.orderId, {
         status: OrderNormalStatus.PAID,
       });
     }
 
-    return this.orderRepository.payDebt(dto.orderId, dto.paidAmount);
+    return updatedOrder;
   }
 
   async returnOrder(dto: ReturnOrderDto) {

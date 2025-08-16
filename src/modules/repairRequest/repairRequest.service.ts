@@ -409,4 +409,8 @@ export class RepairRequestService {
   async getTechnicianStats(technicianId: string) {
     return await this.repairRequestRepo.getTechnicianStats(technicianId);
   }
+
+  async getRequestsByUser(userId: string) {
+    return await this.repairRequestRepo.getRequestsByUser(userId);
+  }
 }
