@@ -13,7 +13,7 @@ export class NotificationGateway
   @WebSocketServer()
   server: Server;
 
-  private clients = new Map<string, string>(); // Map userId => socketId
+  private clients = new Map<string, string>();
 
   handleConnection(client: Socket) {
     const userId = client.handshake.query.userId as string;

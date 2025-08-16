@@ -53,8 +53,11 @@ export class NotificationService {
     return await this.notificationRepository.deleteById(id);
   }
 
-  async getNotifications(userId: string | Types.ObjectId) {
-    return await this.notificationRepository.getNotifications(userId, 20);
+  async getNotificationOrderByUser(userId: string | Types.ObjectId) {
+    return await this.notificationRepository.getNotificationOrderByUser(
+      userId,
+      20,
+    );
   }
 
   async markAsRead(notificationId: string) {

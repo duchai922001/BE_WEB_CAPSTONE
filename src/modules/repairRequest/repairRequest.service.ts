@@ -30,6 +30,7 @@ import * as dayjs from 'dayjs';
 import { UpdateCustomerPaidDto } from './dtos/customer-paid.dto';
 import { NotificationService } from '../notification/notification.service';
 import { NotificationGateway } from '../notification/notification.gateway';
+import { NotificationType } from 'src/common/enums/notification-type';
 @Injectable()
 export class RepairRequestService {
   constructor(
@@ -161,8 +162,8 @@ export class RepairRequestService {
         userId: technicianId,
         title: 'Bạn được giao làm kỹ thuật viên',
         message: `Bạn vừa được giao làm kỹ thuật viên cho đơn ${updatedRequest.repairRequestCode}`,
-        type: 'assign_technician',
-        targetUrl: `/permission/manage-orders`,
+        type: NotificationType.ORDER,
+        targetUrl: `/permission/manage-repair-request?repairRequestCode=${updatedRequest.repairRequestCode}`,
       });
       this.notificationGateway.sendNotification(technicianId, notif);
     }
@@ -203,9 +204,9 @@ export class RepairRequestService {
       const notif = await this.notificationService.create({
         userId: updated?.technicianId?.toString(),
         title: 'Khách hàng đã xác nhận sửa chữa',
-        message: `Tiến hành sữa chữa đơn hàng ${dto.repairRequestId}`,
-        type: 'assign_technician',
-        targetUrl: `/permission/manage-orders`,
+        message: `Tiến hành sữa chữa đơn hàng ${updated.repairRequestCode}`,
+        type: NotificationType.ORDER,
+        targetUrl: `/permission/manage-repair-request?repairRequestCode=${updated.repairRequestCode}`,
       });
       this.notificationGateway.sendNotification(
         updated?.technicianId?.toString(),
@@ -221,9 +222,9 @@ export class RepairRequestService {
       const notif = await this.notificationService.create({
         userId: updated?.assignedStaffId?.toString(),
         title: 'Nhân viên kỹ thuật đã hoàn thành sữa chữa',
-        message: `Kiểm tra lại đơn hàng ${dto.repairRequestId}`,
-        type: 'assign_technician',
-        targetUrl: `/permission/manage-orders`,
+        message: `Kiểm tra lại đơn hàng ${updated.repairRequestCode}`,
+        type: NotificationType.ORDER,
+        targetUrl: `/permission/manage-repair-request?repairRequestCode=${updated.repairRequestCode}`,
       });
       this.notificationGateway.sendNotification(
         updated?.assignedStaffId?.toString(),

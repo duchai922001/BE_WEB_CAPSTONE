@@ -31,7 +31,7 @@ export class NotificationController {
   @UseGuards(JwtAuthGuard)
   @Get('by-user')
   async getNotifications(@Request() req) {
-    const data = await this.notificationService.getNotifications(
+    const data = await this.notificationService.getNotificationOrderByUser(
       req.user.userId,
     );
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);

@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+import { NotificationType } from 'src/common/enums/notification-type';
 export type NotificationDocument = Notification & Document;
 
 @Schema({ timestamps: true, versionKey: false })
@@ -13,8 +14,12 @@ export class Notification extends Document {
   @Prop({ required: true })
   message: string;
 
-  @Prop({ required: true })
-  type: string;
+  @Prop({
+    type: String,
+    enum: NotificationType,
+    default: NotificationType.NOTI,
+  })
+  type: NotificationType;
 
   @Prop()
   targetUrl: string;

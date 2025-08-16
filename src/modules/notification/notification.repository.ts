@@ -4,6 +4,7 @@ import { CreateNotificationDto } from './dtos/create.dto';
 import { Notification, NotificationDocument } from './notification.entity';
 import { Model } from 'mongoose';
 import { Types } from 'mongoose';
+import { NotificationType } from 'src/common/enums/notification-type';
 
 @Injectable()
 export class NotificationRepository {
@@ -38,9 +39,12 @@ export class NotificationRepository {
       .exec();
   }
 
-  async getNotifications(userId: string | Types.ObjectId, limit = 20) {
+  async getNotificationOrderByUser(
+    userId: string | Types.ObjectId,
+    limit = 20,
+  ) {
     return this.notificationModel
-      .find({ userId })
+      .find({ userId, type: NotificationType.ORDER })
       .sort({ createdAt: -1 })
       .limit(limit)
       .exec();
