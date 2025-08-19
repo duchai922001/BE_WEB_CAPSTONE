@@ -125,7 +125,71 @@ export class RepairRequestService {
     }
     return repairRequest;
   }
+  async createRepairAdmin(userId: string, data: CreateRepairRequestDto) {
+    const { repairRequestServices, imageDeviceBefore, ...payloadOther } = data;
+    const user = await this.userService.createUserUnActive({
+      fullName: data.customerName,
+      phone: data.customerPhone,
+    });
+    const MAX_RETRIES = 5;
+    let retry = 0;
+    let repairRequestCode: string;
+    let repairRequest: any;
 
+    while (retry < MAX_RETRIES) {
+      repairRequestCode = `${Date.now()}${Math.floor(Math.random() * 1000)
+        .toString()
+        .padStart(3, '0')}`;
+
+      try {
+        repairRequest = await this.repairRequestRepo.create({
+          ...payloadOther,
+          userId: (user as any)._id,
+          repairRequestCode,
+          assignedStaffId: userId,
+        });
+        break;
+      } catch (error) {
+        if (error.code === 11000 && error.keyPattern?.repairRequestCode) {
+          retry++;
+          continue;
+        }
+        throw error;
+      }
+    }
+
+    if (!repairRequest) {
+      throw new Error(
+        'Could not create unique repairRequestCode after retries',
+      );
+    }
+
+    if (imageDeviceBefore?.length) {
+      await Promise.all(
+        imageDeviceBefore.map((url: string) =>
+          this.repairRequestImageService.create({
+            repairRequestId: repairRequest._id.toString(),
+            url,
+            note: '',
+            type: RepairImageType.BEFORE,
+          }),
+        ),
+      );
+    }
+
+    if (repairRequestServices?.length) {
+      await Promise.all(
+        repairRequestServices.map((item: RepairRequestServices) =>
+          this.repairRequestSeviceRepo.create({
+            repairRequestId: repairRequest._id,
+            repairServiceId: item.repairServiceId,
+            note: item.note,
+          }),
+        ),
+      );
+    }
+    return repairRequest;
+  }
   async getByUserId(userId: string) {
     const repairRequests = await this.repairRequestRepo.getByUserId(userId);
     return repairRequests;

@@ -26,21 +26,38 @@ export class UserService {
     private readonly repairInvoiceItemRepo: RepairInvoiceItemRepository,
   ) {}
 
-  async create(data: CreateUserDto): Promise<UserDocument> {
-    const { password, phone, email, roleId } = data;
+  async create(data: CreateUserDto) {
+    const { password, phone, email, fullName, roleId } = data;
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = password
+      ? await bcrypt.hash(password, 10)
+      : undefined;
 
+    // Tìm user đã tồn tại theo phone hoặc email
     const existingUser = await this.userRepository.findByPhoneOrEmail(
       phone,
       email,
     );
+
     if (existingUser) {
-      throw new BadRequestException('Email hoặc số điện thoại đã tồn tại');
+      if (existingUser.status === 1) {
+        // User active → báo lỗi
+        throw new BadRequestException('Email hoặc số điện thoại đã tồn tại');
+      } else {
+        // User inactive → kích hoạt lại
+        return this.userRepository.updateUserActive((existingUser as any)._id, {
+          fullName: fullName || existingUser.fullName,
+          email: email || existingUser.email,
+          phone: phone || existingUser.phone,
+          roleId: existingUser.roleId,
+          password: hashedPassword || existingUser.password,
+          status: 1,
+        });
+      }
     }
 
+    // Xác định roleId
     let finalRoleId = roleId;
-
     if (!roleId) {
       const customerRole = await this.roleService.findByName('CUSTOMER');
       if (!customerRole) {
@@ -49,13 +66,35 @@ export class UserService {
       finalRoleId = (customerRole as any)._id;
     }
 
-    const newUser = await this.userRepository.create({
-      ...data,
-      roleId: finalRoleId,
-      password: hashedPassword,
-    });
+    // Tạo user mới
+    const newUserData: Partial<UserDocument> = {
+      fullName,
+      phone,
+      status: 1,
+      roleId: new Types.ObjectId(finalRoleId),
+    };
+
+    if (email) newUserData.email = email;
+    if (hashedPassword) newUserData.password = hashedPassword;
+
+    const newUser = await this.userRepository.create(newUserData);
 
     return newUser;
+  }
+
+  async createUserUnActive(data: { phone: string; fullName: string }) {
+    const roleCustomer = await this.roleService.findByName('CUSTOMER');
+    if (!roleCustomer) {
+      throw new BadRequestException('Không tìm thấy role CUSTOMER');
+    }
+    const user = await this.userRepository.create({
+      ...data,
+      roleId: (roleCustomer as any)._id,
+      password: '',
+      email: '',
+      status: 0,
+    });
+    return user;
   }
 
   // Done chưa xét page và keyword
@@ -87,6 +126,10 @@ export class UserService {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       throw new BadRequestException('Số điện thoại hoặc mật khẩu không đúng');
+    }
+
+    if (user.status === 0) {
+      throw new BadRequestException('Tài khoản chưa được kích hoạt');
     }
 
     const populatedUser = await user.populate({
@@ -306,5 +349,9 @@ export class UserService {
     }
 
     return results;
+  }
+
+  async findByPhone(phone: string) {
+    return await this.userRepository.findByPhone(phone);
   }
 }

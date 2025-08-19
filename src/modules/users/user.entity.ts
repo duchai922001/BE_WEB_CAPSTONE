@@ -7,13 +7,13 @@ export class User extends Document {
   @Prop({ required: true, unique: true })
   phone: string;
 
-  @Prop({ required: true })
+  @Prop({ default: null })
   password: string;
 
   @Prop({ required: true })
   fullName: string;
 
-  @Prop({ required: true, unique: true })
+  @Prop({ default: null })
   email: string;
 
   @Prop({ type: Types.ObjectId, ref: 'Role', required: true })

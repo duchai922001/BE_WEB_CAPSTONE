@@ -79,6 +79,10 @@ export class UserRepository {
       .select('-password')
       .exec();
   }
+
+  async updateUserActive(id: string, data: any): Promise<UserDocument | null> {
+    return this.userModel.findByIdAndUpdate(id, data, { new: true }).exec();
+  }
   async updatePassword(
     id: string,
     hashedPassword: string,

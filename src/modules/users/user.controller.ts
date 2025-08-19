@@ -40,6 +40,11 @@ export class UserController {
     const data = await this.userService.getAll(query);
     return createResponse(HttpStatus.OK, data, 'Lấy danh sách User thành công');
   }
+  @Get('get-phone/:phone')
+  async getUserByPhone(@Param('phone') phone: string) {
+    const data = await this.userService.findByPhone(phone);
+    return createResponse(HttpStatus.OK, data, 'Lấy danh sách User thành công');
+  }
   @UseGuards(JwtAuthGuard)
   @Get('me')
   async getMe(@Req() req: Request) {

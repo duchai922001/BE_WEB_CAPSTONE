@@ -34,6 +34,13 @@ export class RepairRequestController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Post('system')
+  async createRepairAdmin(@Body() dto: CreateRepairRequestDto, @Request() req) {
+    const data = await this.service.createRepairAdmin(req.user.userId, dto);
+    return createResponse(HttpStatus.CREATED, data, ResponseMessage.CREATE);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('technician-stats')
   async getTechnicianStats(@Request() req) {
     const data = await this.service.getTechnicianStats(req.user.userId);
