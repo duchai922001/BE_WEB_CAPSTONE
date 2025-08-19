@@ -38,6 +38,7 @@ export class ZaloPayService {
       bank_code: 'zalopayapp',
       callback_url:
         'https://be-web-bluetooth-v1.onrender.com/checkout/zalo/callback',
+      // callback_url: 'http://localhost:5173/payment-customer-paid/callback',
     };
 
     const data = [
@@ -101,6 +102,7 @@ export class ZaloPayService {
       bank_code: 'zalopayapp',
       callback_url:
         'https://be-web-bluetooth-v1.onrender.com/checkout/zalo/callback',
+      // callback_url: 'http://localhost:5173/payment-customer-paid/callback',
     };
 
     const data = [
@@ -150,7 +152,7 @@ export class ZaloPayService {
       checksum,
       embed_data,
     } = payload;
-
+console.log({payload});
     let embedDataObj = {};
     try {
       embedDataObj = embed_data ? JSON.parse(embed_data) : {};
@@ -158,8 +160,8 @@ export class ZaloPayService {
       console.warn('Embed data parse error', e);
     }
 
-    const orderId = embedDataObj['orderId'];
 
-    await this.orderRepository.update(orderId, { customerPaid: amount });
+
+    // await this.orderRepository.update(orderId, { customerPaid: amount });
   }
 }

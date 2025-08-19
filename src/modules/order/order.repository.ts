@@ -166,7 +166,7 @@ export class OrderRepository {
   async payDebt(orderId: string, amount: number) {
     const order = await this.orderModel.findById(orderId);
     if (!order) throw new Error('Order not found');
-
+    console.log({order});
     if (order.customerDept <= 0) throw new Error('Không còn nợ để thanh toán');
 
     if (amount > order.customerDept) throw new Error('Số tiền vượt quá số nợ');

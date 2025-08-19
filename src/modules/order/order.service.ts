@@ -555,6 +555,7 @@ export class OrderService {
 
   async payDebt(dto: PayDebtDto) {
     const order = await this.orderRepository.findById(dto.orderId);
+        console.log("cahy làn ne ne");
     if (!order) {
       throw new NotFoundException('Đơn hàng không tồn tại');
     }
@@ -568,6 +569,8 @@ export class OrderService {
     }
 
     // Trả nợ
+    console.log({dto});
+
     const updatedOrder = await this.orderRepository.payDebt(
       dto.orderId,
       dto.paidAmount,
