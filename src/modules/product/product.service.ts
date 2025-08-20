@@ -558,4 +558,66 @@ export class ProductService {
   async getList(query: BaseQueryDto) {
     return this.productRepository.findWithPagination(query);
   }
+
+  async getRecommendedProducts(productId: string) {
+    const products = await this.productRepository.getRecommendedProducts(
+      productId,
+      10,
+    );
+    if (!products.length) return [];
+
+    const productIds = products.map((p) => p._id.toString());
+
+    // Ảnh
+    const productImages =
+      await this.productImageService.findDefaultByProductIds(productIds);
+    const imageMap: Record<string, string> = {};
+    for (const img of productImages) {
+      imageMap[img.productId.toString()] = img.url;
+    }
+
+    // Promotion
+    const { promos, defaultPromo } =
+      await this.promotionRepo.findValidByProductIds(productIds);
+    const promotionMap: Record<
+      string,
+      { discountValue: number; discountType: string; maxDiscountMoney?: number }
+    > = {};
+
+    for (const promo of promos) {
+      for (const pid of promo.products) {
+        promotionMap[pid.toString()] = {
+          discountValue: promo.discountValue,
+          discountType: promo.discountType,
+          maxDiscountMoney: promo.maxDiscountMoney ?? null,
+        };
+      }
+    }
+
+    // Map ra DTO đơn giản
+    return products.map((p) => {
+      const promo =
+        promotionMap[p._id.toString()] ||
+        (defaultPromo
+          ? {
+              discountValue: defaultPromo.discountValue,
+              discountType: defaultPromo.discountType,
+              maxDiscountMoney: defaultPromo.maxDiscountMoney ?? null,
+            }
+          : null);
+
+      return {
+        id: p._id,
+        name: p.name,
+        sellPrice: p.sellPrice,
+        salePrice: p.salePrice,
+        image: imageMap[p._id.toString()] || null,
+        isInstallment: p.isInstallment,
+        isPromotion: !!promo,
+        discountValue: promo?.discountValue ?? null,
+        discountType: promo?.discountType ?? null,
+        maxDiscountMoney: promo?.maxDiscountMoney ?? null,
+      };
+    });
+  }
 }

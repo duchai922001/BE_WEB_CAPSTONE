@@ -199,4 +199,45 @@ export class ProductRepository {
       product,
     };
   }
+
+  async getRecommendedProducts(productId: string, limit: number = 10) {
+    // Lấy thông tin sản phẩm gốc
+    const product = await this.productModel.findById(productId).lean();
+    if (!product) return [];
+
+    const priceRange = {
+      $gte: product.sellPrice * 0.5, // giá >= 50% giá gốc
+      $lte: product.sellPrice * 1.5, // giá <= 150% giá gốc
+    };
+
+    // Query sản phẩm tương tự (ưu tiên theo price range)
+    const query: any = {
+      _id: { $ne: product._id }, // loại trừ sản phẩm gốc
+      categoryId: product.categoryId,
+      sellPrice: priceRange,
+    };
+
+    if (product.brandId) {
+      query.brandId = product.brandId;
+    }
+
+    let recommended = await this.productModel.find(query).limit(limit).lean();
+
+    // Nếu số lượng chưa đủ thì lấy thêm sản phẩm trong category
+    if (recommended.length < limit) {
+      const excludeIds = [product._id, ...recommended.map((p) => p._id)];
+
+      const fillProducts = await this.productModel
+        .find({
+          _id: { $nin: excludeIds },
+          categoryId: product.categoryId,
+        })
+        .limit(limit - recommended.length)
+        .lean();
+
+      recommended = [...recommended, ...fillProducts];
+    }
+
+    return recommended;
+  }
 }

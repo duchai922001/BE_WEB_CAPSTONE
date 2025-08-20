@@ -36,6 +36,12 @@ export class ProductController {
     return createResponse(HttpStatus.OK, data, ResponseMessage.UPDATE);
   }
 
+  @Get('recommendations/:id')
+  async getRecommendedProducts(@Param('id') id: string) {
+    const data = await this.productService.getRecommendedProducts(id);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
+
   @Get('form-category')
   async getProductsFormCategory() {
     const data = await this.productService.getProductsFormCategory();
