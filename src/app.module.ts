@@ -41,6 +41,7 @@ import { RepairWarrantyPolicyModule } from './modules/repair-warranty-policy/rep
 import { ChatboxAIModule } from './modules/chatbox-ai/chatbox-ai.module';
 import { AdviseModule } from './modules/advise/advise.module';
 import { InstalmentBankModule } from './modules/instalmentBank/instalment-bank.module';
+import { InvoiceModule } from './modules/invoice/invoice.module';
 
 @Module({
   imports: [
@@ -92,6 +93,7 @@ import { InstalmentBankModule } from './modules/instalmentBank/instalment-bank.m
     ChatboxAIModule,
     AdviseModule,
     InstalmentBankModule,
+    InvoiceModule,
   ],
   controllers: [AppController],
   providers: [AppService],

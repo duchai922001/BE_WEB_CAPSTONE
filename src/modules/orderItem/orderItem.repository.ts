@@ -48,6 +48,10 @@ export class OrderItemRepository {
         path: 'productId',
         select: 'name brand costPrice sellPrice typeProduct barcode',
       })
+      .populate({
+        path: 'variableId',
+        select: 'name sellPrice', // lấy giá biến thể nếu có
+      })
       .sort({ createdAt: -1 })
       .lean()
       .exec();
@@ -68,13 +72,15 @@ export class OrderItemRepository {
       imageMap.set(img.productId.toString(), img.url);
     });
 
+    // Format items
     const formattedItems = orderItems.map((item) => {
-      const { productId, ...rest } = item;
+      const { productId, variableId, ...rest } = item;
       const imageUrl = imageMap.get(productId._id.toString()) || null;
 
       return {
         ...rest,
         product: productId,
+        variable: variableId, // lưu biến thể để dùng giá
         imageUrl,
       };
     });
