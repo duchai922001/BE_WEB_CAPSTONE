@@ -1,17 +1,35 @@
 import { Injectable } from '@nestjs/common';
-import puppeteer from 'puppeteer';
 import { generateInvoiceHTML } from './invoice-template';
 import { generateInvoiceRepairHTML } from './invoice-repair-template';
 
 @Injectable()
 export class InvoiceService {
+  private async launchBrowser() {
+    if (process.env.NODE_ENV === 'production') {
+      // production: puppeteer-core + chrome-aws-lambda
+      const puppeteer = await import('puppeteer-core');
+      const { default: chromium } = await import('chrome-aws-lambda');
+
+      return puppeteer.launch({
+        executablePath:
+          (await chromium.executablePath) || '/usr/bin/google-chrome',
+        headless: true,
+        args: chromium.args,
+      });
+    } else {
+      // local dev: puppeteer
+      const puppeteer = await import('puppeteer');
+      return puppeteer.launch({ headless: true });
+    }
+  }
+
   async generatePdf(
     order: any,
     cashierName: string = 'Thu ngân',
     promoMap: Record<string, any> = {},
     defaultPromo: any = null,
   ): Promise<Buffer> {
-    const browser = await puppeteer.launch({ args: ['--no-sandbox'] });
+    const browser = await this.launchBrowser();
     const page = await browser.newPage();
 
     const htmlContent = generateInvoiceHTML(
@@ -27,12 +45,13 @@ export class InvoiceService {
 
     return Buffer.from(pdfData);
   }
+
   async generateRepairInvoice(
     repairRequest: any,
     invoiceItems: any[],
     cashierName: string = 'Thu ngân',
   ): Promise<Buffer> {
-    const browser = await puppeteer.launch({ args: ['--no-sandbox'] });
+    const browser = await this.launchBrowser();
     const page = await browser.newPage();
 
     const htmlContent = generateInvoiceRepairHTML(
