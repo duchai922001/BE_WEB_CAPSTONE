@@ -26,6 +26,9 @@ export class Promotion {
   @Prop({ required: true, enum: PromotionDiscountType })
   discountType: string;
 
+  @Prop({ required: true, type: Number })
+  maxDiscountMoney: number;
+
   @Prop({ required: true, index: true })
   startDate: Date;
 

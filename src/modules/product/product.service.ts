@@ -22,6 +22,7 @@ import { BrandRepository } from '../brands/brand.repository';
 import { ProductDetailDto } from './dtos/product-detail.dto';
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { SpecificationsService } from '../specifications/specifications.service';
+import { PromotionRepository } from '../promotion/promotion.repository';
 
 @Injectable()
 export class ProductService {
@@ -33,6 +34,7 @@ export class ProductService {
     private readonly categoryRepo: CategoryRepository,
     private readonly brandRepo: BrandRepository,
     private readonly speciSer: SpecificationsService,
+    private readonly promotionRepo: PromotionRepository,
   ) {}
   private async handleImages(
     productId: string,
@@ -333,6 +335,7 @@ export class ProductService {
 
     const categoryIds = Object.keys(grouped);
     const categories = await this.categoryRepo.findManyByIds(categoryIds);
+
     const productImages =
       await this.productImageService.findDefaultByProductIds(productIds);
 
@@ -341,21 +344,55 @@ export class ProductService {
       imageMap[image.productId.toString()] = image.url;
     }
 
+    const { promos, defaultPromo } =
+      await this.promotionRepo.findValidByProductIds(productIds);
+
+    const promotionMap: Record<
+      string,
+      { discountValue: number; discountType: string; maxDiscountMoney?: number }
+    > = {};
+
+    for (const promo of promos) {
+      for (const pid of promo.products) {
+        promotionMap[pid.toString()] = {
+          discountValue: promo.discountValue,
+          discountType: promo.discountType,
+          maxDiscountMoney: promo.maxDiscountMoney ?? null,
+        };
+      }
+    }
+
     const result: ProductByCategoryDto[] = [];
 
     for (const category of categories) {
       const categoryId = (category._id as Types.ObjectId).toString();
       const rawProducts = grouped[categoryId] || [];
 
-      const simplifiedProducts: SimpleProductDto[] = rawProducts.map((p) => ({
-        id: p._id,
-        name: p.name,
-        sellPrice: p.sellPrice,
-        image: imageMap[p._id.toString()] || null,
-        isInstallment: p.isInstallment,
-        isPromotion: p.isPromotion,
-        salePrice: p.salePrice,
-      }));
+      const simplifiedProducts: SimpleProductDto[] = rawProducts.map((p) => {
+        // Ưu tiên ACTIVE → fallback sang DEFAULT
+        const promo =
+          promotionMap[p._id.toString()] ||
+          (defaultPromo
+            ? {
+                discountValue: defaultPromo.discountValue,
+                discountType: defaultPromo.discountType,
+                maxDiscountMoney: defaultPromo.maxDiscountMoney ?? null,
+              }
+            : null);
+
+        return {
+          id: p._id,
+          name: p.name,
+          sellPrice: p.sellPrice,
+          image: imageMap[p._id.toString()] || null,
+          isInstallment: p.isInstallment,
+          isPromotion: !!promo,
+          salePrice: p.salePrice,
+          discountValue: promo?.discountValue ?? null,
+          discountType: promo?.discountType ?? null,
+          maxDiscountMoney: promo?.maxDiscountMoney ?? null,
+        };
+      });
 
       const brandIds = [
         ...new Set(
@@ -380,14 +417,16 @@ export class ProductService {
     const product = await this.productRepository.findById(productId);
     if (!product) throw new NotFoundException(ResponseMessage.FILE_NOT_FOUND);
 
-    const [category, brand] = await Promise.all([
-      this.categoryRepo.findById(String(product.categoryId)),
-      this.brandRepo.findById(String(product.brandId)),
-    ]);
+    const [category, brand, images, variables, serialCodes, promotion] =
+      await Promise.all([
+        this.categoryRepo.findById(String(product.categoryId)),
+        this.brandRepo.findById(String(product.brandId)),
+        this.productImageService.findByProductId(productId),
+        this.variableService.findByProductId(productId),
+        this.serialService.findByProductId(productId),
+        this.promotionRepo.findValidByProductId(productId), // thêm gọi promotion
+      ]);
 
-    const images = await this.productImageService.findByProductId(productId);
-    const variables = await this.variableService.findByProductId(productId);
-    const serialCodes = await this.serialService.findByProductId(productId);
     return plainToInstance(ProductDetailDto, {
       id: (product as any)._id.toString(),
       name: product.name,
@@ -403,6 +442,9 @@ export class ProductService {
       costPrice: product.costPrice,
       stock: product.stock,
       serialCodes,
+      discountValue: promotion?.discountValue || 0,
+      discountType: promotion?.discountType || null,
+      maxDiscountMoney: promotion?.maxDiscountMoney || 0,
     });
   }
 

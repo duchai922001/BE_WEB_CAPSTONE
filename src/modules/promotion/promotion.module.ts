@@ -17,6 +17,6 @@ import { ProductModule } from '../product/product.module';
   ],
   controllers: [PromotionController],
   providers: [PromotionService, PromotionRepository],
-  exports: [PromotionService],
+  exports: [PromotionService, PromotionRepository],
 })
 export class PromotionModule {}

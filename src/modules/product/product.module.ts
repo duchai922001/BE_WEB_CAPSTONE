@@ -11,6 +11,7 @@ import { CategoryModule } from '../categories/category.module';
 import { BrandModule } from '../brands/brand.module';
 import { Brand, BrandSchema } from '../brands/brand.entity';
 import { SpecificationsModule } from '../specifications/specifications.module';
+import { PromotionModule } from '../promotion/promotion.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { SpecificationsModule } from '../specifications/specifications.module';
     CategoryModule,
     SpecificationsModule,
     forwardRef(() => BrandModule),
+    forwardRef(() => PromotionModule),
   ],
   providers: [ProductRepository, ProductService],
   controllers: [ProductController],
