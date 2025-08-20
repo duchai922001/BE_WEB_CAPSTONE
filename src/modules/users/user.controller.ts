@@ -10,6 +10,8 @@ import {
   Put,
   Query,
   Req,
+  Request,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
@@ -17,23 +19,38 @@ import { CreateUserDto } from './dtos/create.dto';
 import { createResponse } from 'src/common/helpers/response.helper';
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { UpdateUserDto } from './dtos/update.dto';
-import { RoleSystem } from 'src/common/enums/role';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../roles/guards/role.guard';
-import { Roles } from '../roles/role.decorator';
 import { PermissionsGuard } from '../permissions/guards/permission.guard';
-import { Permissions } from '../permissions/permission.decorator';
-import { PermissionSystem } from 'src/common/enums/permission';
 import { ResponseMessage } from 'src/common/enums/responseMessage';
 import { changeProfilePassword } from './dtos/change-profile-password';
+import { AuthGuard } from '@nestjs/passport';
+import { Response } from 'express';
+import { JwtService } from '@nestjs/jwt';
 
 @Controller('users')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly jwtService: JwtService,
+  ) {}
   @Post('register')
   async create(@Body() dto: CreateUserDto) {
     const data = await this.userService.create(dto);
     return createResponse(HttpStatus.CREATED, data, 'Tạo user thành công');
+  }
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  async googleAuth() {
+    // redirect tới Google
+  }
+
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  async googleAuthRedirect(@Request() req, @Res() res: Response) {
+    const user = req.user;
+    const token = this.jwtService.sign({ sub: user._id, email: user.email });
+
+    res.redirect(`https://fe-web-capstone.vercel.app?token=${token}`);
   }
   @Get('')
   async getAll(@Query() query: BaseQueryDto) {

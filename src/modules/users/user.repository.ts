@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { User, UserDocument } from './user.entity';
-import { FilterQuery, Model } from 'mongoose';
+import { FilterQuery, Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { builderQuery } from 'src/common/helpers/query-builder.helper';
@@ -128,5 +128,31 @@ export class UserRepository {
         match: { name: 'CONSULTANT' },
       })
       .then((users) => users.filter((user) => user.roleId));
+  }
+  async findUserByGoogleId(googleId: string): Promise<User | null> {
+    return this.userModel
+      .findOne({ googleId })
+      .populate({
+        path: 'roleId',
+        populate: { path: 'permissionId' },
+      })
+      .exec();
+  }
+
+  async createGoogleUser(data: {
+    googleId: string;
+    email: string;
+    fullName: string;
+    avatar?: string;
+    roleId: string;
+  }): Promise<User> {
+    return this.userModel.create({
+      googleId: data.googleId,
+      email: data.email,
+      fullName: data.fullName,
+      avatar: data.avatar || null,
+      roleId: new Types.ObjectId(data.roleId),
+      status: 1,
+    });
   }
 }

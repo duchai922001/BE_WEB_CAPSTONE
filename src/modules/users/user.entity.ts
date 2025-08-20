@@ -4,7 +4,7 @@ import { Document, Types } from 'mongoose';
 export type UserDocument = User & Document;
 @Schema({ timestamps: true, versionKey: false })
 export class User extends Document {
-  @Prop({ required: true, unique: true })
+  @Prop({ sparse: true, unique: true })
   phone: string;
 
   @Prop({ default: null })
@@ -24,6 +24,9 @@ export class User extends Document {
 
   @Prop({ default: 1 })
   status: number;
+
+  @Prop({ default: null, unique: true, sparse: true })
+  googleId: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
