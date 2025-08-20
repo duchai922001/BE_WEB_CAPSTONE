@@ -4,6 +4,8 @@ import { InvoiceService } from './invoice.service';
 import { OrderService } from '../order/order.service';
 import { OrderItemRepository } from '../orderItem/orderItem.repository';
 import { PromotionRepository } from '../promotion/promotion.repository';
+import { RepairRequestRepository } from '../repairRequest/repairRequest.repository';
+import { RepairInvoiceItemRepository } from '../repair-invoice-item/repair-invoice-item.repository';
 
 @Controller('invoice')
 export class InvoiceController {
@@ -12,9 +14,11 @@ export class InvoiceController {
     private readonly orderService: OrderService,
     private readonly orderItemRepo: OrderItemRepository,
     private readonly promotionRepo: PromotionRepository,
+    private readonly repaireRequestRepo: RepairRequestRepository,
+    private readonly repairInoivceItemRepo: RepairInvoiceItemRepository,
   ) {}
 
-  @Get(':orderId')
+  @Get('order/:orderId')
   async getInvoice(@Param('orderId') orderId: string, @Res() res: Response) {
     const order = await this.orderService.findById(orderId);
 
@@ -40,5 +44,34 @@ export class InvoiceController {
       defaultPromo,
     );
     res.send(pdfBuffer);
+  }
+
+  @Get('repair/:repairRequestId')
+  async getInvoiceRepair(
+    @Param('repairRequestId') repairRequestId: string,
+    @Res() res: Response,
+  ) {
+    const repairRequest =
+      await this.repaireRequestRepo.findById(repairRequestId);
+    if (!repairRequest) {
+      return res.status(404).send('Repair request not found');
+    }
+
+    const repairInvoiceItems =
+      await this.repairInoivceItemRepo.findByRepairRequestId(repairRequestId);
+
+    const pdfBuffer = await this.invoiceService.generateRepairInvoice(
+      repairRequest,
+      repairInvoiceItems,
+      'Nguyễn Văn A', // tên thu ngân
+    );
+
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `inline; filename="repair-invoice-${repairRequestId}.pdf"`,
+      'Content-Length': pdfBuffer.length,
+    });
+
+    return res.send(pdfBuffer);
   }
 }
