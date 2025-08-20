@@ -50,7 +50,7 @@ export class UserController {
     const user = req.user;
     const token = this.jwtService.sign({ sub: user._id, email: user.email });
 
-    res.redirect(`https://fe-web-capstone.vercel.app?token=${token}`);
+    res.redirect(`https://www.bluetoothmobile.vn?token=${token}`);
   }
   @Get('')
   async getAll(@Query() query: BaseQueryDto) {

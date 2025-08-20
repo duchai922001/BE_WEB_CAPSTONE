@@ -20,7 +20,7 @@ export class ZaloPayService {
     const app_user = 'user123';
 
     const embed_data = {
-      redirecturl: `https://fe-web-capstone.vercel.app/payment-result?orderId=${orderId}`,
+      redirecturl: `https://www.bluetoothmobile.vn/payment-result?orderId=${orderId}`,
       // redirecturl: `http://localhost:5173/payment-result?orderId=${orderId}`,
       orderId: orderId,
     };
@@ -84,7 +84,7 @@ export class ZaloPayService {
     const app_user = 'user123';
 
     const embed_data = {
-      redirecturl: `https://fe-web-capstone.vercel.app/payment-customer-paid?orderId=${orderId}`,
+      redirecturl: `https://www.bluetoothmobile.vn/payment-customer-paid?orderId=${orderId}`,
       // redirecturl: `http://localhost:5173/payment-customer-paid?orderId=${orderId}`,
       orderId: orderId,
     };
@@ -152,15 +152,13 @@ export class ZaloPayService {
       checksum,
       embed_data,
     } = payload;
-console.log({payload});
+    console.log({ payload });
     let embedDataObj = {};
     try {
       embedDataObj = embed_data ? JSON.parse(embed_data) : {};
     } catch (e) {
       console.warn('Embed data parse error', e);
     }
-
-
 
     // await this.orderRepository.update(orderId, { customerPaid: amount });
   }
