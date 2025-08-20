@@ -6,6 +6,7 @@ import { OrderItemService } from './orderItem.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ProductImageModule } from '../productImage/productImage.module';
 import { VariableModule } from '../variables/variable.module';
+import { PromotionModule } from '../promotion/promotion.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { VariableModule } from '../variables/variable.module';
     ]),
     ProductImageModule,
     VariableModule,
+    PromotionModule,
   ],
   providers: [OrderItemService, OrderItemRepository],
   controllers: [OrderItemController],

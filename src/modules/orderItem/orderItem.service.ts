@@ -3,12 +3,14 @@ import { OrderItemRepository } from './orderItem.repository';
 import { CreateOrderItemDto } from './dtos/create-orderItem.dto';
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { VariableRepository } from '../variables/variable.repository';
+import { PromotionRepository } from '../promotion/promotion.repository';
 
 @Injectable()
 export class OrderItemService {
   constructor(
     private readonly orderItemRepository: OrderItemRepository,
     private readonly variableRepository: VariableRepository,
+    private readonly promotionRepository: PromotionRepository,
   ) {}
 
   async create(dto: CreateOrderItemDto) {
@@ -36,6 +38,11 @@ export class OrderItemService {
       throw new NotFoundException('Không tìm thấy OrderItem cho đơn hàng này');
     }
 
+    // lấy list productIds để query promotion
+    const productIds = orderItems.map((item) => item.product._id.toString());
+    const { promos, defaultPromo } =
+      await this.promotionRepository.findValidByProductIds(productIds);
+
     const result = await Promise.all(
       orderItems.map(async (item) => {
         let sellPrice = 0;
@@ -57,10 +64,19 @@ export class OrderItemService {
           }
         }
 
+        // tìm promotion áp dụng cho sản phẩm này
+        const productPromos = promos.filter((p) =>
+          p.products?.some(
+            (pid) => pid.toString() === item.product._id.toString(),
+          ),
+        );
+
         return {
-          ...item,
+          ...(item.toObject?.() ?? item),
           sellPrice,
           costPrice,
+          promos: productPromos, // promotion riêng của sản phẩm
+          defaultPromo, // promotion toàn shop
         };
       }),
     );
