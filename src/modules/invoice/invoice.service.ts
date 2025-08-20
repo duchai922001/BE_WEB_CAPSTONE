@@ -2,19 +2,22 @@ import { Injectable } from '@nestjs/common';
 import { generateInvoiceHTML } from './invoice-template';
 import { generateInvoiceRepairHTML } from './invoice-repair-template';
 
-// import trực tiếp để TS hiểu type cơ bản
-import chromium from '@sparticuz/chromium';
+// import kiểu require để tránh undefined trong CJS build
+
+const chromium = require('@sparticuz/chromium');
 import puppeteer from 'puppeteer-core';
 
 @Injectable()
 export class InvoiceService {
   private async launchBrowser() {
     if (process.env.NODE_ENV === 'production') {
-      // production: puppeteer-core + @sparticuz/chromium
+      const executablePath =
+        (await chromium.executablePath()) || '/usr/bin/google-chrome';
+
       return puppeteer.launch({
-        args: chromium.args,
-        executablePath: await chromium.executablePath(),
-        headless: true, // chromium.headless cũng OK nhưng TS không có type → dùng true
+        args: chromium.args || [],
+        executablePath,
+        headless: true,
       });
     } else {
       // local dev: full puppeteer
