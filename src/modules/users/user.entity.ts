@@ -4,7 +4,7 @@ import { Document, Types } from 'mongoose';
 export type UserDocument = User & Document;
 @Schema({ timestamps: true, versionKey: false })
 export class User extends Document {
-  @Prop({ sparse: true, unique: true })
+  @Prop({ sparse: true })
   phone: string;
 
   @Prop({ default: null })
