@@ -10,6 +10,7 @@ import { CartItemModule } from '../cartItem/cartItem.module';
 import { ProductModule } from '../product/product.module';
 import { ProductImageModule } from '../productImage/productImage.module';
 import { Attribute, AttributeSchema } from '../attributes/attribute.entity';
+import { PromotionModule } from '../promotion/promotion.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { Attribute, AttributeSchema } from '../attributes/attribute.entity';
     CartItemModule,
     ProductModule,
     ProductImageModule,
+    PromotionModule,
   ],
   providers: [CartRepository, CartService],
   controllers: [CartController],

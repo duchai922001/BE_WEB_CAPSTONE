@@ -7,6 +7,7 @@ import { InstalmentItemRepository } from '../instalmentItem/instalmentItem.repos
 import { ResponseMessage } from 'src/common/enums/responseMessage';
 import { CartItemRepository } from '../cartItem/cartItem.repository';
 import { ProductImageRepository } from '../productImage/productImage.repository';
+import { PromotionRepository } from '../promotion/promotion.repository';
 
 @Injectable()
 export class CartService {
@@ -17,6 +18,7 @@ export class CartService {
     private readonly instalmentCartRepo: InstalmentCartRepository,
     private readonly instalmentItemRepo: InstalmentItemRepository,
     private readonly productImageRepo: ProductImageRepository,
+    private readonly promoRepo: PromotionRepository,
   ) {}
 
   async create(dto: CreateCartDto) {
@@ -79,12 +81,22 @@ export class CartService {
       items.map(async (item) => {
         const productId = item.productId._id.toString();
 
+        // Ảnh mặc định
         const defaultImage =
           await this.productImageRepo.findDefaultImageByProductId(productId);
+
+        // Promotion hợp lệ cho product
+        const promo = await this.promoRepo.findValidByProductId(productId);
 
         return {
           ...item.toObject(),
           image: defaultImage?.url || null,
+          promotion: promo
+            ? {
+                discountValue: promo.discountValue ?? 0,
+                maxDiscountMoney: promo.maxDiscountMoney ?? Infinity,
+              }
+            : null,
         };
       }),
     );
