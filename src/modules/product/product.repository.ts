@@ -112,7 +112,7 @@ export class ProductRepository {
   }
 
   async findWithPagination(query: BaseQueryDto) {
-    const { page = '1', limit = '10', keyword } = query;
+    const { page = '1', limit = '50', keyword } = query;
 
     const filter: any = {};
 
