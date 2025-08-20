@@ -321,6 +321,7 @@ export class ProductService {
         _id: Types.ObjectId;
         categoryId: Types.ObjectId | string;
         brandId: Types.ObjectId | string;
+        stock: number;
       };
 
       const categoryId = p.categoryId.toString();
@@ -369,7 +370,6 @@ export class ProductService {
       const rawProducts = grouped[categoryId] || [];
 
       const simplifiedProducts: SimpleProductDto[] = rawProducts.map((p) => {
-        // Ưu tiên ACTIVE → fallback sang DEFAULT
         const promo =
           promotionMap[p._id.toString()] ||
           (defaultPromo
@@ -391,6 +391,7 @@ export class ProductService {
           discountValue: promo?.discountValue ?? null,
           discountType: promo?.discountType ?? null,
           maxDiscountMoney: promo?.maxDiscountMoney ?? null,
+          isInStock: p.stock > 0, // ✅ thêm flag để UI xử lý
         };
       });
 
@@ -445,6 +446,7 @@ export class ProductService {
       discountValue: promotion?.discountValue || 0,
       discountType: promotion?.discountType || null,
       maxDiscountMoney: promotion?.maxDiscountMoney || 0,
+      isInStock: product.stock > 0,
     });
   }
 

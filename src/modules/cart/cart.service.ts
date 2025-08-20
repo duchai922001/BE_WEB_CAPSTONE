@@ -88,6 +88,9 @@ export class CartService {
         // Promotion hợp lệ cho product
         const promo = await this.promoRepo.findValidByProductId(productId);
 
+        // Kiểm tra tồn kho
+        const isInStock = (item.productId as any)?.stock > 0;
+
         return {
           ...item.toObject(),
           image: defaultImage?.url || null,
@@ -97,6 +100,7 @@ export class CartService {
                 maxDiscountMoney: promo.maxDiscountMoney ?? Infinity,
               }
             : null,
+          isInStock, // thêm field này
         };
       }),
     );
