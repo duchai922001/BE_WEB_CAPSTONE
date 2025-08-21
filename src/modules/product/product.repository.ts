@@ -27,6 +27,10 @@ export class ProductRepository {
     return this.productModel.findOne({ name }).exec();
   }
 
+  async findProductByBarcode(barcode: string): Promise<Product | null> {
+    return this.productModel.findOne({ barcode }).exec();
+  }
+
   async findById(id: string): Promise<ProductDocument | null> {
     return this.productModel.findById(id).exec();
   }

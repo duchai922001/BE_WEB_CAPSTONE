@@ -78,8 +78,13 @@ export class ProductService {
       typeProduct,
       isInstallment,
       specifications,
+      productWarrantyPolicyId,
     } = dto;
-
+    const productExitedByBarcode =
+      await this.productRepository.findProductByBarcode(barcode);
+    if (productExitedByBarcode) {
+      throw new BadRequestException('Barcode đã tồn tại');
+    }
     const productExited = await this.productRepository.findProductByName(name);
     if (productExited) {
       throw new BadRequestException(ResponseMessage.FILE_EXITED_NAME);
@@ -97,6 +102,7 @@ export class ProductService {
           typeProduct,
           description,
           isInstallment,
+          productWarrantyPolicyId,
         });
         await this.handleImages(
           (product as any)._id.toString(),
@@ -130,6 +136,7 @@ export class ProductService {
           typeProduct,
           description,
           isInstallment,
+          productWarrantyPolicyId,
         });
         await this.handleImages(
           (product as any)._id.toString(),
@@ -175,6 +182,7 @@ export class ProductService {
           typeProduct,
           description,
           isInstallment,
+          productWarrantyPolicyId,
         });
         await this.handleImages(
           (product as any)._id.toString(),
@@ -230,6 +238,7 @@ export class ProductService {
           typeProduct,
           description,
           isInstallment,
+          productWarrantyPolicyId,
         });
         await this.handleImages(
           (product as any)._id.toString(),

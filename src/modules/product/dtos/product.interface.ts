@@ -11,4 +11,5 @@ export interface ICreate {
   barcode: string;
   typeProduct: ProductType;
   isInstallment: boolean;
+  productWarrantyPolicyId?: string;
 }

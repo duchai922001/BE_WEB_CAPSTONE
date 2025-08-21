@@ -70,6 +70,10 @@ export class CreateProductDto {
   @IsMongoId()
   brandId: string;
 
+  @IsMongoId()
+  @IsOptional()
+  productWarrantyPolicyId: string;
+
   @IsOptional()
   @IsArray()
   variables: CreateVariableDto[];

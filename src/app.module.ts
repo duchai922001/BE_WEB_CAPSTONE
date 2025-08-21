@@ -42,6 +42,7 @@ import { ChatboxAIModule } from './modules/chatbox-ai/chatbox-ai.module';
 import { AdviseModule } from './modules/advise/advise.module';
 import { InstalmentBankModule } from './modules/instalmentBank/instalment-bank.module';
 import { InvoiceModule } from './modules/invoice/invoice.module';
+import { ProductWarrantyPolicyModule } from './modules/product-warranty-policy/product-warranty-policy.module';
 
 @Module({
   imports: [
@@ -94,6 +95,7 @@ import { InvoiceModule } from './modules/invoice/invoice.module';
     AdviseModule,
     InstalmentBankModule,
     InvoiceModule,
+    ProductWarrantyPolicyModule,
   ],
   controllers: [AppController],
   providers: [AppService],

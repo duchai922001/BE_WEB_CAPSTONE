@@ -13,10 +13,21 @@ import { CartItemModule } from '../cartItem/cartItem.module';
 import { ProductModule } from '../product/product.module';
 import { VariableModule } from '../variables/variable.module';
 import { NotificationModule } from '../notification/notification.module';
+import { OrderItem, OrderItemSchema } from '../orderItem/orderItem.entity';
+import { Product, ProductSchema } from '../product/product.entity';
+import {
+  ProductWarrantyPolicy,
+  ProductWarrantyPolicySchema,
+} from '../product-warranty-policy/product-warranty-policy.entity';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: Order.name, schema: OrderSchema }]),
+    MongooseModule.forFeature([
+      { name: Order.name, schema: OrderSchema },
+      { name: OrderItem.name, schema: OrderItemSchema },
+      { name: Product.name, schema: ProductSchema },
+      { name: ProductWarrantyPolicy.name, schema: ProductWarrantyPolicySchema },
+    ]),
     PaymentModule,
     OrderItemModule,
     UserModule,

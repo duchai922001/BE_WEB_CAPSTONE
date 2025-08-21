@@ -6,12 +6,24 @@ import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { builderQuery } from 'src/common/helpers/query-builder.helper';
 import { ResponseMessage } from 'src/common/enums/responseMessage';
 import { OrderNormalStatus } from 'src/common/enums/orderStatus';
-
+import { OrderItem, OrderItemDocument } from '../orderItem/orderItem.entity';
+import { Product, ProductDocument } from '../product/product.entity';
+import {
+  ProductWarrantyPolicy,
+  ProductWarrantyPolicyDocument,
+} from '../product-warranty-policy/product-warranty-policy.entity';
+import * as dayjs from 'dayjs';
 @Injectable()
 export class OrderRepository {
   constructor(
     @InjectModel(Order.name)
     private readonly orderModel: Model<OrderDocument>,
+    @InjectModel(OrderItem.name)
+    private readonly orderItemModel: Model<OrderItemDocument>,
+    @InjectModel(Product.name)
+    private readonly productModel: Model<ProductDocument>,
+    @InjectModel(ProductWarrantyPolicy.name)
+    private readonly warrantyModel: Model<ProductWarrantyPolicyDocument>,
   ) {}
 
   async create(
@@ -102,35 +114,26 @@ export class OrderRepository {
   }
 
   async findByKeyword(keyword: string) {
-    keyword = String(keyword).trim(); // đảm bảo là string
+    keyword = String(keyword).trim();
 
-    const orders = await this.orderModel.aggregate([
-      // lookup với User, convert _id thành string để so với userId trong Order
+    const orders: any[] = await this.orderModel.aggregate([
       {
         $lookup: {
           from: 'users',
-          let: { userIdStr: '$userId' }, // userId trong Order là string
+          let: { userIdStr: '$userId' },
           pipeline: [
             {
               $match: {
-                $expr: {
-                  $eq: [{ $toString: '$_id' }, '$$userIdStr'],
-                },
+                $expr: { $eq: [{ $toString: '$_id' }, '$$userIdStr'] },
               },
             },
-            {
-              $project: {
-                fullName: 1,
-                phone: 1,
-              },
-            },
+            { $project: { fullName: 1, phone: 1 } },
           ],
           as: 'customer',
         },
       },
       { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
 
-      // match theo orderCode, phone hoặc fullName
       {
         $match: {
           $or: [
@@ -141,7 +144,6 @@ export class OrderRepository {
         },
       },
 
-      // chọn field cần trả về
       {
         $project: {
           orderCode: 1,
@@ -160,13 +162,69 @@ export class OrderRepository {
       throw new NotFoundException('Không tìm thấy đơn hàng');
     }
 
+    for (const order of orders) {
+      const orderItems: any[] = await this.orderItemModel
+        .find({ orderId: order._id })
+        .lean();
+
+      for (const item of orderItems) {
+        const product: any = await this.productModel
+          .findById(item.productId)
+          .lean();
+        if (!product) continue;
+
+        let warranty: any = null;
+        if (product.productWarrantyPolicyId) {
+          const policy: any = await this.warrantyModel
+            .findById(product.productWarrantyPolicyId)
+            .lean();
+          if (policy) {
+            // Tính ngày hết hạn dựa trên duration
+            const unit = policy.duration.slice(-1); // 'm', 'd', 'h'
+            const value = parseInt(policy.duration.slice(0, -1), 10);
+            let expiry = dayjs(item.createdAt);
+
+            if (unit === 'm') expiry = expiry.add(value, 'month');
+            else if (unit === 'd') expiry = expiry.add(value, 'day');
+            else if (unit === 'h') expiry = expiry.add(value, 'hour');
+
+            const now = dayjs();
+            const isExpired = now.isAfter(expiry);
+
+            // Tính timeLeft thủ công
+            let timeLeft = '';
+            if (!isExpired) {
+              const diffMs = expiry.diff(now);
+              const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+              const diffHours = Math.floor((diffMs / (1000 * 60 * 60)) % 24);
+              const diffMinutes = Math.floor((diffMs / (1000 * 60)) % 60);
+              timeLeft = `${diffDays} ngày ${diffHours} giờ ${diffMinutes} phút`;
+            } else {
+              timeLeft = 'Đã hết hạn';
+            }
+
+            warranty = {
+              duration: policy.duration,
+              expiryDate: expiry.toDate(),
+              isExpired,
+              timeLeft,
+            };
+          }
+        }
+
+        item.product = product;
+        item.warranty = warranty;
+      }
+
+      order.orderItems = orderItems;
+    }
+
     return orders;
   }
 
   async payDebt(orderId: string, amount: number) {
     const order = await this.orderModel.findById(orderId);
     if (!order) throw new Error('Order not found');
-    console.log({order});
     if (order.customerDept <= 0) throw new Error('Không còn nợ để thanh toán');
 
     if (amount > order.customerDept) throw new Error('Số tiền vượt quá số nợ');
