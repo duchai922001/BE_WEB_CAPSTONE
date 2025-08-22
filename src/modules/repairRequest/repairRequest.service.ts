@@ -22,8 +22,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { RepairInvoiceItemRepository } from '../repair-invoice-item/repair-invoice-item.repository';
 import { RepairWarrantyPolicyRepository } from '../repair-warranty-policy/repair-warranty-policy.repository';
 import { RepairServiceRepository } from '../repairService/repairService.repository';
-import { RepairInvoiceItem } from '../repair-invoice-item/repair-invoice-item.entity';
-import { RepairWarrantyPolicy } from '../repair-warranty-policy/repair-warranty-policy.entity';
 import { formatTimeLeft, parseDuration } from 'src/common/utils/parseDuration';
 import * as nodemailer from 'nodemailer';
 import * as dayjs from 'dayjs';
@@ -475,6 +473,11 @@ export class RepairRequestService {
   }
 
   async getRequestsByUser(userId: string) {
-    return await this.repairRequestRepo.getRequestsByUser(userId);
+    const user = await this.userService.findUserById(userId)
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return await this.repairRequestRepo.getRequestsByUser(userId, (user?.roleId as any)?.name);
   }
 }

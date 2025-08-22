@@ -236,14 +236,16 @@ export class RepairRequestRepository {
       completed,
     };
   }
-  async getRequestsByUser(userId: string) {
+  async getRequestsByUser(userId: string, role: string) {
+    console.log({role});
     return this.repairRequestModel
       .find({
-        $or: [
-          { status: 'PENDING' },
-          { technicianId: userId },
-          { assignedStaffId: userId },
-        ],
+        // $or: [
+        //   role === "TECHNICIAN" ? {} :  { status: 'PENDING' }, 
+        //   { technicianId: userId },
+        //   { assignedStaffId: userId },
+        // ],
+        $or: role === 'TECHNICIAN' ? [{ technicianId: userId }] : [{ assignedStaffId: userId }, { status: 'PENDING' }],
       })
       .sort({ updatedAt: -1 })
       .exec();
