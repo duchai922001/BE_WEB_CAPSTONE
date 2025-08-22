@@ -51,7 +51,7 @@ export class UserRepository {
   }
 
   async findById(id: string): Promise<UserDocument | null> {
-    return this.userModel.findById(id).exec();
+    return this.userModel.findById(id).populate("roleId")
   }
 
   async findByPhone(phone: string): Promise<UserDocument | null> {

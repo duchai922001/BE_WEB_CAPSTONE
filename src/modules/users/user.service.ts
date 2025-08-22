@@ -119,6 +119,7 @@ export class UserService {
   }
   async validateUser(phone: string, password: string): Promise<any> {
     const user = await this.userRepository.findByPhone(phone);
+    
     if (!user) {
       throw new BadRequestException('Số điện thoại hoặc mật khẩu không đúng');
     }
@@ -353,5 +354,8 @@ export class UserService {
 
   async findByPhone(phone: string) {
     return await this.userRepository.findByPhone(phone);
+  }
+  async findUserById(userId: string) {
+    return await this.userRepository.findById(userId);
   }
 }
