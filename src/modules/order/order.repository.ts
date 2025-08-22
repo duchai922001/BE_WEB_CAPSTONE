@@ -152,6 +152,7 @@ export class OrderRepository {
           discountValue: 1,
           customerPaid: 1,
           customerDept: 1,
+          'customer._id': 1,
           'customer.fullName': 1,
           'customer.phone': 1,
         },

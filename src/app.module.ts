@@ -43,6 +43,7 @@ import { AdviseModule } from './modules/advise/advise.module';
 import { InstalmentBankModule } from './modules/instalmentBank/instalment-bank.module';
 import { InvoiceModule } from './modules/invoice/invoice.module';
 import { ProductWarrantyPolicyModule } from './modules/product-warranty-policy/product-warranty-policy.module';
+import { WarrantyRequestModule } from './modules/warranty-request/warranty-request.module';
 
 @Module({
   imports: [
@@ -96,6 +97,7 @@ import { ProductWarrantyPolicyModule } from './modules/product-warranty-policy/p
     InstalmentBankModule,
     InvoiceModule,
     ProductWarrantyPolicyModule,
+    WarrantyRequestModule,
   ],
   controllers: [AppController],
   providers: [AppService],
