@@ -145,6 +145,7 @@ export class RepairRequestService {
           userId: (user as any)._id,
           repairRequestCode,
           assignedStaffId: userId,
+          status: RepairRequestStatus.ASSIGNED,
         });
         break;
       } catch (error) {

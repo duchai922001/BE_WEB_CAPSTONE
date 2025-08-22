@@ -241,7 +241,7 @@ export class RepairRequestRepository {
     return this.repairRequestModel
       .find({
         // $or: [
-        //   role === "TECHNICIAN" ? {} :  { status: 'PENDING' }, 
+        //    { status: 'PENDING' }, 
         //   { technicianId: userId },
         //   { assignedStaffId: userId },
         // ],
