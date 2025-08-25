@@ -5,6 +5,7 @@ import { FavoriteController } from './favorites.controller';
 import { FavoriteService } from './favorites.service';
 import { FavoriteRepository } from './favorites.repository';
 import { ProductImageModule } from '../productImage/productImage.module';
+import { PromotionModule } from '../promotion/promotion.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { ProductImageModule } from '../productImage/productImage.module';
       { name: Favorite.name, schema: FavoriteSchema },
     ]),
     ProductImageModule,
+    PromotionModule,
   ],
   controllers: [FavoriteController],
   providers: [FavoriteService, FavoriteRepository],
