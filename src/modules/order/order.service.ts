@@ -32,6 +32,8 @@ import { SerialRepository } from '../serials/serial.repository';
 import { NotificationService } from '../notification/notification.service';
 import { NotificationGateway } from '../notification/notification.gateway';
 import { NotificationType } from 'src/common/enums/notification-type';
+import { AdminCreateOrderDto } from './dtos/admin-create-order.dto';
+import { OrderDocument } from './order.entity';
 @Injectable()
 export class OrderService {
   constructor(
@@ -57,6 +59,138 @@ export class OrderService {
       pass: process.env.EMAIL_PASS,
     },
   });
+
+  async updateStockQuantity(
+    productId: string,
+    typeProduct: number,
+    variableId?: string,
+    serialCodes?: string[],
+    quantity?: number,
+  ) {
+    if (!Types.ObjectId.isValid(productId)) {
+      throw new BadRequestException('productId không hợp lệ');
+    }
+
+    switch (typeProduct) {
+      case ProductType.NO_VARIABLE_NO_SERIAL: {
+        if (!quantity) {
+          throw new BadRequestException('quantity bắt buộc');
+        }
+        await this.productRepo.decreaseStock(productId, quantity);
+        break;
+      }
+
+      case ProductType.NORMAL_VARIABLES: {
+        if (!variableId || !quantity) {
+          throw new BadRequestException('quantity và variableId bắt buộc');
+        }
+        if (!Types.ObjectId.isValid(variableId)) {
+          throw new BadRequestException('variableId không hợp lệ');
+        }
+        await this.variRepo.decreaseStock(variableId, quantity);
+        break;
+      }
+
+      case ProductType.NORMAL_SERIALS: {
+        if (!serialCodes?.length) {
+          throw new BadRequestException('serialCodes bắt buộc');
+        }
+        const quantity = serialCodes.length;
+        await this.serialRepo.markAsSold(productId, serialCodes);
+        await this.productRepo.decreaseStock(productId, quantity);
+        break;
+      }
+
+      case ProductType.NORMAL_VARIABLES_SERIALS: {
+        if (!serialCodes?.length || !variableId) {
+          throw new BadRequestException('serialCodes và variableId bắt buộc');
+        }
+        if (!Types.ObjectId.isValid(variableId)) {
+          throw new BadRequestException('variableId không hợp lệ');
+        }
+        const quantity = serialCodes.length;
+        await this.serialRepo.markVariableAsSold(
+          productId,
+          serialCodes,
+          variableId,
+        );
+        await this.productRepo.decreaseStock(productId, quantity);
+        await this.variRepo.decreaseStock(variableId, quantity);
+        break;
+      }
+
+      default:
+        throw new BadRequestException(
+          `${ResponseMessage.TYPE_NOT_FOUND} ${typeProduct}`,
+        );
+    }
+  }
+
+  async restoreStockQuantity(
+    productId: string,
+    typeProduct: number,
+    variableId?: string,
+    serialCodes?: string[],
+    quantity?: number,
+  ) {
+    if (!Types.ObjectId.isValid(productId)) {
+      throw new BadRequestException('productId không hợp lệ');
+    }
+
+    switch (typeProduct) {
+      case ProductType.NO_VARIABLE_NO_SERIAL: {
+        if (!quantity) {
+          throw new BadRequestException('quantity bắt buộc');
+        }
+        await this.productRepo.increaseStock(productId, quantity);
+        break;
+      }
+
+      case ProductType.NORMAL_VARIABLES: {
+        if (!variableId || !quantity) {
+          throw new BadRequestException('quantity và variableId bắt buộc');
+        }
+        if (!Types.ObjectId.isValid(variableId)) {
+          throw new BadRequestException('variableId không hợp lệ');
+        }
+        await this.variRepo.increaseStock(variableId, quantity);
+        break;
+      }
+
+      case ProductType.NORMAL_SERIALS: {
+        if (!serialCodes?.length) {
+          throw new BadRequestException('serialCodes bắt buộc');
+        }
+        const quantity = serialCodes.length;
+        await this.serialRepo.markAsUnsold(productId, serialCodes);
+        await this.productRepo.increaseStock(productId, quantity);
+        break;
+      }
+
+      case ProductType.NORMAL_VARIABLES_SERIALS: {
+        if (!serialCodes?.length || !variableId) {
+          throw new BadRequestException('serialCodes và variableId bắt buộc');
+        }
+        if (!Types.ObjectId.isValid(variableId)) {
+          throw new BadRequestException('variableId không hợp lệ');
+        }
+        const quantity = serialCodes.length;
+        await this.serialRepo.markVariableAsUnsold(
+          productId,
+          serialCodes,
+          variableId,
+        );
+        await this.productRepo.increaseStock(productId, quantity);
+        await this.variRepo.increaseStock(variableId, quantity);
+        break;
+      }
+
+      default:
+        throw new BadRequestException(
+          `${ResponseMessage.TYPE_NOT_FOUND} ${typeProduct}`,
+        );
+    }
+  }
   async createOrder(data: CustomerCreateOrderDto) {
     const session = await this.connection.startSession();
     let order: any;
@@ -204,6 +338,88 @@ export class OrderService {
       await session.endSession();
     }
   }
+  async createOrderInStore(data: AdminCreateOrderDto) {
+    const {
+      orderItems = [],
+      totalAmount,
+      customerPaid,
+      ...payloadOther
+    } = data;
+
+    const MAX_RETRIES = 5;
+    let retry = 0;
+
+    // Khai báo đúng kiểu (OrderDocument hoặc null nếu cần)
+    let order: OrderDocument | null = null;
+
+    while (retry < MAX_RETRIES) {
+      const orderCode = `${Date.now()}${Math.floor(Math.random() * 1000)
+        .toString()
+        .padStart(3, '0')}`;
+
+      try {
+        // Tạo order
+        order = await this.orderRepository.create({
+          ...payloadOther,
+          orderCode,
+          totalAmount,
+          customerPaid,
+          paymentMethod: PaymentMethod.PAY_IN_STORE,
+          status:
+            totalAmount > customerPaid
+              ? OrderNormalStatus.DEBT
+              : OrderNormalStatus.DONE,
+          customerDept: Math.max(totalAmount - customerPaid, 0),
+        });
+
+        for (const item of orderItems) {
+          const { productId, variableId, quantity, typeProduct, serialCodes } =
+            item;
+
+          await this.orderItemRepository.create({
+            orderId: (order as any)._id, // đã có OrderDocument nên không cần ép kiểu any nữa
+            productId,
+            variableId:
+              typeProduct === ProductType.NORMAL_SERIALS
+                ? undefined
+                : variableId,
+            quantity,
+            serialCodes,
+          });
+        }
+
+        // Cập nhật tồn kho song song
+        await Promise.all(
+          orderItems.map((p) =>
+            this.updateStockQuantity(
+              p.productId,
+              p.typeProduct,
+              p.variableId,
+              p.serialCodes,
+              p.quantity,
+            ),
+          ),
+        );
+
+        // Thành công → trả về order luôn
+        return order;
+      } catch (error: any) {
+        // Trùng orderCode → thử lại
+        if (error.code === 11000 && error.keyPattern?.orderCode) {
+          retry++;
+          if (retry >= MAX_RETRIES) {
+            throw new Error('Tạo order thất bại: quá số lần thử lại.');
+          }
+          continue;
+        }
+
+        // Lỗi khác → ném ra ngoài
+        throw error;
+      }
+    }
+
+    return order;
+  }
 
   async findAll(query: BaseQueryDto) {
     return await this.orderRepository.findAll(query);
@@ -323,137 +539,6 @@ export class OrderService {
     return count;
   }
 
-  async updateStockQuantity(
-    productId: string,
-    typeProduct: number,
-    variableId?: string,
-    serialCodes?: string[],
-    quantity?: number,
-  ) {
-    if (!Types.ObjectId.isValid(productId)) {
-      throw new BadRequestException('productId không hợp lệ');
-    }
-
-    switch (typeProduct) {
-      case ProductType.NO_VARIABLE_NO_SERIAL: {
-        if (!quantity) {
-          throw new BadRequestException('quantity bắt buộc');
-        }
-        await this.productRepo.decreaseStock(productId, quantity);
-        break;
-      }
-
-      case ProductType.NORMAL_VARIABLES: {
-        if (!variableId || !quantity) {
-          throw new BadRequestException('quantity và variableId bắt buộc');
-        }
-        if (!Types.ObjectId.isValid(variableId)) {
-          throw new BadRequestException('variableId không hợp lệ');
-        }
-        await this.variRepo.decreaseStock(variableId, quantity);
-        break;
-      }
-
-      case ProductType.NORMAL_SERIALS: {
-        if (!serialCodes?.length) {
-          throw new BadRequestException('serialCodes bắt buộc');
-        }
-        const quantity = serialCodes.length;
-        await this.serialRepo.markAsSold(productId, serialCodes);
-        await this.productRepo.decreaseStock(productId, quantity);
-        break;
-      }
-
-      case ProductType.NORMAL_VARIABLES_SERIALS: {
-        if (!serialCodes?.length || !variableId) {
-          throw new BadRequestException('serialCodes và variableId bắt buộc');
-        }
-        if (!Types.ObjectId.isValid(variableId)) {
-          throw new BadRequestException('variableId không hợp lệ');
-        }
-        const quantity = serialCodes.length;
-        await this.serialRepo.markVariableAsSold(
-          productId,
-          serialCodes,
-          variableId,
-        );
-        await this.productRepo.decreaseStock(productId, quantity);
-        await this.variRepo.decreaseStock(variableId, quantity);
-        break;
-      }
-
-      default:
-        throw new BadRequestException(
-          `${ResponseMessage.TYPE_NOT_FOUND} ${typeProduct}`,
-        );
-    }
-  }
-
-  async restoreStockQuantity(
-    productId: string,
-    typeProduct: number,
-    variableId?: string,
-    serialCodes?: string[],
-    quantity?: number,
-  ) {
-    if (!Types.ObjectId.isValid(productId)) {
-      throw new BadRequestException('productId không hợp lệ');
-    }
-
-    switch (typeProduct) {
-      case ProductType.NO_VARIABLE_NO_SERIAL: {
-        if (!quantity) {
-          throw new BadRequestException('quantity bắt buộc');
-        }
-        await this.productRepo.increaseStock(productId, quantity);
-        break;
-      }
-
-      case ProductType.NORMAL_VARIABLES: {
-        if (!variableId || !quantity) {
-          throw new BadRequestException('quantity và variableId bắt buộc');
-        }
-        if (!Types.ObjectId.isValid(variableId)) {
-          throw new BadRequestException('variableId không hợp lệ');
-        }
-        await this.variRepo.increaseStock(variableId, quantity);
-        break;
-      }
-
-      case ProductType.NORMAL_SERIALS: {
-        if (!serialCodes?.length) {
-          throw new BadRequestException('serialCodes bắt buộc');
-        }
-        const quantity = serialCodes.length;
-        await this.serialRepo.markAsUnsold(productId, serialCodes);
-        await this.productRepo.increaseStock(productId, quantity);
-        break;
-      }
-
-      case ProductType.NORMAL_VARIABLES_SERIALS: {
-        if (!serialCodes?.length || !variableId) {
-          throw new BadRequestException('serialCodes và variableId bắt buộc');
-        }
-        if (!Types.ObjectId.isValid(variableId)) {
-          throw new BadRequestException('variableId không hợp lệ');
-        }
-        const quantity = serialCodes.length;
-        await this.serialRepo.markVariableAsUnsold(
-          productId,
-          serialCodes,
-          variableId,
-        );
-        await this.productRepo.increaseStock(productId, quantity);
-        await this.variRepo.increaseStock(variableId, quantity);
-        break;
-      }
-
-      default:
-        throw new BadRequestException(
-          `${ResponseMessage.TYPE_NOT_FOUND} ${typeProduct}`,
-        );
-    }
-  }
   async customerCancelOrder(id: string) {
     return await this.orderRepository.update(id, {
       status: OrderNormalStatus.CANCELLED,
@@ -555,7 +640,6 @@ export class OrderService {
 
   async payDebt(dto: PayDebtDto) {
     const order = await this.orderRepository.findById(dto.orderId);
-        console.log("cahy làn ne ne");
     if (!order) {
       throw new NotFoundException('Đơn hàng không tồn tại');
     }
@@ -569,7 +653,7 @@ export class OrderService {
     }
 
     // Trả nợ
-    console.log({dto});
+    console.log({ dto });
 
     const updatedOrder = await this.orderRepository.payDebt(
       dto.orderId,

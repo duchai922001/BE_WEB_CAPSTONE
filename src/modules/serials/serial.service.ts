@@ -26,7 +26,10 @@ export class SerialService {
     return serial;
   }
   async findByProductId(productId: string) {
-    return this.serialRepository.findByProductId(productId);
+    return this.serialRepository.findSerialNotSoldByProductId(productId);
+  }
+  async findByVariableId(variableId: string) {
+    return this.serialRepository.findByVariableId(variableId);
   }
 
   async deleteById(id: string) {

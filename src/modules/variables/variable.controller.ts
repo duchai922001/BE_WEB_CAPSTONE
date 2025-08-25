@@ -12,7 +12,11 @@ export class VariableController {
     const data = await this.variableService.create(dto);
     return createResponse(HttpStatus.CREATED, data, ResponseMessage.CREATE);
   }
-
+  @Get('product/:id')
+  async findVariableByProductId(@Param('id') id: string) {
+    const data = await this.variableService.findByProductId(id);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
   @Get(':id')
   async findById(@Param('id') id: string) {
     const data = await this.variableService.findById(id);

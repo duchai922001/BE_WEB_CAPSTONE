@@ -44,6 +44,7 @@ export class OrderItemRepository {
     const orderItems = await this.OrderItemModel.find({
       orderId: new Types.ObjectId(orderId),
     })
+
       .populate({
         path: 'productId',
         select: 'name brand costPrice sellPrice typeProduct barcode',

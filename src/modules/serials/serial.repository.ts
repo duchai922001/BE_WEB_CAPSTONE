@@ -25,6 +25,14 @@ export class SerialRepository {
   async findByProductId(productId: string): Promise<SerialDocument[]> {
     return this.serialModel.find({ productId }).exec();
   }
+  async findSerialNotSoldByProductId(
+    productId: string,
+  ): Promise<SerialDocument[]> {
+    return this.serialModel.find({ productId, isSold: false }).exec();
+  }
+  async findByVariableId(variableId: string): Promise<SerialDocument[]> {
+    return this.serialModel.find({ variableId, isSold: false }).exec();
+  }
 
   async deleteById(id: string): Promise<void> {
     await this.serialModel.findByIdAndDelete(id).exec();

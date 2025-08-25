@@ -461,22 +461,66 @@ export class ProductService {
 
   async searchProducts(query: BaseQueryDto) {
     const result = await this.productRepository.search(query);
-    const itemsWithImage = await Promise.all(
-      result.items.map(async (product) => {
-        const defaultImage =
-          await this.productImageService.findDefaultImageByProductId(
-            (product as any)._id.toString(),
-          );
-        return {
-          ...(product.toObject?.() || product),
-          defaultImage: defaultImage?.url || null,
+    if (!result.items.length) {
+      return {
+        ...result,
+        items: [],
+      };
+    }
+
+    const productIds = result.items.map((p: any) => p._id.toString());
+
+    // Lấy default image
+    const productImages =
+      await this.productImageService.findDefaultByProductIds(productIds);
+    const imageMap: Record<string, string> = {};
+    for (const img of productImages) {
+      imageMap[img.productId.toString()] = img.url;
+    }
+
+    // Lấy promotion
+    const { promos, defaultPromo } =
+      await this.promotionRepo.findValidByProductIds(productIds);
+    const promotionMap: Record<
+      string,
+      { discountValue: number; discountType: string; maxDiscountMoney?: number }
+    > = {};
+
+    for (const promo of promos) {
+      for (const pid of promo.products) {
+        promotionMap[pid.toString()] = {
+          discountValue: promo.discountValue,
+          discountType: promo.discountType,
+          maxDiscountMoney: promo.maxDiscountMoney ?? null,
         };
-      }),
-    );
+      }
+    }
+
+    // Gộp lại
+    const itemsWithImageAndPromo = result.items.map((product: any) => {
+      const promo =
+        promotionMap[product._id.toString()] ||
+        (defaultPromo
+          ? {
+              discountValue: defaultPromo.discountValue,
+              discountType: defaultPromo.discountType,
+              maxDiscountMoney: defaultPromo.maxDiscountMoney ?? null,
+            }
+          : null);
+
+      return {
+        ...(product.toObject?.() || product),
+        defaultImage: imageMap[product._id.toString()] || null,
+        isPromotion: !!promo,
+        discountValue: promo?.discountValue ?? null,
+        discountType: promo?.discountType ?? null,
+        maxDiscountMoney: promo?.maxDiscountMoney ?? null,
+      };
+    });
 
     return {
       ...result,
-      items: itemsWithImage,
+      items: itemsWithImageAndPromo,
     };
   }
 

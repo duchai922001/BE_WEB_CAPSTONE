@@ -30,6 +30,7 @@ export class VariableRepository {
   async findByProductId(productId: string): Promise<VariableDocument[]> {
     return this.variableModel
       .find({ productId })
+      .populate('productId')
       .populate('attributes')
       .lean()
       .exec();

@@ -22,6 +22,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UpdateOrderStatusDto } from './dtos/update-status.dto';
 import { PayDebtDto } from './dtos/pay-debt.dto';
 import { ReturnOrderDto } from './dtos/return-order.dto';
+import { AdminCreateOrderDto } from './dtos/admin-create-order.dto';
 
 @Controller('orders')
 export class OrderController {
@@ -51,6 +52,12 @@ export class OrderController {
     return createResponse(HttpStatus.CREATED, data, ResponseMessage.CREATE);
   }
 
+  @Post('create-in-store')
+  async createInStore(@Body() dto: AdminCreateOrderDto) {
+    const data = await this.orderService.createOrderInStore(dto);
+    return createResponse(HttpStatus.CREATED, data, ResponseMessage.CREATE);
+  }
+
   @Get('')
   async getAll(@Query() query: BaseQueryDto) {
     const data = await this.orderService.findAll(query);
@@ -74,8 +81,6 @@ export class OrderController {
     const data = await this.orderService.update(id, dto);
     return createResponse(HttpStatus.OK, data, ResponseMessage.UPDATE);
   }
-
-   
 
   @Delete(':id')
   async delete(@Param('id') id: string) {
