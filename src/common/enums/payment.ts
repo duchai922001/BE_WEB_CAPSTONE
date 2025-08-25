@@ -4,6 +4,7 @@ export enum PaymentMethod {
   CREDIT_CARD = 'CREDIT_CARD',
   ZALO_PAY = 'ZALO_PAY',
   MOMO = 'MOMO',
+  PAYOS = 'PAYOS',
   COD = 'COD',
 }
 

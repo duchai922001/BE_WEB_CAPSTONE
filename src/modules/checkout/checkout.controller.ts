@@ -10,11 +10,13 @@ import {
 import { ZaloPayService } from './zalopay/zalopay.service';
 import { VnpayService } from './vnpay/vnpay.service';
 import { Request } from 'express';
+import { PayosService } from './payos/payos.service';
 @Controller('checkout')
 export class CheckoutController {
   constructor(
     private readonly zaloPayService: ZaloPayService,
     private readonly vnpayService: VnpayService,
+    private readonly payosService: PayosService,
   ) {}
   @Post('zalopay')
   async createZaloOrder(
@@ -99,6 +101,41 @@ export class CheckoutController {
       console.error('Lỗi tạo đơn hàng VNPay:', error);
       throw new HttpException(
         'Không thể tạo đơn hàng VNPay',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+  @Post('payos')
+  async createPayosPayment(
+    @Body()
+    body: {
+      amount: number;
+      orderId: string;
+    },
+  ) {
+    const { amount, orderId } = body;
+
+    // Validate input
+    if (!amount || !orderId) {
+      throw new HttpException(
+        'Thiếu thông tin thanh toán',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    try {
+      // Gọi service tạo payment link
+      const paymentLink = await this.payosService.createPaymentLink(
+        amount,
+        orderId,
+      );
+
+      // Trả về link để frontend redirect
+      return { paymentLink };
+    } catch (err) {
+      console.error('Lỗi tạo đơn hàng PayOS:', err.message || err);
+      throw new HttpException(
+        'Không thể tạo đơn hàng PayOS',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

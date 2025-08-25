@@ -22,7 +22,7 @@ import { Role, RoleSchema } from '../roles/role.entity';
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_ACCESS_SECRET'),
-        signOptions: { expiresIn: '15m' },
+        signOptions: { expiresIn: '7d' },
       }),
     }),
     MongooseModule.forFeature([

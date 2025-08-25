@@ -5,6 +5,7 @@ const paymentMethodMap: Record<PaymentMethod, string> = {
   [PaymentMethod.PAY_IN_STORE]: 'Thanh toán tại cửa hàng',
   [PaymentMethod.ZALO_PAY]: 'Thanh toán online qua ZaloPay',
   [PaymentMethod.MOMO]: 'Thanh toán online qua MoMo',
+  [PaymentMethod.PAYOS]: 'Thanh toán online qua payos',
   [PaymentMethod.BANK_TRANSFER]: 'Chuyển khoản ngân hàng',
   [PaymentMethod.CREDIT_CARD]: 'Thẻ tín dụng / ghi nợ',
 };

@@ -132,9 +132,6 @@ export class SerialRepository {
     if (!Types.ObjectId.isValid(productId)) {
       throw new BadRequestException('productId không hợp lệ');
     }
-    if (!serialCodes || !serialCodes.length) {
-      throw new BadRequestException('Danh sách serialCodes là bắt buộc');
-    }
 
     const result = await this.serialModel.updateMany(
       {
@@ -161,9 +158,6 @@ export class SerialRepository {
     }
     if (variableId && !Types.ObjectId.isValid(variableId)) {
       throw new BadRequestException('variableId không hợp lệ');
-    }
-    if (!serialCodes || !serialCodes.length) {
-      throw new BadRequestException('serialCodes là bắt buộc');
     }
 
     const filter: any = {
