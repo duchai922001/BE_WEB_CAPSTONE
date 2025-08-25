@@ -119,7 +119,7 @@ export class UserService {
   }
   async validateUser(phone: string, password: string): Promise<any> {
     const user = await this.userRepository.findByPhone(phone);
-    
+
     if (!user) {
       throw new BadRequestException('Số điện thoại hoặc mật khẩu không đúng');
     }
@@ -357,5 +357,21 @@ export class UserService {
   }
   async findUserById(userId: string) {
     return await this.userRepository.findById(userId);
+  }
+
+  async toggleStatus(id: string) {
+    const user = await this.userRepository.findById(id);
+    if (!user) throw new NotFoundException('User not found');
+
+    const newStatus = user.status === 1 ? 0 : 1;
+    return this.userRepository.updateStatus(id, newStatus);
+  }
+
+  async activateUser(id: string) {
+    return this.userRepository.updateStatus(id, 1);
+  }
+
+  async deactivateUser(id: string) {
+    return this.userRepository.updateStatus(id, 0);
   }
 }

@@ -33,6 +33,22 @@ export class UserController {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
   ) {}
+
+  @Patch(':id/toggle-status')
+  async toggleStatus(@Param('id') id: string) {
+    return this.userService.toggleStatus(id);
+  }
+
+  @Patch(':id/activate')
+  async activate(@Param('id') id: string) {
+    return this.userService.activateUser(id);
+  }
+
+  @Patch(':id/deactivate')
+  async deactivate(@Param('id') id: string) {
+    return this.userService.deactivateUser(id);
+  }
+
   @Post('register')
   async create(@Body() dto: CreateUserDto) {
     const data = await this.userService.create(dto);

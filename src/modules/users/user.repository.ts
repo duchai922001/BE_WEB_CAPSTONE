@@ -51,7 +51,7 @@ export class UserRepository {
   }
 
   async findById(id: string): Promise<UserDocument | null> {
-    return this.userModel.findById(id).populate("roleId")
+    return this.userModel.findById(id).populate('roleId');
   }
 
   async findByPhone(phone: string): Promise<UserDocument | null> {
@@ -154,5 +154,13 @@ export class UserRepository {
       roleId: new Types.ObjectId(data.roleId),
       status: 1,
     });
+  }
+
+  async updateStatus(id: string, status: number): Promise<UserDocument | null> {
+    return this.userModel.findByIdAndUpdate(
+      new Types.ObjectId(id),
+      { status },
+      { new: true },
+    );
   }
 }
