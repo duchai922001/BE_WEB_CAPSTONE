@@ -34,6 +34,13 @@ export class OrderController {
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('user-stats')
+  async getUserStatistics(@Request() req) {
+    const userId = req.user.userId; // lấy từ JWT
+    return this.orderService.getUserOrderStatistics(userId);
+  }
+
   @Get('stats')
   async getOrderStats() {
     const data = await this.orderService.getOrderStats();

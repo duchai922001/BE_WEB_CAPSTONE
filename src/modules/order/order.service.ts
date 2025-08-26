@@ -713,4 +713,26 @@ export class OrderService {
   async getOrderStats() {
     return await this.orderRepository.getOrderStats();
   }
+
+  async getUserOrderStatistics(userId: string) {
+    const pendingCount = await this.orderRepository.countByStatus(
+      userId,
+      OrderNormalStatus.PENDING,
+    );
+    const completedCount = await this.orderRepository.countByStatus(
+      userId,
+      OrderNormalStatus.DONE,
+    );
+    const canceledCount = await this.orderRepository.countByStatus(
+      userId,
+      OrderNormalStatus.CANCELLED,
+    );
+    const totalPaid = await this.orderRepository.sumPaidByUser(userId);
+    return {
+      pendingCount,
+      completedCount,
+      canceledCount,
+      totalPaid,
+    };
+  }
 }

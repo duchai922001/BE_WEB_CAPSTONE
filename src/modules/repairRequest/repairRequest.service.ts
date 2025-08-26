@@ -124,7 +124,12 @@ export class RepairRequestService {
     return repairRequest;
   }
   async createRepairAdmin(userId: string, data: CreateRepairRequestDto) {
-    const { repairRequestServices, imageDeviceBefore, ...payloadOther } = data;
+    const {
+      repairRequestServices,
+      imageDeviceBefore,
+      technicianId,
+      ...payloadOther
+    } = data;
     const user = await this.userService.createUserUnActive({
       fullName: data.customerName,
       phone: data.customerPhone,
@@ -145,7 +150,10 @@ export class RepairRequestService {
           userId: (user as any)._id,
           repairRequestCode,
           assignedStaffId: userId,
-          status: RepairRequestStatus.ASSIGNED,
+          technicianId,
+          status: technicianId
+            ? RepairRequestStatus.ASSIGNED_TECHNICAL
+            : RepairRequestStatus.ASSIGNED,
         });
         break;
       } catch (error) {
@@ -474,11 +482,14 @@ export class RepairRequestService {
   }
 
   async getRequestsByUser(userId: string) {
-    const user = await this.userService.findUserById(userId)
+    const user = await this.userService.findUserById(userId);
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    return await this.repairRequestRepo.getRequestsByUser(userId, (user?.roleId as any)?.name);
+    return await this.repairRequestRepo.getRequestsByUser(
+      userId,
+      (user?.roleId as any)?.name,
+    );
   }
 }

@@ -90,6 +90,22 @@ export class OrderRepository {
     return result.deletedCount > 0;
   }
 
+  async countByStatus(userId: string, status: string): Promise<number> {
+    return this.orderModel.countDocuments({
+      userId: userId,
+      status,
+    });
+  }
+
+  async sumPaidByUser(userId: string): Promise<number> {
+    const result = await this.orderModel.aggregate([
+      { $match: { userId: userId } },
+      { $group: { _id: null, totalPaid: { $sum: '$customerPaid' } } },
+    ]);
+
+    return result[0]?.totalPaid || 0;
+  }
+
   async getByUserId(userId: string): Promise<OrderDocument[]> {
     const orders = await this.orderModel
       .find({ userId })
