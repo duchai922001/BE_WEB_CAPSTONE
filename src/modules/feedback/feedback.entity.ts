@@ -9,14 +9,17 @@ export class Feedback extends Document {
   @Prop({ type: Types.ObjectId, ref: 'Product' })
   productId: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'RepairRequest' })
-  repairRequestId: Types.ObjectId;
+  @Prop({ type: Types.ObjectId, ref: 'Order' })
+  orderId: Types.ObjectId;
 
   @Prop({ required: true, min: 1, max: 5 })
   rating: number;
 
   @Prop()
   comment: string;
+
+  @Prop({ default: true })
+  isFeedback: boolean;
 }
 
 export const FeedbackSchema = SchemaFactory.createForClass(Feedback);

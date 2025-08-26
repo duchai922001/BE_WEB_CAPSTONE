@@ -39,4 +39,12 @@ export class FeedbackRepository {
       .populate('userId')
       .exec();
   }
+
+  async getFeedbackByOrderId(orderId: string) {
+    return this.feedbackModel
+      .findOne({ orderId: orderId })
+      .populate('userId', 'name email')
+      .populate('productId', 'name price')
+      .exec();
+  }
 }

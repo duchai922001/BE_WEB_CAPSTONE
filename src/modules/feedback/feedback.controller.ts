@@ -24,6 +24,12 @@ export class FeedbackController {
     return createResponse(HttpStatus.CREATED, data, ResponseMessage.CREATE);
   }
 
+  @Get('order/:orderId')
+  async getFeedbackByOrder(@Param('orderId') orderId: string) {
+    const data = await this.feedbackService.getFeedbackByOrderId(orderId);
+    return createResponse(HttpStatus.CREATED, data, ResponseMessage.GET);
+  }
+
   @Get()
   async findAll() {
     const data = await this.feedbackService.findAll();

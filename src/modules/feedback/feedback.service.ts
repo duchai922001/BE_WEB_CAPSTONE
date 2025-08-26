@@ -42,4 +42,8 @@ export class FeedbackService {
 
     return feedbacks;
   }
+
+  async getFeedbackByOrderId(orderId: string) {
+    return await this.feedbackRepo.getFeedbackByOrderId(orderId);
+  }
 }
