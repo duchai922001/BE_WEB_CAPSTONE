@@ -25,9 +25,15 @@ export class BlogController {
   @UseGuards(JwtAuthGuard)
   @Post()
   async create(@Body() dto: CreateBlogDto, @Request() req) {
-    const userId = (req as any).user.userId;
+    const userId = req.user.userId;
     const blog = await this.blogService.createBlog(dto, userId);
     return createResponse(HttpStatus.CREATED, blog, ResponseMessage.CREATE);
+  }
+
+  @Get('latest')
+  async getLatestBlog() {
+    const blog = await this.blogService.getLatestBlog();
+    return createResponse(HttpStatus.OK, blog, ResponseMessage.GET);
   }
 
   @Put(':id')
