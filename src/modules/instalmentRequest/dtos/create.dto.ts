@@ -11,7 +11,11 @@ import { InstalmentRequestStatus } from 'src/common/enums/instalmentRequest';
 
 export class CreateInstalmentRequestDto {
   @IsMongoId()
-  instalmentItemId: string;
+  productId: string;
+
+  @IsMongoId()
+  @IsOptional()
+  variableId?: string;
 
   @IsDateString()
   appointmentDate: Date;

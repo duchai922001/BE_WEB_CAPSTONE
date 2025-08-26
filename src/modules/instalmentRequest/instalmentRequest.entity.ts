@@ -9,8 +9,11 @@ export class InstalmentRequest {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   userId: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'InstalmentItem', required: true })
-  instalmentItemId: Types.ObjectId;
+  @Prop({ type: Types.ObjectId, ref: 'Product', required: true })
+  productId: Types.ObjectId;
+
+  @Prop({ type: Types.ObjectId, ref: 'Variable' })
+  variableId: Types.ObjectId;
 
   @Prop({ type: Types.ObjectId, ref: 'User' })
   assignedStaffId: Types.ObjectId;

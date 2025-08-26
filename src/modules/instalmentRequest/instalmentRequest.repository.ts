@@ -16,7 +16,7 @@ export class InstalmentRequestRepository {
   async findByUserId(userId: string) {
     return this.model
       .find({ userId: userId })
-      .populate('instalmentItemId')
+      .populate('productId')
       .populate('assignedStaffId', 'fullName phone')
       .sort({ createdAt: -1 })
       .exec();
