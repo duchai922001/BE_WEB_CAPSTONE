@@ -11,6 +11,7 @@ import {
 import { Type } from 'class-transformer';
 import { PaymentMethod, PaymentType } from 'src/common/enums/payment';
 import { ProductType } from 'src/common/enums/productType';
+import { OrderNormalStatus } from 'src/common/enums/orderStatus';
 
 export class OrderItems {
   @IsNotEmpty()
@@ -62,6 +63,12 @@ export class CustomerCreateOrderDto {
     message: `paymentType must be one of: ${Object.values(PaymentType).join(', ')}`,
   })
   paymentType: PaymentType;
+
+  @IsOptional()
+  @IsEnum(OrderNormalStatus, {
+    message: `OrderNormalStatus must be one of: ${Object.values(OrderNormalStatus).join(', ')}`,
+  })
+  status?: OrderNormalStatus;
 
   @IsNotEmpty()
   @IsEnum(PaymentMethod, {

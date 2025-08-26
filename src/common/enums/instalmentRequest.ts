@@ -5,4 +5,5 @@ export enum InstalmentRequestStatus {
   APPROVED = 'approved',
   REJECTED = 'rejected',
   CANCELED = 'canceled',
+  DONE = 'done',
 }

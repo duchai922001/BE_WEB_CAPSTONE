@@ -70,7 +70,7 @@ export class OrderService {
     if (!Types.ObjectId.isValid(productId)) {
       throw new BadRequestException('productId không hợp lệ');
     }
-
+    console.log({ typeProduct, productId, variableId, serialCodes });
     switch (typeProduct) {
       case ProductType.NO_VARIABLE_NO_SERIAL: {
         if (!quantity) {
@@ -194,10 +194,11 @@ export class OrderService {
   async createOrder(data: CustomerCreateOrderDto) {
     const session = await this.connection.startSession();
     let order: any;
+    const createdOrderItems: any[] = [];
 
     try {
       await session.withTransaction(async () => {
-        const { orderItems, ...payloadOther } = data;
+        const { orderItems, status, ...payloadOther } = data;
         const isOfflinePayment = [
           PaymentMethod.PAY_IN_STORE,
           PaymentMethod.COD,
@@ -211,6 +212,8 @@ export class OrderService {
         } else if (isOfflinePayment) {
           customerDept = data.totalAmount;
         }
+
+        // Tạo orderCode unique
         const MAX_RETRIES = 5;
         let retry = 0;
         let orderCode: string;
@@ -225,12 +228,15 @@ export class OrderService {
               {
                 ...payloadOther,
                 orderCode,
-                customerDept,
+                customerDept:
+                  status === OrderNormalStatus.DONE ? 0 : customerDept,
+                customerPaid:
+                  status === OrderNormalStatus.DONE ? data?.totalAmount : 0,
+                status: status ? status : OrderNormalStatus.PENDING,
                 ...(depositDeadline && { depositDeadline }),
               },
               { session },
             );
-
             break;
           } catch (error) {
             if (error.code === 11000 && error.keyPattern?.orderCode) {
@@ -245,29 +251,15 @@ export class OrderService {
           throw new Error('Could not create unique orderCode after retries');
         }
 
-        // 3. Xử lý từng item
+        // Xử lý từng orderItem
         for (const item of data.orderItems || []) {
           const { productId, variableId, quantity, typeProduct } = item;
+          let serialCodes: string[] = [];
 
           if (
-            typeProduct === ProductType.NO_VARIABLE_NO_SERIAL ||
-            typeProduct === ProductType.NORMAL_VARIABLES
-          ) {
-            // Sản phẩm không cần serial
-            await this.orderItemRepository.create(
-              {
-                orderId: order._id,
-                productId,
-                variableId,
-                quantity,
-              },
-              { session },
-            );
-          } else if (
             typeProduct === ProductType.NORMAL_SERIALS ||
             typeProduct === ProductType.NORMAL_VARIABLES_SERIALS
           ) {
-            // Sản phẩm có serial
             const serials = await this.serialSer.find(
               {
                 productId,
@@ -285,22 +277,9 @@ export class OrderService {
               throw new BadRequestException('Sản phẩm này đã hết hàng');
             }
 
-            const serialCodes = serials.map((serial) => serial.serialCode);
+            serialCodes = serials.map((s) => s.serialCode);
 
-            await this.orderItemRepository.create(
-              {
-                orderId: order._id,
-                productId,
-                variableId:
-                  typeProduct === ProductType.NORMAL_SERIALS
-                    ? undefined
-                    : variableId,
-                quantity,
-                serialCodes,
-              },
-              { session },
-            );
-
+            // đánh dấu serial đã bán trong session
             for (const serial of serials) {
               await this.serialSer.updateById(
                 (serial as any)._id,
@@ -309,13 +288,46 @@ export class OrderService {
               );
             }
           }
+
+          const createdItem = await this.orderItemRepository.create(
+            {
+              orderId: order._id,
+              productId,
+              variableId:
+                typeProduct === ProductType.NORMAL_SERIALS
+                  ? undefined
+                  : variableId,
+              quantity,
+              ...(serialCodes.length > 0 && { serialCodes }),
+            },
+            { session },
+          );
+
+          createdOrderItems.push(createdItem);
         }
       });
-      if (data.cartItemIds.length) {
+
+      if (data.status === OrderNormalStatus.DONE && data.orderItems?.length) {
+        await Promise.all(
+          createdOrderItems.map((item, index) =>
+            this.updateStockQuantity(
+              item.productId,
+              (data.orderItems as any)[index].typeProduct,
+              item.variableId,
+              item.serialCodes || [],
+              item.quantity,
+            ),
+          ),
+        );
+      }
+
+      // Xóa cartItem nếu có
+      if (data?.cartItemIds?.length) {
         await this.cartItemRepository.deleteManyByIds(data.cartItemIds || []);
       }
-      const consultants = await this.userService.getConsultants();
 
+      // Gửi notification
+      const consultants = await this.userService.getConsultants();
       for (const consultant of consultants) {
         const notif = await this.notificationService.create({
           userId: (consultant as any)._id.toString(),
@@ -338,6 +350,7 @@ export class OrderService {
       await session.endSession();
     }
   }
+
   async createOrderInStore(data: AdminCreateOrderDto) {
     const {
       orderItems = [],
