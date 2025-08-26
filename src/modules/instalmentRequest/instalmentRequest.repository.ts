@@ -27,9 +27,7 @@ export class InstalmentRequestRepository {
   }
 
   async findAll(): Promise<InstalmentRequest[]> {
-    return this.model
-      .find()
-      .populate('userId assignedStaffId instalmentItemId');
+    return this.model.find().populate('userId assignedStaffId productId');
   }
 
   async findById(id: string): Promise<InstalmentRequest | null> {
