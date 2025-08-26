@@ -25,6 +25,10 @@ export class CartItemService {
     return cartItem;
   }
 
+  async deleteMany(ids: string[]) {
+    return await this.cartItemRepository.deleteMany(ids);
+  }
+
   async softDelete(id: string) {
     const cartItem = await this.cartItemRepository.findById(id);
     if (!cartItem) throw new NotFoundException('Không tìm thấy cartItem');

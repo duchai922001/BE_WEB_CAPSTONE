@@ -46,11 +46,14 @@ export class CartItemController {
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
 
-  //   @Put(':id')
-  //   async update(@Param('id') id: string, @Body() dto: UpdateCategoryDto) {
-  //     const data = await this.cartItemService.update(id, dto);
-  //     return createResponse(HttpStatus.OK, data, ResponseMessage.UPDATE);
-  //   }
+  @Delete('bulk')
+  async deleteMany(@Body('ids') ids: string[]) {
+    if (!ids || ids.length === 0) {
+      return { message: 'Không có id nào được gửi lên' };
+    }
+    const data = await this.cartItemService.deleteMany(ids);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.DELETE_LIST);
+  }
 
   @Patch(':id/quantity')
   async changeQuantity(@Param('id') id: string, @Body('delta') delta: number) {

@@ -97,4 +97,8 @@ export class PromotionService {
     }
     return { promotion, images };
   }
+
+  async getActiveOrDefaultPromotions() {
+    return await this.promotionRepository.getActiveOrDefaultPromotions();
+  }
 }

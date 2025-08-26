@@ -666,6 +666,7 @@ export class ProductService {
         name: p.name,
         sellPrice: p.sellPrice,
         salePrice: p.salePrice,
+        isInStock: p.stock > 0,
         image: imageMap[p._id.toString()] || null,
         isInstallment: p.isInstallment,
         isPromotion: !!promo,

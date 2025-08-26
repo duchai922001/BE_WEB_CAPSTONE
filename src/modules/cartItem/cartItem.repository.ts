@@ -27,6 +27,11 @@ export class CartItemRepository {
     return queryBuilder.exec();
   }
 
+  async deleteMany(ids: string[]): Promise<{ deletedCount: number }> {
+    const objectIds = ids.map((id) => new Types.ObjectId(id));
+    return await this.cartItemModel.deleteMany({ _id: { $in: objectIds } });
+  }
+
   async addItem(
     cartId: string,
     productId: string,

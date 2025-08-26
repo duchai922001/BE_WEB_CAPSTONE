@@ -3,12 +3,18 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Promotion, PromotionDocument } from './promotion.entity';
 import { Model, Types } from 'mongoose';
 import { CreatePromotionDto } from './dtos/create.dto';
+import {
+  ProductImage,
+  ProductImageDocument,
+} from '../productImage/productImage.entity';
 
 @Injectable()
 export class PromotionRepository {
   constructor(
     @InjectModel(Promotion.name)
     private readonly promotionModel: Model<PromotionDocument>,
+    @InjectModel(ProductImage.name)
+    private productImageModel: Model<ProductImageDocument>,
   ) {}
   async findOverlappedByTime(
     startDate: Date,
@@ -72,5 +78,47 @@ export class PromotionRepository {
       .lean();
 
     return defaultPromo;
+  }
+
+  async getActiveOrDefaultPromotions(): Promise<any[]> {
+    let promotions = await this.promotionModel
+      .find({ status: 'active' })
+      .populate('products')
+      .lean()
+      .exec();
+
+    if (!promotions || promotions.length === 0) {
+      promotions = await this.promotionModel
+        .find({ status: 'default' })
+        .populate('products')
+        .lean()
+        .exec();
+    }
+
+    const promotionsWithImages = await Promise.all(
+      promotions.map(async (promo) => {
+        const productsWithImages = await Promise.all(
+          promo.products.map(async (product) => {
+            const defaultImage = await this.productImageModel
+              .findOne({
+                productId: String(product._id),
+                isDefault: true,
+              })
+              .lean();
+            return {
+              ...product,
+              defaultImage: defaultImage?.url || null,
+            };
+          }),
+        );
+
+        return {
+          ...promo,
+          products: productsWithImages,
+        };
+      }),
+    );
+
+    return promotionsWithImages;
   }
 }
