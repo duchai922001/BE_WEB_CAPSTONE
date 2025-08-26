@@ -18,8 +18,11 @@ export class InstalmentRequest {
   @Prop({ type: Date, required: true })
   appointmentDate: Date;
 
-  @Prop({ type: Types.ObjectId, ref: 'InstalmentBank', required: true })
-  bankId: Types.ObjectId;
+  @Prop({ type: String, required: true })
+  bankName: string;
+
+  @Prop({ type: Number, required: true })
+  installmentPeriod: number;
 
   @Prop({ type: String })
   note?: string;

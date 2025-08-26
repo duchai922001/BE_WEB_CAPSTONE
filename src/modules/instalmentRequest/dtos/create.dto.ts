@@ -16,8 +16,13 @@ export class CreateInstalmentRequestDto {
   @IsDateString()
   appointmentDate: Date;
 
-  @IsMongoId()
-  bankId: string;
+  @IsString()
+  @IsNotEmpty()
+  bankName: string;
+
+  @IsNumber()
+  @IsNotEmpty()
+  installmentPeriod: number;
 
   @IsOptional()
   @IsString()
