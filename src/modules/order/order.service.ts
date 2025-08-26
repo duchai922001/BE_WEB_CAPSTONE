@@ -616,7 +616,10 @@ export class OrderService {
       );
     }
 
-    if (dto.status === OrderNormalStatus.REFUNDED) {
+    if (
+      dto.status === OrderNormalStatus.REFUNDED ||
+      dto.status === OrderNormalStatus.DELIVERED_FAILED
+    ) {
       if (!dto.products?.length) {
         throw new BadRequestException(
           'products là bắt buộc khi xác nhận đơn hàng',
