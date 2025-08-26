@@ -311,9 +311,9 @@ export class OrderService {
         await Promise.all(
           createdOrderItems.map((item, index) =>
             this.updateStockQuantity(
-              item.productId,
+              (data.orderItems as any)[index].productId,
               (data.orderItems as any)[index].typeProduct,
-              item.variableId,
+              (data.orderItems as any)[index].variableId,
               item.serialCodes || [],
               item.quantity,
             ),
