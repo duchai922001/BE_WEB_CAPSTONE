@@ -598,21 +598,17 @@ export class OrderService {
           'products là bắt buộc khi xác nhận đơn hàng',
         );
       }
+
       await Promise.all(
-        dto.products.map(async (p) => {
-          if (p.typeProduct === 300) {
-            await this.serialRepo.markAsUnsold(
-              p.productId,
-              p.serialCodes ?? [],
-            );
-          } else if (p.typeProduct === 400) {
-            await this.serialRepo.markVariableAsUnsold(
-              p.productId,
-              p.serialCodes ?? [],
-              p.variableId,
-            );
-          }
-        }),
+        dto.products.map((p) =>
+          this.restoreStockQuantity(
+            p.productId,
+            p.typeProduct,
+            p.variableId,
+            p.serialCodes,
+            p.quantity,
+          ),
+        ),
       );
     }
 
