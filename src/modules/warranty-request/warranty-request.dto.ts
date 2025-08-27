@@ -34,3 +34,9 @@ export class CreateWarrantyRequestDto {
 export class UpdateWarrantyRequestDto extends PartialType(
   CreateWarrantyRequestDto,
 ) {}
+
+export class UpdateWarrantyStatusDto {
+  @IsNotEmpty()
+  @IsEnum(WarrantyRequestStatus)
+  status: WarrantyRequestStatus;
+}

@@ -6,11 +6,13 @@ import {
   Param,
   Delete,
   Put,
+  Patch,
 } from '@nestjs/common';
 import { WarrantyRequestService } from './warranty-request.service';
 import {
   CreateWarrantyRequestDto,
   UpdateWarrantyRequestDto,
+  UpdateWarrantyStatusDto,
 } from './warranty-request.dto';
 
 @Controller('warranty-requests')
@@ -42,5 +44,13 @@ export class WarrantyRequestController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.warrantyRequestService.remove(id);
+  }
+
+  @Patch(':id/status')
+  async updateStatus(
+    @Param('id') id: string,
+    @Body() dto: UpdateWarrantyStatusDto,
+  ) {
+    return this.warrantyRequestService.updateStatus(id, dto);
   }
 }

@@ -8,6 +8,7 @@ import {
 import {
   CreateWarrantyRequestDto,
   UpdateWarrantyRequestDto,
+  UpdateWarrantyStatusDto,
 } from './warranty-request.dto';
 
 @Injectable()
@@ -61,5 +62,19 @@ export class WarrantyRequestService {
       .exec();
     if (!deleted)
       throw new NotFoundException(`WarrantyRequest #${id} not found`);
+  }
+
+  async updateStatus(id: string, dto: UpdateWarrantyStatusDto) {
+    const updated = await this.warrantyRequestModel.findByIdAndUpdate(
+      id,
+      { status: dto.status },
+      { new: true },
+    );
+
+    if (!updated) {
+      throw new NotFoundException('Warranty request not found');
+    }
+
+    return updated;
   }
 }

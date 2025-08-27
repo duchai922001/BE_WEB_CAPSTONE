@@ -10,6 +10,7 @@ import { InstalmentRequestRepository } from './instalmentRequest.repository';
 import { AttributeModule } from '../attributes/attribute.module';
 import { PromotionModule } from '../promotion/promotion.module';
 import { CartItemModule } from '../cartItem/cartItem.module';
+import { ProductImageModule } from '../productImage/productImage.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { CartItemModule } from '../cartItem/cartItem.module';
     AttributeModule,
     PromotionModule,
     CartItemModule,
+    ProductImageModule,
   ],
   controllers: [InstalmentRequestController],
   providers: [InstalmentRequestService, InstalmentRequestRepository],

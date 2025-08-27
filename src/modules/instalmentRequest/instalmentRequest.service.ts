@@ -10,6 +10,7 @@ import { AttributeService } from '../attributes/attribute.service';
 import { Types } from 'mongoose';
 import { PromotionRepository } from '../promotion/promotion.repository';
 import { CartItemRepository } from '../cartItem/cartItem.repository';
+import { ProductImageRepository } from '../productImage/productImage.repository';
 @Injectable()
 export class InstalmentRequestService {
   constructor(
@@ -17,6 +18,7 @@ export class InstalmentRequestService {
     private readonly attributeSer: AttributeService,
     private readonly promoRepo: PromotionRepository,
     private readonly cartItemRepository: CartItemRepository,
+    private readonly productImage: ProductImageRepository,
   ) {}
 
   async create(userId: string, dto: CreateInstalmentRequestDto) {
@@ -35,15 +37,30 @@ export class InstalmentRequestService {
   async findById(id: string) {
     const request = await this.repo.findById(id);
     if (!request) throw new NotFoundException(ResponseMessage.FILE_NOT_FOUND);
+
     const promo = await this.promoRepo.findValidByProductId(
       (request.productId as any)._id,
     );
-    const attributes = await this.attributeSer.findByVariableId(
-      (request.variableId as any)._id,
+
+    let attributes: any[] = [];
+    if (request.variableId) {
+      attributes = await this.attributeSer.findByVariableId(
+        (request.variableId as any)._id,
+      );
+    }
+
+    const defaultImage = await this.productImage.findDefaultImageByProductId(
+      String((request.productId as any)._id),
     );
 
-    return { ...request, attributes: attributes || [], promo };
+    return {
+      ...request,
+      attributes,
+      promo,
+      image: defaultImage?.url || null,
+    };
   }
+
   async updateStatus(id: string, status: string, resultImage?: string) {
     const updated = await this.repo.updateStatus(id, status, resultImage);
     if (!updated) throw new NotFoundException(ResponseMessage.FILE_NOT_FOUND);
@@ -65,10 +82,16 @@ export class InstalmentRequestService {
             )
           : [];
 
+        const defaultImage =
+          await this.productImage.findDefaultImageByProductId(
+            String((request.productId as any)._id),
+          );
+
         return {
           ...request.toObject(),
           promo,
           attributes: attributes || [],
+          image: defaultImage?.url || null,
         };
       }),
     );
