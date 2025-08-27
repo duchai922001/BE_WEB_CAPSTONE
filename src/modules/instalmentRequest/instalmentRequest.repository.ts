@@ -17,6 +17,7 @@ export class InstalmentRequestRepository {
     return this.model
       .find({ userId: userId })
       .populate('productId')
+      .populate('variableId')
       .populate('assignedStaffId', 'fullName phone')
       .sort({ createdAt: -1 })
       .exec();
