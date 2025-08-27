@@ -6,6 +6,7 @@ import { builderQuery } from 'src/common/helpers/query-builder.helper';
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { ResponseMessage } from 'src/common/enums/responseMessage';
 import { RepairRequestStatus } from 'src/common/enums/repairRequestStatus';
+import { FilterRepairRequestDto } from './dtos/filter.dto';
 @Injectable()
 export class RepairRequestRepository {
   constructor(
@@ -236,18 +237,40 @@ export class RepairRequestRepository {
       completed,
     };
   }
-  async getRequestsByUser(userId: string, role: string) {
-    console.log({role});
+  async getRequestsByUser(
+    userId: string,
+    role: string,
+    filters: FilterRepairRequestDto,
+  ) {
+    const query: any = {};
+    console.log({ filters: filters.statuses });
+    // ✅ Lọc theo role
+    if (role === 'TECHNICIAN') {
+      query.technicianId = userId;
+    } else {
+      // Mặc định cho STAFF/ADMIN thì sẽ lấy request được assign hoặc đang pending
+      query.$or = [{ assignedStaffId: userId }, { status: 'PENDING' }];
+    }
+
+    // ✅ Lọc theo status (nhiều status)
+    if (filters?.statuses?.length) {
+      query.status = { $in: filters.statuses };
+    }
+
+    // ✅ Lọc theo ngày (fromDate, toDate)
+    if (filters?.fromDate || filters?.toDate) {
+      query.createdAt = {};
+      if (filters.fromDate) {
+        query.createdAt.$gte = new Date(filters.fromDate);
+      }
+      if (filters.toDate) {
+        query.createdAt.$lte = new Date(filters.toDate);
+      }
+    }
+
     return this.repairRequestModel
-      .find({
-        // $or: [
-        //    { status: 'PENDING' }, 
-        //   { technicianId: userId },
-        //   { assignedStaffId: userId },
-        // ],
-        $or: role === 'TECHNICIAN' ? [{ technicianId: userId }] : [{ assignedStaffId: userId }, { status: 'PENDING' }],
-      })
-      .sort({ updatedAt: -1 })
+      .find(query)
+      .sort({ updatedAt: -1 }) // Mới nhất trước
       .exec();
   }
 }

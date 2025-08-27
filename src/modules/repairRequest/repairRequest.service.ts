@@ -30,6 +30,7 @@ import { NotificationService } from '../notification/notification.service';
 import { NotificationGateway } from '../notification/notification.gateway';
 import { NotificationType } from 'src/common/enums/notification-type';
 import { UserService } from '../users/user.service';
+import { FilterRepairRequestDto } from './dtos/filter.dto';
 @Injectable()
 export class RepairRequestService {
   constructor(
@@ -481,15 +482,16 @@ export class RepairRequestService {
     return await this.repairRequestRepo.getTechnicianStats(technicianId);
   }
 
-  async getRequestsByUser(userId: string) {
+  async getRequestsByUser(userId: string, filters: FilterRepairRequestDto) {
     const user = await this.userService.findUserById(userId);
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    return await this.repairRequestRepo.getRequestsByUser(
+    return this.repairRequestRepo.getRequestsByUser(
       userId,
       (user?.roleId as any)?.name,
+      filters,
     );
   }
 }

@@ -21,6 +21,7 @@ import { AssignRepairRequestDto } from './dtos/assign-staff.dto';
 import { UpdateRepairRequestTimestampDto } from './dtos/update-repair-request-timestamp.dto';
 import { UpdateRepairRequestInfoDto } from './dtos/update.dto';
 import { UpdateCustomerPaidDto } from './dtos/customer-paid.dto';
+import { FilterRepairRequestDto } from './dtos/filter.dto';
 
 @Controller('repair-requests')
 export class RepairRequestController {
@@ -48,9 +49,9 @@ export class RepairRequestController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('requests-by-user')
-  async getRequestByUser(@Request() req) {
-    const data = await this.service.getRequestsByUser(req.user.userId);
+  @Post('requests-by-user')
+  async getRequestByUser(@Request() req, @Body() dto: FilterRepairRequestDto) {
+    const data = await this.service.getRequestsByUser(req.user.userId, dto);
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
 
