@@ -79,13 +79,24 @@ export class ProductRepository {
     brandId: string,
     sortBy: string = 'sellPrice',
     sortOrder: 'asc' | 'desc' = 'asc',
+    fromPrice?: number,
+    toPrice?: number,
   ) {
     const sort: Record<string, SortOrder> = {
       [sortBy]: sortOrder === 'asc' ? 1 : -1,
     };
 
+    const query: any = { brandId };
+
+    if (fromPrice !== undefined) {
+      query.sellPrice = { ...query.sellPrice, $gte: fromPrice };
+    }
+    if (toPrice !== undefined) {
+      query.sellPrice = { ...query.sellPrice, $lte: toPrice };
+    }
+
     return this.productModel
-      .find({ brandId })
+      .find(query)
       .sort(sort)
       .populate('brandId categoryId')
       .exec();
@@ -95,12 +106,24 @@ export class ProductRepository {
     categoryId: string,
     sortBy: string = 'sellPrice',
     sortOrder: 'asc' | 'desc' = 'asc',
+    fromPrice?: number,
+    toPrice?: number,
   ) {
     const sort: Record<string, SortOrder> = {
       [sortBy]: sortOrder === 'asc' ? 1 : -1,
     };
+
+    const query: any = { categoryId };
+
+    if (fromPrice !== undefined) {
+      query.sellPrice = { ...query.sellPrice, $gte: fromPrice };
+    }
+    if (toPrice !== undefined) {
+      query.sellPrice = { ...query.sellPrice, $lte: toPrice };
+    }
+
     return this.productModel
-      .find({ categoryId: categoryId })
+      .find(query)
       .sort(sort)
       .populate('brandId categoryId')
       .exec();

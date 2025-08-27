@@ -18,6 +18,6 @@ import {
   ],
   controllers: [SpecificationsController],
   providers: [SpecificationsService, SpecificationsRepository],
-  exports: [SpecificationsService],
+  exports: [SpecificationsService, SpecificationsRepository],
 })
 export class SpecificationsModule {}

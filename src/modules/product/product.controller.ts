@@ -14,6 +14,7 @@ import { ResponseMessage } from 'src/common/enums/responseMessage';
 import { ProductService } from './product.service';
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { UpdateProductDto } from './dtos/update.dto';
+import { FilterProductDto } from './dtos/filter.dto';
 
 @Controller('products')
 export class ProductController {
@@ -60,10 +61,10 @@ export class ProductController {
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
 
-  @Get('brand/:brandName')
+  @Post('brand/:brandName')
   async getByBrandName(
     @Param('brandName') brandName: string,
-    @Query() query: BaseQueryDto,
+    @Body() query: FilterProductDto,
   ) {
     const data = await this.productService.getProductsByBrandName(
       brandName,
@@ -72,10 +73,10 @@ export class ProductController {
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
 
-  @Get('category/:categoryName')
+  @Post('category/:categoryName')
   async getByCategoryName(
     @Param('categoryName') brandName: string,
-    @Query() query: BaseQueryDto,
+    @Body() query: FilterProductDto,
   ) {
     const data = await this.productService.getProductsByCategoryName(
       brandName,

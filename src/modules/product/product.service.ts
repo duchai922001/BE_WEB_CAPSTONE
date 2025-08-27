@@ -23,6 +23,8 @@ import { ProductDetailDto } from './dtos/product-detail.dto';
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { SpecificationsService } from '../specifications/specifications.service';
 import { PromotionRepository } from '../promotion/promotion.repository';
+import { SpecificationsRepository } from '../specifications/specifications.repository';
+import { FilterProductDto } from './dtos/filter.dto';
 
 @Injectable()
 export class ProductService {
@@ -34,6 +36,7 @@ export class ProductService {
     private readonly categoryRepo: CategoryRepository,
     private readonly brandRepo: BrandRepository,
     private readonly speciSer: SpecificationsService,
+    private readonly speciRepo: SpecificationsRepository,
     private readonly promotionRepo: PromotionRepository,
   ) {}
   private async handleImages(
@@ -544,32 +547,51 @@ export class ProductService {
     };
   }
 
-  async getProductsByBrandName(brandName: string, query: BaseQueryDto) {
+  async getProductsByBrandName(brandName: string, query: FilterProductDto) {
     const brand = await this.brandRepo.findByName(brandName);
     if (!brand) {
       throw new NotFoundException(`Brand ${brandName} not found`);
     }
 
-    const { sortBy = 'sellPrice', sortOrder = 'asc', filters } = query;
+    const {
+      sortBy = 'sellPrice',
+      sortOrder = 'asc',
+      filters,
+      fromPrice,
+      toPrice,
+    } = query;
 
     const products = await this.productRepository.findByBrandId(
       String(brand._id),
       sortBy,
       sortOrder,
+      fromPrice,
+      toPrice,
     );
 
     const productIds = products.map((p) => (p as any)._id.toString());
 
     let filteredProductIds = productIds;
 
-    if (filters && Object.keys(filters).length > 0) {
-      filteredProductIds = await this.speciSer.getFilteredProductIds(
-        productIds,
-        filters,
-      );
+    if (filters && filters.length > 0) {
+      // Lọc bỏ các filter có value rỗng
+      const validFilters = filters.filter((f) => f.value && f.value.length > 0);
+
+      if (validFilters.length > 0) {
+        // Chuyển FilterItemDto[] thành {key, value?: string[]}[] đúng kiểu
+        const flatFilters: { key: string; value?: string[] }[] =
+          validFilters.map((f) => ({
+            key: f.key,
+            value: f.value, // giữ nguyên là mảng string
+          }));
+
+        filteredProductIds = await this.speciRepo.getFilteredProductIds(
+          productIds,
+          flatFilters,
+        );
+      }
     }
 
-    // B3: Trả về product chi tiết sau khi lọc
     const filteredProducts = products.filter((p) =>
       filteredProductIds.includes((p as any)._id.toString()),
     );
@@ -597,19 +619,59 @@ export class ProductService {
     );
   }
 
-  async getProductsByCategoryName(categoryName: string, query: BaseQueryDto) {
+  async getProductsByCategoryName(
+    categoryName: string,
+    query: FilterProductDto,
+  ) {
     const category = await this.categoryRepo.findByName(categoryName);
     if (!category) {
       throw new NotFoundException(`Danh mục ${categoryName} không tìm thấy`);
     }
-    const { sortBy = 'sellPrice', sortOrder = 'asc' } = query;
+
+    const {
+      sortBy = 'sellPrice',
+      sortOrder = 'asc',
+      filters,
+      fromPrice,
+      toPrice,
+    } = query;
+
+    // Lấy sản phẩm theo category
     const products = await this.productRepository.findByCategoryId(
       String(category._id),
       sortBy,
       sortOrder,
+      fromPrice,
+      toPrice,
     );
+
+    const productIds = products.map((p) => (p as any)._id.toString());
+    let filteredProductIds = productIds;
+
+    if (filters && filters.length > 0) {
+      // Lọc bỏ các filter có value rỗng
+      const validFilters = filters.filter((f) => f.value && f.value.length > 0);
+
+      if (validFilters.length > 0) {
+        const flatFilters: { key: string; value?: string[] }[] =
+          validFilters.map((f) => ({
+            key: f.key,
+            value: f.value, // giữ nguyên là mảng string
+          }));
+
+        filteredProductIds = await this.speciRepo.getFilteredProductIds(
+          productIds,
+          flatFilters,
+        );
+      }
+    }
+
+    const filteredProducts = products.filter((p) =>
+      filteredProductIds.includes((p as any)._id.toString()),
+    );
+
     return Promise.all(
-      products.map(async (product) => {
+      filteredProducts.map(async (product) => {
         const images = await this.productImageService.findByProductId(
           String(product._id),
         );
