@@ -274,7 +274,7 @@ export class OrderService {
               quantity,
               session,
             );
-            console.log({ serials, quantity });
+
             if (serials.length < quantity) {
               throw new BadRequestException('Sản phẩm này đã hết hàng');
             }
@@ -287,6 +287,40 @@ export class OrderService {
                 (serial as any)._id,
                 { isSold: true },
                 session,
+              );
+            }
+          }
+
+          if (typeProduct === ProductType.NO_VARIABLE_NO_SERIAL) {
+            const stockInStore = await this.productRepo.findById(
+              item.productId,
+            );
+
+            if (!stockInStore) {
+              throw new BadRequestException(
+                'Không tìm thấy sản phẩm trong kho',
+              );
+            }
+
+            if (stockInStore.stock < quantity) {
+              throw new BadRequestException(
+                'Sản phẩm này không đủ số lượng bạn mua',
+              );
+            }
+          }
+
+          if (typeProduct === ProductType.NORMAL_VARIABLES) {
+            const stockInStore = await this.variRepo.findById(item.variableId);
+
+            if (!stockInStore) {
+              throw new BadRequestException(
+                'Không tìm thấy sản phẩm trong kho',
+              );
+            }
+
+            if (stockInStore.stock < quantity) {
+              throw new BadRequestException(
+                'Sản phẩm này không đủ số lượng bạn mua',
               );
             }
           }
@@ -358,9 +392,18 @@ export class OrderService {
       orderItems = [],
       totalAmount,
       customerPaid,
+      userId,
+      customerName,
+      customerPhone,
       ...payloadOther
     } = data;
-
+    let newUser;
+    if (customerName && customerPhone) {
+      newUser = await this.userService.createUserUnActive({
+        fullName: customerName,
+        phone: customerPhone,
+      });
+    }
     const MAX_RETRIES = 5;
     let retry = 0;
 
@@ -377,6 +420,7 @@ export class OrderService {
         order = await this.orderRepository.create({
           ...payloadOther,
           orderCode,
+          userId: userId ?? newUser._id,
           totalAmount,
           customerPaid,
           paymentMethod: PaymentMethod.PAY_IN_STORE,

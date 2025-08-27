@@ -36,9 +36,9 @@ export class OrderItems {
 }
 
 export class AdminCreateOrderDto {
-  @IsNotEmpty()
   @IsMongoId()
-  userId: string;
+  @IsOptional()
+  userId?: string;
 
   @IsOptional()
   @IsMongoId()
@@ -52,6 +52,14 @@ export class AdminCreateOrderDto {
   @IsNumber()
   @Type(() => Number)
   discountValue: number;
+
+  @IsOptional()
+  @IsString()
+  customerName: string;
+
+  @IsOptional()
+  @IsString()
+  customerPhone: string;
 
   @IsNotEmpty()
   @IsNumber()

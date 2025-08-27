@@ -56,7 +56,8 @@ export class CustomerCreateOrderDto {
   totalAmount: number;
 
   @IsMongoId()
-  addressId: string;
+  @IsOptional()
+  addressId?: string;
 
   @IsNotEmpty()
   @IsEnum(PaymentType, {
