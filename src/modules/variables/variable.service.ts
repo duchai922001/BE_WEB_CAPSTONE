@@ -134,11 +134,21 @@ export class VariableService {
     if (newSerials.length > 0) {
       await this.productRepo.increaseStock(dto.productId, newSerials.length);
     }
-    if (dto.typeProduct === '300' && dto.stock !== undefined) {
+    if (dto.typeProduct === '300') {
+      // Lấy tất cả biến thể của product
+      const variables = await this.variableRepository.findByProductId(
+        dto.productId,
+      );
+
+      // Tính tổng stock của tất cả biến thể
+      const totalStock = variables.reduce((sum, v) => sum + (v.stock || 0), 0);
+
+      // Cập nhật stock tổng cho product
       await this.productRepo.updateById(dto.productId, {
-        stock: dto.stock,
+        stock: totalStock,
       });
     }
+
     if (!updated) throw new NotFoundException('Variable not found');
 
     return updated;

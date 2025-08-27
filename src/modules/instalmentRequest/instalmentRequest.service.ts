@@ -6,9 +6,16 @@ import * as nodemailer from 'nodemailer';
 import { InstalmentRequest } from './instalmentRequest.entity';
 import { InstalmentRequestStatus } from 'src/common/enums/instalmentRequest';
 import * as dayjs from 'dayjs';
+import { AttributeService } from '../attributes/attribute.service';
+import { Types } from 'mongoose';
+import { PromotionRepository } from '../promotion/promotion.repository';
 @Injectable()
 export class InstalmentRequestService {
-  constructor(private readonly repo: InstalmentRequestRepository) {}
+  constructor(
+    private readonly repo: InstalmentRequestRepository,
+    private readonly attributeSer: AttributeService,
+    private readonly promoRepo: PromotionRepository,
+  ) {}
 
   create(userId: string, dto: CreateInstalmentRequestDto) {
     return this.repo.create({
@@ -20,13 +27,18 @@ export class InstalmentRequestService {
   findAll() {
     return this.repo.findAll();
   }
-
   async findById(id: string) {
     const request = await this.repo.findById(id);
     if (!request) throw new NotFoundException(ResponseMessage.FILE_NOT_FOUND);
-    return request;
-  }
+    const promo = await this.promoRepo.findValidByProductId(
+      (request.productId as any)._id,
+    );
+    const attributes = await this.attributeSer.findByVariableId(
+      (request.variableId as any)._id,
+    );
 
+    return { ...request, attributes: attributes || [], promo };
+  }
   async updateStatus(id: string, status: string, resultImage?: string) {
     const updated = await this.repo.updateStatus(id, status, resultImage);
     if (!updated) throw new NotFoundException(ResponseMessage.FILE_NOT_FOUND);

@@ -33,7 +33,8 @@ export class InstalmentRequestRepository {
   async findById(id: string): Promise<InstalmentRequest | null> {
     return this.model
       .findById(id)
-      .populate('userId assignedStaffId productId variableId');
+      .populate('userId assignedStaffId productId variableId')
+      .lean();
   }
 
   async updateStatus(
