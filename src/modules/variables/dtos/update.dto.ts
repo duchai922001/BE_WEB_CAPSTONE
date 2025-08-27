@@ -13,7 +13,16 @@ import { SerialCodeDto } from 'src/modules/product/dtos/update.dto';
 export class UpdateVariableDto {
   @IsString()
   @IsNotEmpty()
+  typeProduct: string;
+
+  @IsString()
+  @IsNotEmpty()
   productId: string;
+
+  @IsNumber()
+  @IsOptional()
+  @Min(0)
+  stock?: number;
 
   @IsOptional()
   @IsNumber()

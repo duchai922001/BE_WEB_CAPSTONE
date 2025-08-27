@@ -109,12 +109,14 @@ export class VariableService {
   }
 
   async updateFields(variableId: string, dto: UpdateVariableDto) {
+    const stock =
+      dto.typeProduct === '400' ? dto.serialCodes?.length || 0 : undefined;
     const updated = await this.variableRepository.update(variableId, {
       ...dto,
-      stock: dto.serialCodes?.length,
+      ...(stock !== undefined && { stock }),
     });
     const newSerials = dto.serialCodes?.filter((s) => s.action === 'new') || [];
-    if (dto.serialCodes && dto.serialCodes.length) {
+    if (dto.typeProduct === '400' && dto.serialCodes?.length) {
       for (const s of dto.serialCodes) {
         if (s.action === 'new') {
           await this.serialService.create({
@@ -131,6 +133,11 @@ export class VariableService {
     }
     if (newSerials.length > 0) {
       await this.productRepo.increaseStock(dto.productId, newSerials.length);
+    }
+    if (dto.typeProduct === '300' && dto.stock !== undefined) {
+      await this.productRepo.updateById(dto.productId, {
+        stock: dto.stock,
+      });
     }
     if (!updated) throw new NotFoundException('Variable not found');
 
