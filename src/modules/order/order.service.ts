@@ -34,6 +34,7 @@ import { NotificationGateway } from '../notification/notification.gateway';
 import { NotificationType } from 'src/common/enums/notification-type';
 import { AdminCreateOrderDto } from './dtos/admin-create-order.dto';
 import { OrderDocument } from './order.entity';
+import { PromotionRepository } from '../promotion/promotion.repository';
 @Injectable()
 export class OrderService {
   constructor(
@@ -49,6 +50,7 @@ export class OrderService {
     private readonly variRepo: VariableRepository,
     private readonly notificationService: NotificationService,
     private readonly notificationGateway: NotificationGateway,
+    private readonly promoRepo: PromotionRepository,
   ) {}
   private transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
@@ -70,7 +72,7 @@ export class OrderService {
     if (!Types.ObjectId.isValid(productId)) {
       throw new BadRequestException('productId không hợp lệ');
     }
-    console.log({ typeProduct, productId, variableId, serialCodes });
+
     switch (typeProduct) {
       case ProductType.NO_VARIABLE_NO_SERIAL: {
         if (!quantity) {
@@ -463,28 +465,51 @@ export class OrderService {
       variablesMap = new Map(variables.map((v) => [v._id.toString(), v]));
     }
 
-    const formattedItems = orderItems.map((item) => {
-      const typeProduct = Number(item.product.typeProduct);
-      let sellPrice = 0;
-      let costPrice = 0;
+    const formattedItems = await Promise.all(
+      orderItems.map(async (item) => {
+        const typeProduct = Number(item.product.typeProduct);
+        let sellPrice = 0;
+        let costPrice = 0;
 
-      if ([100, 200].includes(typeProduct)) {
-        sellPrice = item.product.sellPrice;
-        costPrice = item.product.costPrice;
-      } else if ([300, 400].includes(typeProduct) && item.variableId) {
-        const variable = variablesMap.get(item.variableId.toString());
-        if (variable) {
-          sellPrice = variable.sellPrice;
-          costPrice = variable.costPrice;
+        if ([100, 200].includes(typeProduct)) {
+          sellPrice = item.product.sellPrice;
+          costPrice = item.product.costPrice;
+        } else if ([300, 400].includes(typeProduct) && item.variableId) {
+          const variable = variablesMap.get(item.variableId.toString());
+          if (variable) {
+            sellPrice = variable.sellPrice;
+            costPrice = variable.costPrice;
+          }
         }
-      }
 
-      return {
-        ...item,
-        sellPrice,
-        costPrice,
-      };
-    });
+        // ✅ Tìm promo cho product
+        const promo = await this.promoRepo.findValidByProductId(
+          item.product._id.toString(),
+        );
+
+        // ✅ Nếu có promo thì tính lại giá bán
+        if (promo) {
+          if (promo.discountType === 'PERCENT') {
+            const discount = (sellPrice * promo.discountValue) / 100;
+
+            const maxDiscount = promo.maxDiscountMoney || discount;
+            sellPrice = Math.max(
+              sellPrice - Math.min(discount, maxDiscount),
+              0,
+            );
+          } else if (promo.discountType === 'MONEY') {
+            sellPrice = Math.max(sellPrice - promo.discountValue, 0);
+          }
+        }
+
+        return {
+          ...item,
+          sellPrice,
+          costPrice,
+          promo: promo || null,
+        };
+      }),
+    );
 
     return {
       order,
@@ -602,6 +627,12 @@ export class OrderService {
       </p>
     </div>
   `,
+      });
+    }
+
+    if (dto.status === OrderNormalStatus.PAID_FAIL) {
+      await this.orderRepository.update(id, {
+        customerDept: findOrder?.totalAmount,
       });
     }
 

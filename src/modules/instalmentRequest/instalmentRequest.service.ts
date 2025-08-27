@@ -46,7 +46,27 @@ export class InstalmentRequestService {
   }
 
   async getRequestsByUser(userId: string) {
-    return this.repo.findByUserId(userId);
+    const requests = await this.repo.findByUserId(userId);
+
+    return Promise.all(
+      requests.map(async (request) => {
+        const promo = await this.promoRepo.findValidByProductId(
+          (request.productId as any)._id,
+        );
+
+        const attributes = request.variableId
+          ? await this.attributeSer.findByVariableId(
+              (request.variableId as any)._id,
+            )
+          : [];
+
+        return {
+          ...request.toObject(),
+          promo,
+          attributes: attributes || [],
+        };
+      }),
+    );
   }
 
   async sendRequestEmail(id: string) {

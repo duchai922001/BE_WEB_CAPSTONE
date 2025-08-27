@@ -19,6 +19,7 @@ import {
   ProductWarrantyPolicy,
   ProductWarrantyPolicySchema,
 } from '../product-warranty-policy/product-warranty-policy.entity';
+import { PromotionModule } from '../promotion/promotion.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import {
     ProductModule,
     VariableModule,
     NotificationModule,
+    PromotionModule,
   ],
   providers: [OrderService, OrderRepository],
   controllers: [OrderController],

@@ -20,7 +20,7 @@ export class ZaloPayService {
     const app_user = 'user123';
 
     const embed_data = {
-      redirecturl: `https://www.bluetoothmobile.vn/payment-result?orderId=${orderId}paymentType=ZALOPAY`,
+      redirecturl: `https://www.bluetoothmobile.vn/payment-result?orderId=${orderId}&paymentType=ZALOPAY`,
       // redirecturl: `http://localhost:5173/payment-result?orderId=${orderId}`,
       orderId: orderId,
     };
