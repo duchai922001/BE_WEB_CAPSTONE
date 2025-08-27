@@ -66,4 +66,8 @@ export class SerialService {
   async find(condition: any, limit?: number, session?: ClientSession) {
     return this.serialRepository.find(condition, limit, session);
   }
+
+  async checkExistSerialCodes(serialCodes: string[]) {
+    return this.serialRepository.checkExistSerialCodes(serialCodes);
+  }
 }

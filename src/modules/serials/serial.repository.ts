@@ -136,6 +136,15 @@ export class SerialRepository {
     };
   }
 
+  async checkExistSerialCodes(serialCodes: string[]): Promise<string[]> {
+    const existing = await this.serialModel
+      .find({ serialCode: { $in: serialCodes } })
+      .select('serialCode -_id')
+      .lean();
+
+    return existing.map((item) => item.serialCode);
+  }
+
   async markAsUnsold(productId: string, serialCodes: string[]) {
     if (!Types.ObjectId.isValid(productId)) {
       throw new BadRequestException('productId không hợp lệ');

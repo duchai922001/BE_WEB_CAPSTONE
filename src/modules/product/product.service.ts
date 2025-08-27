@@ -299,7 +299,29 @@ export class ProductService {
       stock: stock ? stock : dto.serialCodes?.length,
       isInstallment,
     });
+
+    if (!product) {
+      throw new NotFoundException(ResponseMessage.FILE_NOT_FOUND);
+    }
+
+    // Xử lý serialCodes
     if (dto.serialCodes && dto.serialCodes.length) {
+      // Lọc serial mới
+      const newSerials = dto.serialCodes.filter((s) => s.action === 'new');
+
+      if (newSerials.length > 0) {
+        const serialCodesToCheck = newSerials.map((s) => s.serialCode);
+        const existSerials =
+          await this.serialService.checkExistSerialCodes(serialCodesToCheck);
+
+        if (existSerials.length > 0) {
+          throw new BadRequestException(
+            `Các serial sau đã tồn tại: ${existSerials.join(', ')}`,
+          );
+        }
+      }
+
+      // Tạo/cập nhật serial
       for (const s of dto.serialCodes) {
         if (s.action === 'new') {
           await this.serialService.create({
@@ -314,9 +336,7 @@ export class ProductService {
       }
     }
 
-    if (!product) {
-      throw new NotFoundException(ResponseMessage.FILE_NOT_FOUND);
-    }
+    return product;
   }
 
   async getProductsFormCategory(): Promise<ProductByCategoryDto[]> {

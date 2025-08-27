@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { VariableRepository } from './variable.repository';
 import { CreateVariableDto } from './dtos/create.dto';
 import { Variable } from './variable.entity';
@@ -111,11 +115,23 @@ export class VariableService {
   async updateFields(variableId: string, dto: UpdateVariableDto) {
     const stock =
       dto.typeProduct === '400' ? dto.serialCodes?.length || 0 : undefined;
+
+    const newSerials = dto.serialCodes?.filter((s) => s.action === 'new') || [];
+    if (newSerials.length > 0) {
+      const serialCodesToCheck = newSerials.map((s) => s.serialCode);
+      const existSerials =
+        await this.serialService.checkExistSerialCodes(serialCodesToCheck);
+
+      if (existSerials.length > 0) {
+        throw new BadRequestException(
+          `Các serial sau đã tồn tại: ${existSerials.join(', ')}`,
+        );
+      }
+    }
     const updated = await this.variableRepository.update(variableId, {
       ...dto,
       ...(stock !== undefined && { stock }),
     });
-    const newSerials = dto.serialCodes?.filter((s) => s.action === 'new') || [];
     if (dto.typeProduct === '400' && dto.serialCodes?.length) {
       for (const s of dto.serialCodes) {
         if (s.action === 'new') {
