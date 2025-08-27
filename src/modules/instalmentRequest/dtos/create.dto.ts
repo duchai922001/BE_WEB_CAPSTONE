@@ -28,6 +28,10 @@ export class CreateInstalmentRequestDto {
   @IsNotEmpty()
   installmentPeriod: number;
 
+  @IsString()
+  @IsOptional()
+  cartItemId?: string;
+
   @IsOptional()
   @IsString()
   note?: string;

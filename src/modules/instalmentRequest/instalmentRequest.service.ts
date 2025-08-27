@@ -9,15 +9,20 @@ import * as dayjs from 'dayjs';
 import { AttributeService } from '../attributes/attribute.service';
 import { Types } from 'mongoose';
 import { PromotionRepository } from '../promotion/promotion.repository';
+import { CartItemRepository } from '../cartItem/cartItem.repository';
 @Injectable()
 export class InstalmentRequestService {
   constructor(
     private readonly repo: InstalmentRequestRepository,
     private readonly attributeSer: AttributeService,
     private readonly promoRepo: PromotionRepository,
+    private readonly cartItemRepository: CartItemRepository,
   ) {}
 
-  create(userId: string, dto: CreateInstalmentRequestDto) {
+  async create(userId: string, dto: CreateInstalmentRequestDto) {
+    if (dto.cartItemId) {
+      await this.cartItemRepository.delete(dto.cartItemId);
+    }
     return this.repo.create({
       ...dto,
       userId,

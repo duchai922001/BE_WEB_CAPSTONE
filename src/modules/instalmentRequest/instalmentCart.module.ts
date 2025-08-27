@@ -9,6 +9,7 @@ import { InstalmentRequestService } from './instalmentRequest.service';
 import { InstalmentRequestRepository } from './instalmentRequest.repository';
 import { AttributeModule } from '../attributes/attribute.module';
 import { PromotionModule } from '../promotion/promotion.module';
+import { CartItemModule } from '../cartItem/cartItem.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { PromotionModule } from '../promotion/promotion.module';
     ]),
     AttributeModule,
     PromotionModule,
+    CartItemModule,
   ],
   controllers: [InstalmentRequestController],
   providers: [InstalmentRequestService, InstalmentRequestRepository],
