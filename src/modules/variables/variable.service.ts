@@ -5,6 +5,8 @@ import { Variable } from './variable.entity';
 import { ResponseMessage } from 'src/common/enums/responseMessage';
 import { SerialService } from '../serials/serial.service';
 import { AttributeService } from '../attributes/attribute.service';
+import { UpdateVariableDto } from './dtos/update.dto';
+import { ProductRepository } from '../product/product.repository';
 
 @Injectable()
 export class VariableService {
@@ -12,6 +14,7 @@ export class VariableService {
     private readonly variableRepository: VariableRepository,
     private readonly serialService: SerialService,
     private readonly attributeService: AttributeService,
+    private readonly productRepo: ProductRepository,
   ) {}
 
   async create(data: CreateVariableDto): Promise<Variable> {
@@ -60,12 +63,18 @@ export class VariableService {
     return variable;
   }
 
-  async findById(id: string): Promise<Variable> {
+  async findById(id: string) {
     const variable = await this.variableRepository.findById(id);
     if (!variable) {
       throw new NotFoundException(ResponseMessage.FILE_NOT_FOUND);
     }
-    return variable;
+    const serialCodes = await this.serialService.findByVariableId(
+      String((variable as any)._id),
+    );
+    return {
+      ...variable.toObject(),
+      serialCodes,
+    };
   }
 
   async findByProductId(productId: string): Promise<any[]> {
@@ -97,5 +106,34 @@ export class VariableService {
     ]);
 
     await this.variableRepository.deleteByProductId(productId);
+  }
+
+  async updateFields(variableId: string, dto: UpdateVariableDto) {
+    const updated = await this.variableRepository.update(variableId, {
+      ...dto,
+      stock: dto.serialCodes?.length,
+    });
+    const newSerials = dto.serialCodes?.filter((s) => s.action === 'new') || [];
+    if (dto.serialCodes && dto.serialCodes.length) {
+      for (const s of dto.serialCodes) {
+        if (s.action === 'new') {
+          await this.serialService.create({
+            productId: dto.productId,
+            variableId,
+            serialCode: s.serialCode,
+          });
+        } else if (s.action === 'edit' && s.id) {
+          await this.serialService.updateById(s.id, {
+            serialCode: s.serialCode,
+          });
+        }
+      }
+    }
+    if (newSerials.length > 0) {
+      await this.productRepo.increaseStock(dto.productId, newSerials.length);
+    }
+    if (!updated) throw new NotFoundException('Variable not found');
+
+    return updated;
   }
 }

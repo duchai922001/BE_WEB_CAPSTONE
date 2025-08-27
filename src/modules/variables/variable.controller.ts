@@ -1,8 +1,17 @@
-import { Body, Controller, Get, HttpStatus, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { CreateVariableDto } from './dtos/create.dto';
 import { VariableService } from './variable.service';
 import { createResponse } from 'src/common/helpers/response.helper';
 import { ResponseMessage } from 'src/common/enums/responseMessage';
+import { UpdateVariableDto } from './dtos/update.dto';
 
 @Controller('variables')
 export class VariableController {
@@ -21,5 +30,13 @@ export class VariableController {
   async findById(@Param('id') id: string) {
     const data = await this.variableService.findById(id);
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
+
+  @Patch(':id')
+  async updateVariable(
+    @Param('id') id: string,
+    @Body() updateData: UpdateVariableDto,
+  ) {
+    return this.variableService.updateFields(id, updateData);
   }
 }

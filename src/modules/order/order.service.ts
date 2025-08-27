@@ -272,7 +272,7 @@ export class OrderService {
               quantity,
               session,
             );
-
+            console.log({ serials, quantity });
             if (serials.length < quantity) {
               throw new BadRequestException('Sản phẩm này đã hết hàng');
             }
