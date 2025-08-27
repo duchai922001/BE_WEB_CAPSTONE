@@ -114,4 +114,11 @@ export class CartItemRepository {
       cartId,
     });
   }
+  async updateQuantity(id: string, quantity: number) {
+    return this.cartItemModel.findByIdAndUpdate(
+      id,
+      { $set: { quantity } },
+      { new: true },
+    );
+  }
 }

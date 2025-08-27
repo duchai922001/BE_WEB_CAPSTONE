@@ -17,6 +17,7 @@ import { createResponse } from 'src/common/helpers/response.helper';
 import { ResponseMessage } from 'src/common/enums/responseMessage';
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { UpdateQuantityDto } from './dtos/update-quantity.dto';
 
 @Controller('cart-items')
 export class CartItemController {
@@ -56,8 +57,11 @@ export class CartItemController {
   }
 
   @Patch(':id/quantity')
-  async changeQuantity(@Param('id') id: string, @Body('delta') delta: number) {
-    const data = await this.cartItemService.incrementQuantity(id, delta);
+  async changeQuantity(
+    @Param('id') id: string,
+    @Body() dto: UpdateQuantityDto,
+  ) {
+    const data = await this.cartItemService.updateQuantity(id, dto.quantity);
     return createResponse(HttpStatus.OK, data, ResponseMessage.UPDATE);
   }
 

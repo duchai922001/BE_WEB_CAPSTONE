@@ -25,6 +25,17 @@ export class CartItemService {
     return cartItem;
   }
 
+  async updateQuantity(cartItemId: string, quantity: number) {
+    const updated = await this.cartItemRepository.updateQuantity(
+      cartItemId,
+      quantity,
+    );
+    if (!updated) {
+      throw new NotFoundException('Cart item not found');
+    }
+    return updated;
+  }
+
   async deleteMany(ids: string[]) {
     return await this.cartItemRepository.deleteMany(ids);
   }
