@@ -114,8 +114,11 @@ export class VariableService {
 
   async updateFields(variableId: string, dto: UpdateVariableDto) {
     const stock =
-      dto.typeProduct === '400' ? dto.serialCodes?.length || 0 : undefined;
+      dto.typeProduct === '400'
+        ? dto.serialCodes?.filter((s) => s.action !== 'remove').length || 0
+        : undefined;
 
+    // ---- Check duplicate serials cho new ----
     const newSerials = dto.serialCodes?.filter((s) => s.action === 'new') || [];
     if (newSerials.length > 0) {
       const serialCodesToCheck = newSerials.map((s) => s.serialCode);
@@ -128,10 +131,16 @@ export class VariableService {
         );
       }
     }
+
+    // ---- Update variable fields ----
     const updated = await this.variableRepository.update(variableId, {
       ...dto,
       ...(stock !== undefined && { stock }),
     });
+
+    if (!updated) throw new NotFoundException('Variable not found');
+
+    // ---- Handle serialCodes actions ----
     if (dto.typeProduct === '400' && dto.serialCodes?.length) {
       for (const s of dto.serialCodes) {
         if (s.action === 'new') {
@@ -144,28 +153,32 @@ export class VariableService {
           await this.serialService.updateById(s.id, {
             serialCode: s.serialCode,
           });
+        } else if (s.action === 'remove' && s.id) {
+          await this.serialService.deleteById(s.id);
         }
       }
     }
-    if (newSerials.length > 0) {
-      await this.productRepo.increaseStock(dto.productId, newSerials.length);
-    }
-    if (dto.typeProduct === '300') {
-      // Lấy tất cả biến thể của product
+
+    // ---- Update product stock khi thêm / xoá serial ----
+    if (dto.typeProduct === '400') {
       const variables = await this.variableRepository.findByProductId(
         dto.productId,
       );
 
-      // Tính tổng stock của tất cả biến thể
+      // Tính tổng stock = số serialCodes còn lại
       const totalStock = variables.reduce((sum, v) => sum + (v.stock || 0), 0);
 
-      // Cập nhật stock tổng cho product
-      await this.productRepo.updateById(dto.productId, {
-        stock: totalStock,
-      });
+      await this.productRepo.updateById(dto.productId, { stock: totalStock });
     }
 
-    if (!updated) throw new NotFoundException('Variable not found');
+    // ---- Update stock cho type 300 (dùng số lượng stock thủ công) ----
+    if (dto.typeProduct === '300') {
+      const variables = await this.variableRepository.findByProductId(
+        dto.productId,
+      );
+      const totalStock = variables.reduce((sum, v) => sum + (v.stock || 0), 0);
+      await this.productRepo.updateById(dto.productId, { stock: totalStock });
+    }
 
     return updated;
   }

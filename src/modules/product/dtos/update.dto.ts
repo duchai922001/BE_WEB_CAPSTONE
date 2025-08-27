@@ -22,7 +22,7 @@ export class SerialCodeDto {
   serialCode: string;
 
   @IsString()
-  action: 'new' | 'edit';
+  action: 'new' | 'edit' | 'remove';
 }
 
 export class UpdateProductDto extends PartialType(CreateProductDto) {
