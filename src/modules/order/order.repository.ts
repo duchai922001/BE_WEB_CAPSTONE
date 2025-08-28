@@ -303,8 +303,20 @@ export class OrderRepository {
   }
 
   async getOrdersByEmployee(employeeId: string) {
-    return this.orderModel.find({
-      $or: [{ employeeId: employeeId }, { status: OrderNormalStatus.PENDING }],
-    });
+    return this.orderModel
+      .find({
+        $or: [
+          { employeeId: employeeId },
+          { status: OrderNormalStatus.PENDING },
+        ],
+      })
+      .populate({
+        path: 'userId',
+        select: 'fullName phone',
+      })
+      .populate({
+        path: 'addressId',
+        select: 'street wards districts provinces',
+      });
   }
 }
