@@ -301,4 +301,10 @@ export class OrderRepository {
       doneOrders,
     };
   }
+
+  async getOrdersByEmployee(employeeId: string) {
+    return this.orderModel.find({
+      $or: [{ employeeId: employeeId }, { status: OrderNormalStatus.PENDING }],
+    });
+  }
 }

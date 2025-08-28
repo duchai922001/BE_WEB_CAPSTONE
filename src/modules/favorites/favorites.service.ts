@@ -64,6 +64,7 @@ export class FavoriteService {
           : null);
 
       return {
+        favoriteId: fav._id,
         _id: p._id,
         name: p.name,
         sellPrice: p.sellPrice,

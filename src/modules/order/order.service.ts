@@ -82,6 +82,16 @@ export class OrderService {
         break;
       }
 
+      case ProductType.NORMAL_SERIALS: {
+        if (!serialCodes?.length) {
+          throw new BadRequestException('serialCodes bắt buộc');
+        }
+        const quantity = serialCodes.length;
+        await this.serialRepo.markAsSold(productId, serialCodes);
+        await this.productRepo.decreaseStock(productId, quantity);
+        break;
+      }
+
       case ProductType.NORMAL_VARIABLES: {
         if (!variableId || !quantity) {
           throw new BadRequestException('quantity và variableId bắt buộc');
@@ -90,15 +100,6 @@ export class OrderService {
           throw new BadRequestException('variableId không hợp lệ');
         }
         await this.variRepo.decreaseStock(variableId, quantity);
-        break;
-      }
-
-      case ProductType.NORMAL_SERIALS: {
-        if (!serialCodes?.length) {
-          throw new BadRequestException('serialCodes bắt buộc');
-        }
-        const quantity = serialCodes.length;
-        await this.serialRepo.markAsSold(productId, serialCodes);
         await this.productRepo.decreaseStock(productId, quantity);
         break;
       }
@@ -148,6 +149,16 @@ export class OrderService {
         break;
       }
 
+      case ProductType.NORMAL_SERIALS: {
+        if (!serialCodes?.length) {
+          throw new BadRequestException('serialCodes bắt buộc');
+        }
+        const quantity = serialCodes.length;
+        await this.serialRepo.markAsUnsold(productId, serialCodes);
+        await this.productRepo.increaseStock(productId, quantity);
+        break;
+      }
+
       case ProductType.NORMAL_VARIABLES: {
         if (!variableId || !quantity) {
           throw new BadRequestException('quantity và variableId bắt buộc');
@@ -156,15 +167,6 @@ export class OrderService {
           throw new BadRequestException('variableId không hợp lệ');
         }
         await this.variRepo.increaseStock(variableId, quantity);
-        break;
-      }
-
-      case ProductType.NORMAL_SERIALS: {
-        if (!serialCodes?.length) {
-          throw new BadRequestException('serialCodes bắt buộc');
-        }
-        const quantity = serialCodes.length;
-        await this.serialRepo.markAsUnsold(productId, serialCodes);
         await this.productRepo.increaseStock(productId, quantity);
         break;
       }
@@ -825,5 +827,9 @@ export class OrderService {
       canceledCount,
       totalPaid,
     };
+  }
+
+  async getOrdersByEmployee(employeeId: string) {
+    return await this.orderRepository.getOrdersByEmployee(employeeId);
   }
 }

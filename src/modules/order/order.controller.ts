@@ -42,6 +42,14 @@ export class OrderController {
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('employee')
+  async getOrdersByEmployee(@Request() req) {
+    const userId = req.user.userId;
+    const data = await this.orderService.getOrdersByEmployee(userId);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
+
   @Get('stats')
   async getOrderStats() {
     const data = await this.orderService.getOrderStats();
