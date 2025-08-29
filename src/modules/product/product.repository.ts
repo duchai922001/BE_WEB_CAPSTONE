@@ -49,11 +49,7 @@ export class ProductRepository {
   }
 
   async getAll(): Promise<Product[]> {
-    return this.productModel
-      .find()
-
-      .lean()
-      .exec();
+    return this.productModel.find({ status: true }).lean().exec();
   }
 
   async findAll(): Promise<Product[]> {
@@ -166,7 +162,7 @@ export class ProductRepository {
     const [data, total] = await Promise.all([
       this.productModel
         .find(filter)
-        .select('_id name costPrice sellPrice stock barcode')
+        .select('_id name costPrice sellPrice stock barcode status')
         .skip((pageNumber - 1) * limitNumber)
         .limit(limitNumber)
         .sort({ createdAt: -1 }),
@@ -279,5 +275,13 @@ export class ProductRepository {
     }
 
     return recommended;
+  }
+
+  async toggleStatus(productId: string) {
+    const doc = await this.productModel.findById(productId).select('status');
+    if (!doc) throw new NotFoundException('Không tìm thấy sản phẩm');
+    doc.status = !doc.status;
+    await doc.save();
+    return { productId: String(doc._id), status: doc.status };
   }
 }

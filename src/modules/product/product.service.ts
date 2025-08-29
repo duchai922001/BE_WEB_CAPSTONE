@@ -647,6 +647,10 @@ export class ProductService {
     );
   }
 
+  async toggleStatus(productId: string) {
+    return await this.productRepository.toggleStatus(productId);
+  }
+
   async getProductsByCategoryName(
     categoryName: string,
     query: FilterProductDto,

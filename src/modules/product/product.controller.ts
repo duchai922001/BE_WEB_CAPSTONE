@@ -4,6 +4,7 @@ import {
   Get,
   HttpStatus,
   Param,
+  Patch,
   Post,
   Put,
   Query,
@@ -34,6 +35,12 @@ export class ProductController {
   async getProducts(@Query() query: BaseQueryDto) {
     const data = await this.productService.getList(query);
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
+
+  @Patch('toggle-status/:id')
+  async toggleStatus(@Param('id') id: string) {
+    const data = await this.productService.toggleStatus(id);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.UPDATE);
   }
 
   @Put(':id')

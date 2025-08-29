@@ -34,7 +34,7 @@ export class Product extends Document {
   @Prop({ required: true, unique: true })
   barcode: string;
 
-  @Prop({ default: false })
+  @Prop({ default: true })
   status: boolean;
 
   @Prop({ default: false })
