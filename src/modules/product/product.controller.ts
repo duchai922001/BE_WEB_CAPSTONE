@@ -37,6 +37,12 @@ export class ProductController {
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
 
+  @Post('notification-out-stock/:id')
+  async notificationOutOfStock(@Param('id') id: string) {
+    const data = await this.productService.notificationOutOfStock(id);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
+
   @Patch('toggle-status/:id')
   async toggleStatus(@Param('id') id: string) {
     const data = await this.productService.toggleStatus(id);

@@ -129,6 +129,15 @@ export class UserRepository {
       })
       .then((users) => users.filter((user) => user.roleId));
   }
+  async findAdmins() {
+    return this.userModel
+      .find()
+      .populate({
+        path: 'roleId',
+        match: { name: 'ADMIN' },
+      })
+      .then((users) => users.filter((user) => user.roleId));
+  }
   async findUserByGoogleId(googleId: string): Promise<User | null> {
     return this.userModel
       .findOne({ googleId })

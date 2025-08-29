@@ -28,6 +28,10 @@ import { FilterProductDto } from './dtos/filter.dto';
 import * as XLSX from 'xlsx';
 import * as ExcelJS from 'exceljs';
 import { SerialRepository } from '../serials/serial.repository';
+import { UserRepository } from '../users/user.repository';
+import { NotificationType } from 'src/common/enums/notification-type';
+import { NotificationService } from '../notification/notification.service';
+import { NotificationGateway } from '../notification/notification.gateway';
 @Injectable()
 export class ProductService {
   constructor(
@@ -41,6 +45,9 @@ export class ProductService {
     private readonly speciSer: SpecificationsService,
     private readonly speciRepo: SpecificationsRepository,
     private readonly promotionRepo: PromotionRepository,
+    private readonly userRepo: UserRepository,
+    private readonly notificationService: NotificationService,
+    private readonly notificationGateway: NotificationGateway,
   ) {}
   private async handleImages(
     productId: string,
@@ -451,7 +458,8 @@ export class ProductService {
           discountValue: promo?.discountValue ?? null,
           discountType: promo?.discountType ?? null,
           maxDiscountMoney: promo?.maxDiscountMoney ?? null,
-          isInStock: p.stock > 0, // ✅ thêm flag để UI xử lý
+          isInStock: p.stock > 0,
+          ...(p.stock < 4 ? { stock: p.stock } : {}),
         };
       });
 
@@ -726,6 +734,28 @@ export class ProductService {
 
   async getList(query: BaseQueryDto) {
     return this.productRepository.findWithPagination(query);
+  }
+
+  async notificationOutOfStock(id: string) {
+    const product = await this.productRepository.findById(id);
+    if (!product) {
+      throw new NotFoundException('Không tìm thấy sản phẩm');
+    }
+    const admins = await this.userRepo.findAdmins();
+    for (const admin of admins) {
+      const notif = await this.notificationService.create({
+        userId: (admin as any)._id.toString(),
+        title: 'Sản phẩm đã hết hàng',
+        message: `Mã sản phẩm: ${product.barcode} đã hết hàng`,
+        type: NotificationType.ORDER,
+        targetUrl: `/permission/manage-products`,
+      });
+
+      this.notificationGateway.sendNotification(
+        (admin as any)._id.toString(),
+        notif,
+      );
+    }
   }
 
   async getRecommendedProducts(productId: string) {
