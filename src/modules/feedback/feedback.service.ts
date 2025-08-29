@@ -46,4 +46,7 @@ export class FeedbackService {
   async getFeedbackByOrderId(orderId: string) {
     return await this.feedbackRepo.getFeedbackByOrderId(orderId);
   }
+  async findByProductAndUser(productId: string, userId: string) {
+    return await this.feedbackRepo.findByProductAndUser(productId, userId);
+  }
 }

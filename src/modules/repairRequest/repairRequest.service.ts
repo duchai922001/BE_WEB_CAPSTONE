@@ -224,6 +224,7 @@ export class RepairRequestService {
   async updateStatus(id: string, status: string) {
     const result = await this.repairRequestRepo.updateStatus(id, status);
     if (!result) throw new NotFoundException(ResponseMessage.FILE_NOT_FOUND);
+
     return result;
   }
 

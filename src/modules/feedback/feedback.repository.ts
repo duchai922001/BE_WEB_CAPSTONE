@@ -47,4 +47,14 @@ export class FeedbackRepository {
       .populate('productId', 'name price')
       .exec();
   }
+  async findByProductAndUser(productId: string, userId: string) {
+    return this.feedbackModel
+      .find({
+        productId: productId,
+        userId: userId,
+        isFeedback: true,
+      })
+      .populate({ path: 'userId', select: 'fullName avatar email' })
+      .lean();
+  }
 }
