@@ -48,6 +48,14 @@ export class ProductRepository {
     await this.productModel.findByIdAndDelete(id).exec();
   }
 
+  async getAll(): Promise<Product[]> {
+    return this.productModel
+      .find()
+
+      .lean()
+      .exec();
+  }
+
   async findAll(): Promise<Product[]> {
     return this.productModel
       .find()

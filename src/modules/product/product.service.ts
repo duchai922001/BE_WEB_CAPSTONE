@@ -346,7 +346,8 @@ export class ProductService {
   }
 
   async getProductsFormCategory(): Promise<ProductByCategoryDto[]> {
-    const products = await this.productRepository.findAll();
+    console.log('zo day');
+    const products = await this.productRepository.getAll();
 
     const grouped: Record<string, any[]> = {};
     const productIds: string[] = [];
