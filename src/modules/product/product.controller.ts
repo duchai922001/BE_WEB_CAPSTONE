@@ -52,15 +52,14 @@ export class ProductController {
       throw new Error('Vui lòng upload file Excel');
     }
 
-    const { products, variables } = await this.productService.importFromExcel(
+    const data = await this.productService.importFromExcel(
       file.buffer,
       typeProduct,
     );
 
     return {
       message: 'Import thành công',
-      products,
-      variables,
+      data,
     };
   }
 
@@ -69,10 +68,8 @@ export class ProductController {
     @Query('typeProduct') typeProduct: ProductType,
     @Res() res: Response,
   ) {
-    // Gọi service để tạo buffer
     const buffer = await this.productService.exportTemplateExcel(typeProduct);
 
-    // Set header để trình duyệt download
     res.setHeader(
       'Content-Disposition',
       `attachment; filename="product_template_${typeProduct}.xlsx"`,

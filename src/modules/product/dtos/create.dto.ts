@@ -72,11 +72,11 @@ export class CreateProductDto {
 
   @IsMongoId()
   @IsOptional()
-  productWarrantyPolicyId: string;
+  productWarrantyPolicyId?: string;
 
   @IsOptional()
   @IsArray()
-  variables: CreateVariableDto[];
+  variables?: CreateVariableDto[];
 
   @IsNotEmpty()
   @IsString()

@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ProductRepository } from './product.repository';
-import { CreateProductDto } from './dtos/create.dto';
+import { CreateProductDto, CreateVariableDto } from './dtos/create.dto';
 import { ResponseMessage } from 'src/common/enums/responseMessage';
 import { ProductType } from 'src/common/enums/productType';
 import { ProductImageService } from '../productImage/productImage.service';
@@ -86,6 +86,10 @@ export class ProductService {
       specifications,
       productWarrantyPolicyId,
     } = dto;
+
+    const toNum = (v: unknown, fb = 0): number =>
+      typeof v === 'number' && Number.isFinite(v) ? v : fb;
+
     const productExitedByBarcode =
       await this.productRepository.findProductByBarcode(barcode);
     if (productExitedByBarcode) {
@@ -95,27 +99,33 @@ export class ProductService {
     if (productExited) {
       throw new BadRequestException(ResponseMessage.FILE_EXITED_NAME);
     }
+
+    const vars = variables ?? [];
+
     switch (typeProduct) {
+      // ===== 1) Không biến thể, không serial =====
       case ProductType.NO_VARIABLE_NO_SERIAL: {
         const product = await this.productRepository.create({
           barcode,
           brandId,
           categoryId,
-          costPrice: costPrice ?? 0,
+          costPrice: toNum(costPrice, 0),
           name,
-          sellPrice: sellPrice ?? 0,
-          stock: stock ?? 0,
+          sellPrice: toNum(sellPrice, 0),
+          stock: toNum(stock, 0),
           typeProduct,
           description,
           isInstallment,
-          productWarrantyPolicyId,
+          productWarrantyPolicyId, // nếu repo cho phép optional thì ok
         });
+
         await this.handleImages(
           (product as any)._id.toString(),
           mainImage,
           listImage,
         );
-        if (specifications?.length > 0) {
+
+        if (specifications?.length) {
           const specsWithProductId = specifications.map((spec) => ({
             ...spec,
             productId: (product as any)._id.toString(),
@@ -124,40 +134,45 @@ export class ProductService {
         }
         break;
       }
+
+      // ===== 2) Không biến thể, có serial cấp product =====
       case ProductType.NORMAL_SERIALS: {
-        if (!serials) {
+        if (!serials || serials.length === 0) {
           throw new BadRequestException(
             `${ResponseMessage.REQUIRED_FIELD} serials`,
           );
         }
 
         const product = await this.productRepository.create({
-          barcode: dto.barcode,
+          barcode,
           brandId,
           categoryId,
-          costPrice: costPrice ?? 0,
+          costPrice: toNum(costPrice, 0),
           name,
-          sellPrice: sellPrice ?? 0,
-          stock: serials?.length ?? 0,
+          sellPrice: toNum(sellPrice, 0),
+          stock: serials.length, // số serial = stock
           typeProduct,
           description,
           isInstallment,
           productWarrantyPolicyId,
         });
+
         await this.handleImages(
           (product as any)._id.toString(),
           mainImage,
           listImage,
         );
-        if (specifications?.length > 0) {
+
+        if (specifications?.length) {
           const specsWithProductId = specifications.map((spec) => ({
             ...spec,
             productId: (product as any)._id.toString(),
           }));
           await this.speciSer.createBulk(specsWithProductId);
         }
+
         await Promise.all(
-          serials?.map((serial) =>
+          serials.map((serial) =>
             this.serialService.create({
               productId: (product._id as any).toString(),
               serialCode: serial,
@@ -167,113 +182,123 @@ export class ProductService {
         );
         break;
       }
+
+      // ===== 3) Có biến thể, không serial cấp biến thể =====
       case ProductType.NORMAL_VARIABLES: {
-        if (variables.length < 0) {
+        if (!vars.length) {
           throw new BadRequestException(
             `${ResponseMessage.REQUIRED_FIELD} variables`,
           );
         }
-        const totalStock = variables.reduce(
-          (sum, v) => sum + (v.stock ?? 0),
-          0,
-        );
+
+        const first = vars[0];
+        const totalStock = vars.reduce((sum, v) => sum + toNum(v.stock, 0), 0);
+
         const product = await this.productRepository.create({
           barcode,
           brandId,
           categoryId,
-          costPrice: variables?.[0]?.costPrice,
+          // Ưu tiên giá ở DTO nếu có, fallback biến thể đầu, cuối cùng 0
+          costPrice: toNum(costPrice, toNum(first.costPrice, 0)),
           name,
-          sellPrice: variables?.[0]?.sellPrice,
+          sellPrice: toNum(sellPrice, toNum(first.sellPrice, 0)),
           stock: totalStock,
           typeProduct,
           description,
           isInstallment,
           productWarrantyPolicyId,
         });
+
         await this.handleImages(
           (product as any)._id.toString(),
           mainImage,
           listImage,
         );
-        if (specifications?.length > 0) {
+
+        if (specifications?.length) {
           const specsWithProductId = specifications.map((spec) => ({
             ...spec,
             productId: (product as any)._id.toString(),
           }));
           await this.speciSer.createBulk(specsWithProductId);
         }
+
         await Promise.all(
-          variables.map((item) =>
+          vars.map((item) =>
             this.variableService.create({
               attributes: item.attributes,
-              costPrice: item.costPrice,
-              sellPrice: item.sellPrice,
+              costPrice: toNum(item.costPrice, 0),
+              sellPrice: toNum(item.sellPrice, 0),
               image: item.image,
               productId: (product as any)._id.toString(),
               description: item.description,
-              serials: [],
-              stock: item.stock,
+              serials: [], // không có serial cấp biến thể ở type này
+              stock: toNum(item.stock, 0),
             }),
           ),
         );
         break;
       }
+
+      // ===== 4) Có biến thể + có serial cấp biến thể =====
       case ProductType.NORMAL_VARIABLES_SERIALS: {
-        if (variables.length < 0) {
+        if (!vars.length) {
           throw new BadRequestException(
             `${ResponseMessage.REQUIRED_FIELD} variables`,
           );
         }
-        if (serials && serials?.length < 0) {
-          throw new BadRequestException(
-            `${ResponseMessage.REQUIRED_FIELD} serials`,
-          );
-        }
-        const totalStock = variables.reduce(
+        // serials ở cấp product KHÔNG dùng cho type này -> không cần check dto.serials
+        const first = vars[0];
+        const totalStock = vars.reduce(
           (sum, item) => sum + (item.serials?.length || 0),
           0,
         );
+
         const product = await this.productRepository.create({
           barcode,
           brandId,
           categoryId,
-          costPrice: variables?.[0]?.costPrice,
+          costPrice: toNum(costPrice, toNum(first.costPrice, 0)),
           name,
-          sellPrice: variables?.[0]?.sellPrice,
+          sellPrice: toNum(sellPrice, toNum(first.sellPrice, 0)),
           stock: totalStock,
           typeProduct,
           description,
           isInstallment,
           productWarrantyPolicyId,
         });
+
         await this.handleImages(
           (product as any)._id.toString(),
           mainImage,
           listImage,
         );
-        if (specifications?.length > 0) {
+
+        if (specifications?.length) {
           const specsWithProductId = specifications.map((spec) => ({
             ...spec,
             productId: (product as any)._id.toString(),
           }));
           await this.speciSer.createBulk(specsWithProductId);
         }
+
         await Promise.all(
-          variables.map((item) =>
+          vars.map((item) =>
             this.variableService.create({
               attributes: item.attributes,
-              costPrice: item.costPrice,
-              sellPrice: item.sellPrice,
+              costPrice: toNum(item.costPrice, 0),
+              sellPrice: toNum(item.sellPrice, 0),
               image: item.image,
               productId: (product as any)._id.toString(),
               description: item.description,
-              serials: item.serials,
-              stock: item.serials?.length,
+              serials: item.serials ?? [],
+              stock: item.serials?.length ?? 0, // stock = số serial của biến thể
             }),
           ),
         );
         break;
       }
+
       default:
         throw new BadRequestException(
           `${ResponseMessage.TYPE_NOT_FOUND} ${typeProduct}`,
@@ -346,7 +371,6 @@ export class ProductService {
   }
 
   async getProductsFormCategory(): Promise<ProductByCategoryDto[]> {
-    console.log('zo day');
     const products = await this.productRepository.getAll();
 
     const grouped: Record<string, any[]> = {};
@@ -856,9 +880,27 @@ export class ProductService {
     const categories = await this.categoryRepo.getAll();
     const brands = await this.brandRepo.findAll();
 
+    // ====== LOOKUPS (ẩn) ======
+    const lookups = workbook.addWorksheet('Lookups', { state: 'veryHidden' });
+    lookups.getCell('A1').value = 'Categories';
+    lookups.getCell('B1').value = 'Brands';
+    lookups.getCell('C1').value = 'YesNo';
+
+    categories.forEach((c, i) => (lookups.getCell(`A${i + 2}`).value = c.name));
+    brands.forEach((b, i) => (lookups.getCell(`B${i + 2}`).value = b.name));
+    lookups.getCell('C2').value = 'Có';
+    lookups.getCell('C3').value = 'Không';
+
+    const catRange = `=Lookups!$A$2:$A$${categories.length + 1 || 2}`;
+    const brandRange = `=Lookups!$B$2:$B$${brands.length + 1 || 2}`;
+    const yesNoRange = `=Lookups!$C$2:$C$3`;
+
+    // ====== PRODUCT ======
     const productSheet = workbook.addWorksheet('Product');
 
+    // Thêm ProductKey để liên kết với biến thể
     const productHeaders = [
+      'ProductKey', // << NEW: dùng để link tới Variables
       'CategoryId',
       'BrandId',
       'Name',
@@ -886,8 +928,11 @@ export class ProductService {
       cell.alignment = { horizontal: 'center' };
     });
 
+    // Hàng mẫu
     const sampleRow = productHeaders.map((col) => {
       switch (col) {
+        case 'ProductKey':
+          return 'SP001'; // khóa duy nhất
         case 'CategoryId':
           return categories.length ? categories[0].name : '';
         case 'BrandId':
@@ -903,13 +948,13 @@ export class ProductService {
         case 'Stock':
           return 10;
         case 'Barcode':
-          return 'SP001';
+          return 'BARCODE001';
         case 'MainImage':
           return 'https://link-to-main-image.jpg';
         case 'ListImage':
           return 'https://link1.jpg;https://link2.jpg';
         case 'IsInstallment':
-          return 'Có'; // dropdown: Có/Không
+          return 'Có';
         case 'Specifications':
           return 'Màu:Đỏ,Kích:L';
         case 'Serials':
@@ -920,55 +965,52 @@ export class ProductService {
     });
     productSheet.addRow(sampleRow);
 
-    // --- Dropdown Category ---
-    if (categories.length) {
-      const categoryNames = categories.map((c) => c.name);
-      for (let i = 3; i <= 100; i++) {
-        productSheet.getCell(`A${i}`).dataValidation = {
-          type: 'list',
-          allowBlank: true,
-          formulae: [`"${categoryNames.join(',')}"`],
-          showErrorMessage: true,
-          error: 'Chọn Category hợp lệ',
-        };
-      }
-    }
+    // Auto width đơn giản
+    productSheet.columns = productHeaders.map(() => ({ width: 18 }));
 
-    // --- Dropdown Brand ---
-    if (brands.length) {
-      const brandNames = brands.map((b) => b.name);
-      for (let i = 3; i <= 100; i++) {
-        productSheet.getCell(`B${i}`).dataValidation = {
-          type: 'list',
-          allowBlank: true,
-          formulae: [`"${brandNames.join(',')}"`],
-          showErrorMessage: true,
-          error: 'Chọn Brand hợp lệ',
-        };
-      }
-    }
+    // Helper lấy index cột theo tên
+    const colIdx = (name: string) => productHeaders.indexOf(name) + 1;
 
-    // --- Dropdown IsInstallment ---
-    for (let i = 3; i <= 100; i++) {
-      productSheet.getCell(`K${i}`).dataValidation = {
+    // Data validation cho các cột (1000 dòng nhập)
+    const MAX_ROWS = 1000;
+    for (let r = 3; r <= MAX_ROWS; r++) {
+      // Category
+      productSheet.getCell(r, colIdx('CategoryId')).dataValidation = {
         type: 'list',
         allowBlank: true,
-        formulae: ['"Có,Không"'],
+        formulae: [catRange],
+        showErrorMessage: true,
+        error: 'Chọn Category hợp lệ',
+      };
+      // Brand
+      productSheet.getCell(r, colIdx('BrandId')).dataValidation = {
+        type: 'list',
+        allowBlank: true,
+        formulae: [brandRange],
+        showErrorMessage: true,
+        error: 'Chọn Brand hợp lệ',
+      };
+      // IsInstallment
+      productSheet.getCell(r, colIdx('IsInstallment')).dataValidation = {
+        type: 'list',
+        allowBlank: true,
+        formulae: [yesNoRange],
         showErrorMessage: true,
         error: 'Chọn Có hoặc Không',
       };
     }
 
-    // --- Sheet Variables ---
-    if (
-      [
-        ProductType.NORMAL_VARIABLES,
-        ProductType.NORMAL_VARIABLES_SERIALS,
-      ].includes(typeProduct)
-    ) {
+    // ====== VARIABLES (khi type là biến thể) ======
+    const isVariables = [
+      ProductType.NORMAL_VARIABLES,
+      ProductType.NORMAL_VARIABLES_SERIALS,
+    ].includes(typeProduct);
+
+    if (isVariables) {
       const variableSheet = workbook.addWorksheet('Variables');
       const variableHeaders = [
-        'Attributes',
+        'ProductKey', // << liên kết về Product.ProductKey
+        'Attributes', // ví dụ: "Màu:Đỏ,Kích:L"
         'CostPrice',
         'SellPrice',
         'Stock',
@@ -989,8 +1031,11 @@ export class ProductService {
         cell.alignment = { horizontal: 'center' };
       });
 
+      // Hàng mẫu
       const sampleVarRow = variableHeaders.map((col) => {
         switch (col) {
+          case 'ProductKey':
+            return 'SP001'; // trỏ tới SP001 ở sheet Product
           case 'Attributes':
             return 'Màu:Đỏ,Kích:L';
           case 'CostPrice':
@@ -1010,164 +1055,291 @@ export class ProductService {
         }
       });
       variableSheet.addRow(sampleVarRow);
+
+      variableSheet.columns = variableHeaders.map(() => ({ width: 18 }));
+
+      // Dropdown ProductKey ở Variables dựa trên cột A (ProductKey) của sheet Product
+      // Vì ProductKey là cột 1 (A) nên reference A3..A1000
+      const productKeyRange = `=Product!$A$3:$A$${MAX_ROWS}`;
+      const vColIdx = (name: string) => variableHeaders.indexOf(name) + 1;
+      for (let r = 3; r <= MAX_ROWS; r++) {
+        variableSheet.getCell(r, vColIdx('ProductKey')).dataValidation = {
+          type: 'list',
+          allowBlank: false,
+          formulae: [productKeyRange],
+          showErrorMessage: true,
+          error: 'Chọn ProductKey có trong sheet Product',
+        };
+      }
     }
 
     const buffer = await workbook.xlsx.writeBuffer();
     return Buffer.from(buffer);
   }
 
-  async importFromExcel(fileBuffer: Buffer, typeProduct: ProductType) {
+  private getCellStr(v: ExcelJS.CellValue | undefined | null): string {
+    if (v == null) return '';
+    if (typeof v === 'string') return v;
+    if (typeof v === 'number') return String(v);
+    if (typeof v === 'boolean') return v ? 'TRUE' : 'FALSE';
+    if (v instanceof Date) return v.toISOString();
+    if (typeof v === 'object') {
+      const anyV: any = v as any;
+      if ('text' in anyV && typeof anyV.text === 'string') return anyV.text;
+      if ('hyperlink' in anyV && typeof anyV.hyperlink === 'string')
+        return anyV.hyperlink;
+    }
+    return '';
+  }
+
+  private splitList(s: string): string[] {
+    return s
+      ? s
+          .split(';')
+          .map((x) => x.trim())
+          .filter(Boolean)
+      : [];
+  }
+
+  private parseKeyValueList(s: string): { key: string; value: string }[] {
+    return s
+      ? s
+          .split(',')
+          .map((pair) => {
+            const [k, ...rest] = pair.split(':');
+            return { key: (k || '').trim(), value: rest.join(':').trim() };
+          })
+          .filter((x) => x.key && x.value)
+      : [];
+  }
+
+  private headerIndex(sheet: ExcelJS.Worksheet) {
+    const row1 = sheet.getRow(1);
+    const map = new Map<string, number>();
+    row1.eachCell((cell, col) => {
+      const key = this.getCellStr(cell.value).trim();
+      if (key) map.set(key, col);
+    });
+    return (name: string) => map.get(name) ?? -1;
+  }
+
+  async importFromExcel(
+    fileBuffer: Buffer,
+    typeProduct: ProductType,
+  ): Promise<CreateProductDto[]> {
     const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.load(fileBuffer);
 
     const categories = await this.categoryRepo.getAll();
     const brands = await this.brandRepo.findAll();
+    const catByName = new Map<string, string>(
+      categories.map((c: any) => [String(c.name).trim(), String(c._id)]),
+    );
+    const brandByName = new Map<string, string>(
+      brands.map((b: any) => [String(b.name).trim(), String(b._id)]),
+    );
 
-    const products: any[] = [];
+    const needVariables = [
+      ProductType.NORMAL_VARIABLES,
+      ProductType.NORMAL_VARIABLES_SERIALS,
+    ].includes(typeProduct);
 
-    const productSheet = workbook.getWorksheet('Product');
-    if (!productSheet) throw new Error('Sheet Product không tồn tại');
-
-    // Helper: lấy giá trị cell kiểu string (dù là text/hyperlink/object)
-    const getCellString = (cell: any): string => {
-      if (!cell) return '';
-      if (typeof cell === 'object') {
-        if ('hyperlink' in cell) return String(cell.hyperlink);
-        if ('text' in cell) return String(cell.text);
-        return '';
-      }
-      return String(cell);
-    };
-
-    productSheet.eachRow({ includeEmpty: true }, (row, rowNumber) => {
-      if (rowNumber < 3) return; // bỏ header + ví dụ
-
-      const values = row.values as Array<any> | undefined;
-      if (!values) return;
-
-      const [
-        categoryNameRaw,
-        brandNameRaw,
-        name,
-        description,
-        costPrice,
-        sellPrice,
-        stock,
-        barcode,
-        mainImageCell,
-        listImageCell,
-        isInstallmentRaw,
-        specifications,
-        serials,
-      ] = values.slice(1);
-
-      const categoryName = getCellString(categoryNameRaw).trim();
-      const brandName = getCellString(brandNameRaw).trim();
-      const mainImage = getCellString(mainImageCell).trim();
-      const listImageStr = getCellString(listImageCell).trim();
-      const listImage = listImageStr
-        ? listImageStr
-            .split(';')
-            .map((x) => x.trim())
-            .filter((x) => x)
-        : [];
-      const isInstallment = getCellString(isInstallmentRaw).trim() === 'Có';
-
-      const category = categories.find((c) => c.name === categoryName);
-      const brand = brands.find((b) => b.name === brandName);
-
-      // Chuyển specifications dạng "key:value,key:value" thành array object
-      const attributes = specifications
-        ? specifications.split(',').map((attr) => {
-            const [key, value] = attr.split(':').map((x) => x.trim());
-            return { key, value };
-          })
-        : [];
-
-      const product: any = {
-        categoryId: category?._id ?? null,
-        brandId: brand?._id ?? null,
-        name: name ?? '',
-        description: description ?? '',
-        costPrice: Number(costPrice ?? 0),
-        sellPrice: Number(sellPrice ?? 0),
-        stock: Number(stock ?? 0),
-        barcode: barcode ?? '',
-        mainImage,
-        listImage,
-        isInstallment,
-        attributes,
-      };
-
-      if (typeProduct === ProductType.NORMAL_SERIALS) {
-        product.serials = serials
-          ? getCellString(serials)
-              .split(';')
-              .map((x) => x.trim())
-          : [];
-      }
-
-      products.push(product);
-    });
-
-    // --- Sheet Variables ---
-    const variables: any[] = [];
-    if (
-      [
-        ProductType.NORMAL_VARIABLES,
-        ProductType.NORMAL_VARIABLES_SERIALS,
-      ].includes(typeProduct)
-    ) {
+    // ===== Đọc sheet Variables trước (gom theo ProductKey) =====
+    const variablesByProductKey = new Map<string, CreateVariableDto[]>();
+    if (needVariables) {
       const variableSheet = workbook.getWorksheet('Variables');
       if (variableSheet) {
-        variableSheet.eachRow({ includeEmpty: true }, (row, rowNumber) => {
+        const vColOf = this.headerIndex(variableSheet);
+        const cProdKey = vColOf('ProductKey');
+        const cAttrs = vColOf('Attributes');
+        const cCost = vColOf('CostPrice');
+        const cSell = vColOf('SellPrice');
+        const cStock = vColOf('Stock');
+        const cDesc = vColOf('Description');
+        const cImg = vColOf('Image');
+        const cSer = vColOf('Serials'); // có thể -1
+
+        variableSheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
           if (rowNumber < 3) return;
 
-          const values = row.values as Array<any> | undefined;
-          if (!values) return;
+          const productKey = this.getCellStr(
+            row.getCell(cProdKey).value,
+          ).trim();
+          if (!productKey) return;
 
-          const [
-            attributesCell,
+          const attributes = this.parseKeyValueList(
+            this.getCellStr(row.getCell(cAttrs).value).trim(),
+          );
+          const costPrice = Number(row.getCell(cCost).value ?? 0) || 0;
+          const sellPrice = Number(row.getCell(cSell).value ?? 0) || 0;
+          const stock = Number(row.getCell(cStock).value ?? 0) || 0;
+          const description = this.getCellStr(row.getCell(cDesc).value).trim();
+          const image = this.getCellStr(row.getCell(cImg).value).trim();
+
+          const variable: CreateVariableDto = {
+            attributes,
             costPrice,
             sellPrice,
             stock,
             description,
-            imageCell,
-            serials,
-          ] = values.slice(1);
-
-          const attributesStr = getCellString(attributesCell).trim();
-          const image = getCellString(imageCell).trim();
-
-          const attributes = attributesStr
-            ? attributesStr.split(',').map((attr) => {
-                const [key, value] = attr.split(':').map((x) => x.trim());
-                return { key, value };
-              })
-            : [];
-
-          const variable: any = {
-            attributes,
-            costPrice: Number(costPrice ?? 0),
-            sellPrice: Number(sellPrice ?? 0),
-            stock: Number(stock ?? 0),
-            description: description ?? '',
             image,
           };
 
-          if (typeProduct === ProductType.NORMAL_VARIABLES_SERIALS) {
-            variable.serials = serials
-              ? getCellString(serials)
-                  .split(';')
-                  .map((x) => x.trim())
-              : [];
+          if (
+            typeProduct === ProductType.NORMAL_VARIABLES_SERIALS &&
+            cSer !== -1
+          ) {
+            const serialStr = this.getCellStr(row.getCell(cSer).value).trim();
+            if (serialStr) variable.serials = this.splitList(serialStr);
           }
 
-          variables.push(variable);
+          const list = variablesByProductKey.get(productKey) ?? [];
+          list.push(variable);
+          variablesByProductKey.set(productKey, list);
         });
       }
     }
 
-    return { products, variables };
+    // ===== Đọc sheet Product =====
+    const productSheet = workbook.getWorksheet('Product');
+    if (!productSheet) throw new Error('Sheet Product không tồn tại');
+
+    const pColOf = this.headerIndex(productSheet);
+    const cPKey = pColOf('ProductKey');
+    const cCat = pColOf('CategoryId');
+    const cBrand = pColOf('BrandId');
+    const cName = pColOf('Name');
+    const cDesc = pColOf('Description');
+    const cCost = pColOf('CostPrice');
+    const cSell = pColOf('SellPrice');
+    const cStock = pColOf('Stock');
+    const cBarcode = pColOf('Barcode');
+    const cMain = pColOf('MainImage');
+    const cList = pColOf('ListImage');
+    const cIns = pColOf('IsInstallment');
+    const cSpecs = pColOf('Specifications');
+    const cSerProd = pColOf('Serials');
+
+    const products: CreateProductDto[] = [];
+    const totalRows = productSheet.rowCount;
+
+    for (let r = 3; r <= totalRows; r++) {
+      const row = productSheet.getRow(r);
+
+      const name = this.getCellStr(row.getCell(cName).value).trim();
+      const barcode = this.getCellStr(row.getCell(cBarcode).value).trim();
+      if (!name && !barcode) continue;
+
+      const productKey =
+        cPKey !== -1 ? this.getCellStr(row.getCell(cPKey).value).trim() : '';
+
+      const catName = this.getCellStr(row.getCell(cCat).value).trim();
+      const brandName = this.getCellStr(row.getCell(cBrand).value).trim();
+      const categoryId = catByName.get(catName);
+      const brandId = brandByName.get(brandName);
+
+      if (!categoryId)
+        throw new Error(`Dòng ${r}: Không tìm thấy Category "${catName}"`);
+      if (!brandId)
+        throw new Error(`Dòng ${r}: Không tìm thấy Brand "${brandName}"`);
+      if (!barcode) throw new Error(`Dòng ${r}: Thiếu Barcode`);
+      if (needVariables && !productKey) {
+        throw new Error(`Dòng ${r}: Thiếu ProductKey để liên kết biến thể`);
+      }
+
+      const description = this.getCellStr(row.getCell(cDesc).value).trim();
+      const costPriceCell = Number(row.getCell(cCost).value ?? 0);
+      const sellPriceCell = Number(row.getCell(cSell).value ?? 0);
+      const stockCell = Number(row.getCell(cStock).value ?? 0);
+      const mainImage = this.getCellStr(row.getCell(cMain).value).trim();
+      const listImage = this.splitList(
+        this.getCellStr(row.getCell(cList).value).trim(),
+      );
+      const isInstallment =
+        this.getCellStr(row.getCell(cIns).value).trim() === 'Có';
+      const specifications = this.parseKeyValueList(
+        this.getCellStr(row.getCell(cSpecs).value).trim(),
+      );
+
+      // Luôn là mảng (để tránh TS18048)
+      const vars: CreateVariableDto[] = needVariables
+        ? (variablesByProductKey.get(productKey) ?? [])
+        : [];
+
+      // Tổng stock biến thể
+      const totalVarStock = vars.reduce(
+        (sum, v) => sum + (Number(v.stock ?? 0) || 0),
+        0,
+      );
+
+      // ===== Branch theo typeProduct =====
+      let costPrice: number;
+      let sellPrice: number;
+      let stock: number;
+      let serials: string[] | undefined;
+      let variablesOut: CreateVariableDto[] = [];
+
+      switch (typeProduct) {
+        case ProductType.NORMAL_VARIABLES:
+        case ProductType.NORMAL_VARIABLES_SERIALS: {
+          variablesOut = vars; // biến thể đi cùng sản phẩm
+          costPrice =
+            Number.isFinite(costPriceCell) && costPriceCell !== 0
+              ? costPriceCell
+              : (vars[0]?.costPrice ?? 0);
+          sellPrice =
+            Number.isFinite(sellPriceCell) && sellPriceCell !== 0
+              ? sellPriceCell
+              : (vars[0]?.sellPrice ?? 0);
+          stock = totalVarStock; // stock tổng từ biến thể
+          // serials cấp sản phẩm: không dùng
+          break;
+        }
+
+        case ProductType.NORMAL_SERIALS: {
+          variablesOut = []; // không có biến thể
+          costPrice = Number.isFinite(costPriceCell) ? costPriceCell : 0;
+          sellPrice = Number.isFinite(sellPriceCell) ? sellPriceCell : 0;
+          stock = Number.isFinite(stockCell) ? stockCell : 0;
+          if (cSerProd !== -1) {
+            const serStr = this.getCellStr(row.getCell(cSerProd).value).trim();
+            serials = serStr ? this.splitList(serStr) : undefined;
+          }
+          break;
+        }
+
+        default: {
+          // NORMAL (không serial, không biến thể)
+          variablesOut = [];
+          costPrice = Number.isFinite(costPriceCell) ? costPriceCell : 0;
+          sellPrice = Number.isFinite(sellPriceCell) ? sellPriceCell : 0;
+          stock = Number.isFinite(stockCell) ? stockCell : 0;
+          break;
+        }
+      }
+
+      const dto: CreateProductDto = {
+        categoryId,
+        brandId,
+        // ĐỪNG set productWarrantyPolicyId nếu không có (tránh gán undefined cho string)
+        variables: variablesOut, // luôn là mảng
+        name,
+        description,
+        costPrice, // luôn number
+        sellPrice, // luôn number
+        stock, // luôn number
+        barcode,
+        serials, // undefined khi không dùng
+        typeProduct,
+        mainImage,
+        isInstallment,
+        listImage,
+        specifications,
+      };
+
+      products.push(dto);
+    }
+
+    return products;
   }
 }
