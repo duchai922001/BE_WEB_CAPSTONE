@@ -307,16 +307,15 @@ export class OrderRepository {
       .find({
         $or: [
           { employeeId: employeeId },
-          { status: OrderNormalStatus.PENDING },
+          { employeeId: { $exists: false } },
+          { employeeId: null },
         ],
       })
-      .populate({
-        path: 'userId',
-        select: 'fullName phone',
-      })
+      .populate({ path: 'userId', select: 'fullName phone' })
       .populate({
         path: 'addressId',
         select: 'street wards districts provinces',
-      });
+      })
+      .lean();
   }
 }
