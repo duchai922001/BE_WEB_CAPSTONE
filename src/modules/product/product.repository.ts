@@ -64,16 +64,20 @@ export class ProductRepository {
   async search(query: BaseQueryDto) {
     const builder = builderQuery(query);
 
+    const finalFilter = builder.filter?.$or
+      ? { $and: [builder.filter, { status: true }] }
+      : { ...(builder.filter || {}), status: true };
+
     const [items, total] = await Promise.all([
       this.productModel
-        .find(builder.filter)
+        .find(finalFilter)
         .skip(builder.pagination.skip)
         .limit(builder.pagination.limit)
         .sort(builder.sort)
         .populate(builder.populate)
-        .lean(),
-
-      this.productModel.countDocuments(builder.filter),
+        .lean()
+        .exec(),
+      this.productModel.countDocuments(finalFilter),
     ]);
 
     return {
