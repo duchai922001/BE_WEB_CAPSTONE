@@ -95,7 +95,7 @@ export class ProductRepository {
       [sortBy]: sortOrder === 'asc' ? 1 : -1,
     };
 
-    const query: any = { brandId };
+    const query: any = { brandId, status: true };
 
     if (fromPrice !== undefined) {
       query.sellPrice = { ...query.sellPrice, $gte: fromPrice };
@@ -122,7 +122,7 @@ export class ProductRepository {
       [sortBy]: sortOrder === 'asc' ? 1 : -1,
     };
 
-    const query: any = { categoryId };
+    const query: any = { categoryId, status: true };
 
     if (fromPrice !== undefined) {
       query.sellPrice = { ...query.sellPrice, $gte: fromPrice };
