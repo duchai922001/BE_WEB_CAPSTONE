@@ -48,8 +48,13 @@ export class ProductRepository {
     await this.productModel.findByIdAndDelete(id).exec();
   }
 
-  async findAll(): Promise<ProductDocument[]> {
-    return this.productModel.find().exec();
+  async findAll(): Promise<Product[]> {
+    return this.productModel
+      .find()
+      .populate('categoryId', 'name')
+      .populate('brandId', 'name')
+      .lean()
+      .exec();
   }
 
   async search(query: BaseQueryDto) {

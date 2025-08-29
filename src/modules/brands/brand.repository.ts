@@ -31,6 +31,10 @@ export class BrandRepository {
     return newBrand.save();
   }
 
+  async findAll(): Promise<Brand[]> {
+    return this.brandModel.find({ isDelete: false }).lean();
+  }
+
   async getAll(query: BaseQueryDto): Promise<Brand[]> {
     const { filter, pagination, sort } = builderQuery(query);
     const finalFilter = {
