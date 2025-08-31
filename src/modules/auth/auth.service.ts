@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UserService } from '../users/user.service';
 import { JwtService } from '@nestjs/jwt';
 import { Token, TokenDocument } from './auth.entity';
@@ -16,7 +20,9 @@ export class AuthService {
 
   async login(phone: string, password: string) {
     const user = await this.userService.validateUser(phone, password);
-
+    if (user.status === 0) {
+      throw new BadRequestException('Tài khoản của bạn đã bị ban');
+    }
     const permission =
       user.roleId.permissionId?.map((p) => p.name as PermissionSystem) || [];
     const payload = {
