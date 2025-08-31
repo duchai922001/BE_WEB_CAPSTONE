@@ -117,6 +117,13 @@ export class UserService {
     }
     return user;
   }
+  async findByEmail(email: string): Promise<UserDocument> {
+    const user = await this.userRepository.findByEmail(email);
+    if (!user) {
+      throw new NotFoundException('Không tìm thấy người dùng');
+    }
+    return user;
+  }
   async validateUser(phone: string, password: string): Promise<any> {
     const user = await this.userRepository.findByPhone(phone);
 
@@ -130,7 +137,7 @@ export class UserService {
     }
 
     if (user.status === 0) {
-      throw new BadRequestException('Tài khoản chưa được kích hoạt');
+      throw new BadRequestException('Tài khoản của bạn đã bị khóa');
     }
 
     const populatedUser = await user.populate({

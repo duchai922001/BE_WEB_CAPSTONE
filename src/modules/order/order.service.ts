@@ -199,7 +199,10 @@ export class OrderService {
     const session = await this.connection.startSession();
     let order: any;
     const createdOrderItems: any[] = [];
-
+    const user = await this.userService.findUserById(data.userId);
+    if (user?.status) {
+      throw new BadRequestException('Tài khoản của bạn đã bị khóa');
+    }
     try {
       await session.withTransaction(async () => {
         const { orderItems, status, ...payloadOther } = data;

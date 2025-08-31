@@ -62,12 +62,31 @@ export class UserController {
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
-  async googleAuthRedirect(@Request() req, @Res() res: Response) {
-    const user = req.user;
-    const token = this.jwtService.sign({ sub: user._id, email: user.email });
+  async googleAuthRedirect(@Req() req, @Res() res: Response) {
+    const user = req.user as { _id: any; email?: string; status?: number };
 
-    res.redirect(`https://www.bluetoothmobile.vn?token=${token}`);
+    const FRONTEND_URL = 'https://www.bluetoothmobile.vn';
+
+    if (!user) {
+      const msg = encodeURIComponent('Không lấy được thông tin người dùng.');
+      return res.redirect(`${FRONTEND_URL}/auth/callback?error=${msg}`);
+    }
+
+    if (user.status === 0) {
+      const msg = encodeURIComponent(
+        'Tài khoản đã bị khóa. Vui lòng liên hệ hỗ trợ.',
+      );
+      return res.redirect(`${FRONTEND_URL}/auth/callback?error=${msg}`);
+    }
+
+    const token = this.jwtService.sign({
+      sub: user._id.toString(),
+      email: user.email ?? '',
+    });
+
+    return res.redirect(`${FRONTEND_URL}?token=${token}`);
   }
+
   @Get('')
   async getAll(@Query() query: BaseQueryDto) {
     const data = await this.userService.getAll(query);
