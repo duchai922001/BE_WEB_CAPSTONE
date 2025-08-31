@@ -131,10 +131,10 @@ export class RepairRequestRepository {
       {
         $lookup: {
           from: 'users',
-          let: { techId: { $toObjectId: '$technicianId' } }, // ép string sang ObjectId
+          let: { techId: { $toObjectId: '$technicianId' } },
           pipeline: [
             { $match: { $expr: { $eq: ['$_id', '$$techId'] } } },
-            { $project: { fullName: 1, phone: 1, email: 1 } }, // chỉ lấy field cần thiết
+            { $project: { fullName: 1, phone: 1, email: 1 } },
           ],
           as: 'technician',
         },
