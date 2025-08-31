@@ -11,28 +11,98 @@ import { Types } from 'mongoose';
 import { PromotionRepository } from '../promotion/promotion.repository';
 import { CartItemRepository } from '../cartItem/cartItem.repository';
 import { ProductImageRepository } from '../productImage/productImage.repository';
+import { UserService } from '../users/user.service';
+import { NotificationType } from 'src/common/enums/notification-type';
+import { NotificationService } from '../notification/notification.service';
+import { NotificationGateway } from '../notification/notification.gateway';
 @Injectable()
 export class InstalmentRequestService {
   constructor(
+    private readonly userService: UserService,
     private readonly repo: InstalmentRequestRepository,
     private readonly attributeSer: AttributeService,
     private readonly promoRepo: PromotionRepository,
     private readonly cartItemRepository: CartItemRepository,
     private readonly productImage: ProductImageRepository,
+    private readonly notificationService: NotificationService,
+    private readonly notificationGateway: NotificationGateway,
   ) {}
 
   async create(userId: string, dto: CreateInstalmentRequestDto) {
-    if (dto.cartItemId) {
-      await this.cartItemRepository.delete(dto.cartItemId);
+    const { cartItemId, ...payload } = dto;
+
+    if (cartItemId) {
+      await this.cartItemRepository.delete(cartItemId);
     }
-    return this.repo.create({
-      ...dto,
-      userId,
-    });
+
+    const MAX_RETRIES = 5;
+    let retry = 0;
+    let instalmentRequestOrder: string;
+    let request: any;
+
+    while (retry < MAX_RETRIES) {
+      instalmentRequestOrder = `${Date.now()}${Math.floor(Math.random() * 1000)
+        .toString()
+        .padStart(3, '0')}`;
+
+      try {
+        request = await this.repo.create({
+          ...payload,
+          userId,
+          instalmentRequestOrder,
+        });
+
+        const consultants = await this.userService.getConsultants();
+        for (const consultant of consultants) {
+          const notif = await this.notificationService.create({
+            userId: (consultant as any)._id.toString(),
+            title: 'Đơn trả góp vừa được tạo',
+            message: `Đơn trả góp có mã ${instalmentRequestOrder} vừa được tạo`,
+            type: NotificationType.ORDER,
+            targetUrl: `/permission/manage-instalment-request?instalmentRequestOrder=${instalmentRequestOrder}`,
+          });
+
+          this.notificationGateway.sendNotification(
+            (consultant as any)._id.toString(),
+            notif,
+          );
+        }
+
+        break;
+      } catch (error: any) {
+        if (
+          error?.code === 11000 &&
+          (error?.keyPattern?.instalmentRequestOrder ||
+            error?.keyValue?.instalmentRequestOrder)
+        ) {
+          retry++;
+          continue;
+        }
+        throw error;
+      }
+    }
+
+    if (!request) {
+      throw new Error(
+        'Could not create unique instalmentRequestOrder after retries',
+      );
+    }
+
+    return request;
   }
 
   findAll() {
     return this.repo.findAll();
+  }
+  async getRequestsByStaff(userId: string) {
+    const user = await this.userService.findUserById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return await this.repo.getRequestsByStaff(
+      userId,
+      (user?.roleId as any)?.name,
+    );
   }
   async findById(id: string) {
     const request = await this.repo.findById(id);
@@ -62,7 +132,11 @@ export class InstalmentRequestService {
   }
 
   async updateStatus(id: string, status: string, resultImage?: string) {
-    const updated = await this.repo.updateStatus(id, status, resultImage);
+    const updated = await this.repo.updateStatus({
+      id: id,
+      status: status,
+      resultImage,
+    });
     if (!updated) throw new NotFoundException(ResponseMessage.FILE_NOT_FOUND);
     return updated;
   }
@@ -97,14 +171,18 @@ export class InstalmentRequestService {
     );
   }
 
-  async sendRequestEmail(id: string) {
+  async sendRequestEmail(id: string, userId: string) {
     const request = await this.repo.findById(id);
     if (!request) {
       throw new NotFoundException('Không tìm thấy yêu cầu trả góp');
     }
 
     await this.sendEmailToBank(request);
-    await this.repo.updateStatus(id, InstalmentRequestStatus.SEND_EMAIL);
+    await this.repo.updateStatus({
+      id: id,
+      status: InstalmentRequestStatus.SEND_EMAIL,
+      assignedStaffId: userId,
+    });
   }
 
   private async sendEmailToBank(request: InstalmentRequest) {

@@ -19,10 +19,4 @@ export class StaffActionLogController {
     const data = await this.staffActionLogService.getAllLogs();
     return createResponse(HttpStatus.CREATED, data, ResponseMessage.GET);
   }
-
-  @Get(':id')
-  async findById(@Param('id') id: string) {
-    const data = await this.staffActionLogService.getLogDetail(id);
-    return createResponse(HttpStatus.CREATED, data, ResponseMessage.GET);
-  }
 }

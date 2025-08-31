@@ -20,6 +20,7 @@ import {
   ProductWarrantyPolicySchema,
 } from '../product-warranty-policy/product-warranty-policy.entity';
 import { PromotionModule } from '../promotion/promotion.module';
+import { StaffActionLogModule } from '../staffActionLog/staffActionLog.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { PromotionModule } from '../promotion/promotion.module';
     VariableModule,
     NotificationModule,
     PromotionModule,
+    StaffActionLogModule,
   ],
   providers: [OrderService, OrderRepository],
   controllers: [OrderController],

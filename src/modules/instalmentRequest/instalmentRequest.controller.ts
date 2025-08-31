@@ -32,6 +32,13 @@ export class InstalmentRequestController {
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('requests-by-user')
+  async getRequestsByStaff(@Request() req) {
+    const data = await this.service.getRequestsByStaff(req.user.userId);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
+
   @Get('get-id/:id')
   async findById(@Param('id') id: string) {
     const data = await this.service.findById(id);
@@ -55,9 +62,10 @@ export class InstalmentRequestController {
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post(':id/send-email')
-  async sendEmail(@Param('id') id: string) {
-    const data = await this.service.sendRequestEmail(id);
+  async sendEmail(@Param('id') id: string, @Request() req) {
+    const data = await this.service.sendRequestEmail(id, req.user.userId);
     return createResponse(
       HttpStatus.OK,
       data,

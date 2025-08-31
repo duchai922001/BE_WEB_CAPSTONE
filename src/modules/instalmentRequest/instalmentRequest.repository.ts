@@ -38,15 +38,34 @@ export class InstalmentRequestRepository {
       .lean();
   }
 
-  async updateStatus(
-    id: string,
-    status: string,
-    resultImage?: string,
-  ): Promise<InstalmentRequest | null> {
+  async updateStatus({
+    id,
+    status,
+    resultImage,
+    assignedStaffId,
+  }: {
+    id: string;
+    status: string;
+    resultImage?: string;
+    assignedStaffId?: string;
+  }): Promise<InstalmentRequest | null> {
     const updateData: any = { status };
     if (resultImage) {
       updateData.resultImage = resultImage;
     }
+    if (assignedStaffId) {
+      updateData.assignedStaffId = assignedStaffId;
+    }
     return this.model.findByIdAndUpdate(id, updateData, { new: true });
+  }
+
+  async getRequestsByStaff(userId: string, role: string) {
+    const query: any = {};
+    if (role === 'ADMIN') {
+    } else {
+      query.$or = [{ assignedStaffId: userId }, { status: 'pending' }];
+    }
+
+    return this.model.find(query).sort({ updatedAt: -1 }).exec();
   }
 }

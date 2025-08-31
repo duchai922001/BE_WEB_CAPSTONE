@@ -7,8 +7,8 @@ export class StaffActionLog extends Document {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   userId: Types.ObjectId;
 
-  @Prop({ required: true })
-  refId: RefConfig;
+  @Prop({ type: String, required: true })
+  url: string;
 
   @Prop({ required: true })
   actionType: ActionTypeConfig;

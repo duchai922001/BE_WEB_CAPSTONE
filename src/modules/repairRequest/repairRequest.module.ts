@@ -11,6 +11,7 @@ import { RepairInvoiceItemModule } from '../repair-invoice-item/repair-invoice-i
 import { RepairServiceModule } from '../repairService/repairService.module';
 import { NotificationModule } from '../notification/notification.module';
 import { UserModule } from '../users/user.module';
+import { StaffActionLogModule } from '../staffActionLog/staffActionLog.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { UserModule } from '../users/user.module';
     RepairInvoiceItemModule,
     RepairServiceModule,
     NotificationModule,
+    StaffActionLogModule,
     forwardRef(() => UserModule),
   ],
   controllers: [RepairRequestController],

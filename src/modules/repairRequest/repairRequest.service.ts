@@ -32,6 +32,8 @@ import { NotificationType } from 'src/common/enums/notification-type';
 import { UserService } from '../users/user.service';
 import { FilterRepairRequestDto } from './dtos/filter.dto';
 import { CreateRepairRequestAdminDto } from './dtos/admin-create.dto';
+import { StaffActionLogRepository } from '../staffActionLog/staffActionLog.repository';
+import { ActionLogType } from 'src/common/enums/config';
 @Injectable()
 export class RepairRequestService {
   constructor(
@@ -46,6 +48,7 @@ export class RepairRequestService {
     private readonly notificationService: NotificationService,
     private readonly notificationGateway: NotificationGateway,
     private readonly userService: UserService,
+    private readonly staffLogRepo: StaffActionLogRepository,
   ) {}
 
   async create(userId: string, data: CreateRepairRequestDto) {
@@ -236,7 +239,12 @@ export class RepairRequestService {
     if (!result) throw new NotFoundException(ResponseMessage.FILE_NOT_FOUND);
     if (status === RepairRequestStatus.FINISH_REPORT) {
       const consultants = await this.userService.getConsultants();
-
+      await this.staffLogRepo.create({
+        actionType: ActionLogType.REPORT,
+        description: 'Đơn sửa chữa vừa được nhân viên báo cáo',
+        url: `/permission/manage-repair-request?repairRequestCode=${result.repairRequestCode}`,
+        userId: String(result?.technicianId),
+      });
       for (const consultant of consultants) {
         const notif = await this.notificationService.create({
           userId: (consultant as any)._id.toString(),
@@ -275,7 +283,21 @@ export class RepairRequestService {
     if (!updatedRequest) {
       throw new NotFoundException('Repair request not found');
     }
+    if (assignedStaffId) {
+      await this.staffLogRepo.create({
+        actionType: ActionLogType.ASSIGN,
+        description: 'Đơn sửa chữa được nhân viên tư vấn nhận đơn',
+        url: `/permission/manage-repair-request?repairRequestCode=${updatedRequest.repairRequestCode}`,
+        userId: String(updatedRequest?.assignedStaffId),
+      });
+    }
     if (technicianId) {
+      await this.staffLogRepo.create({
+        actionType: ActionLogType.ASSIGN,
+        description: 'Đơn sửa chữa được nhân viên tư vấn giao kỹ thuật',
+        url: `/permission/manage-repair-request?repairRequestCode=${updatedRequest.repairRequestCode}`,
+        userId: String(updatedRequest?.assignedStaffId),
+      });
       const notif = await this.notificationService.create({
         userId: technicianId,
         title: 'Bạn được giao làm kỹ thuật viên',
@@ -337,6 +359,12 @@ export class RepairRequestService {
         dto.repairRequestId,
         RepairRequestStatus.WAIT_CUSTOMER_RECEIVE,
       );
+      await this.staffLogRepo.create({
+        actionType: ActionLogType.DONE_REPAIR,
+        description: 'Đơn sửa chữa được nhân viên kỹ thuật hoàn thành sửa chữa',
+        url: `/permission/manage-repair-request?repairRequestCode=${updated.repairRequestCode}`,
+        userId: String(updated?.technicianId),
+      });
       const notif = await this.notificationService.create({
         userId: updated?.assignedStaffId?.toString(),
         title: 'Nhân viên kỹ thuật đã hoàn thành sữa chữa',
@@ -355,6 +383,12 @@ export class RepairRequestService {
         dto.repairRequestId,
         RepairRequestStatus.COMPLETED,
       );
+      await this.staffLogRepo.create({
+        actionType: ActionLogType.DONE,
+        description: 'Đơn sửa chữa được nhân viên tư vấn hoàn thành đơn',
+        url: `/permission/manage-repair-request?repairRequestCode=${updated.repairRequestCode}`,
+        userId: String(updated?.assignedStaffId),
+      });
     }
     if (dto.field === 'pickupAppointmentDate') {
       const repairRequest = await this.repairRequestRepo.findById(
@@ -363,6 +397,12 @@ export class RepairRequestService {
       if (!repairRequest) {
         throw new NotFoundException('Không tìm thấy yêu cầu sửa chữa');
       }
+      await this.staffLogRepo.create({
+        actionType: ActionLogType.NOTI,
+        description: 'Đơn sửa chữa được nhân viên tư vấn thông báo khách nhận',
+        url: `/permission/manage-repair-request?repairRequestCode=${updated.repairRequestCode}`,
+        userId: String(updated?.assignedStaffId),
+      });
       const email = (repairRequest.userId as any)?.email;
       const fullName = (repairRequest.userId as any)?.fullName || 'Khách hàng';
       if (email) {

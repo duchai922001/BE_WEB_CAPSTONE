@@ -35,6 +35,8 @@ import { NotificationType } from 'src/common/enums/notification-type';
 import { AdminCreateOrderDto } from './dtos/admin-create-order.dto';
 import { OrderDocument } from './order.entity';
 import { PromotionRepository } from '../promotion/promotion.repository';
+import { StaffActionLogRepository } from '../staffActionLog/staffActionLog.repository';
+import { ActionLogType } from 'src/common/enums/config';
 @Injectable()
 export class OrderService {
   constructor(
@@ -51,6 +53,7 @@ export class OrderService {
     private readonly notificationService: NotificationService,
     private readonly notificationGateway: NotificationGateway,
     private readonly promoRepo: PromotionRepository,
+    private readonly staffLogRepo: StaffActionLogRepository,
   ) {}
   private transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
@@ -413,7 +416,6 @@ export class OrderService {
     const MAX_RETRIES = 5;
     let retry = 0;
 
-    // Khai báo đúng kiểu (OrderDocument hoặc null nếu cần)
     let order: OrderDocument | null = null;
 
     while (retry < MAX_RETRIES) {
@@ -658,6 +660,12 @@ export class OrderService {
           ),
         ),
       );
+      await this.staffLogRepo.create({
+        actionType: ActionLogType.CONFIRM,
+        description: 'Đơn hàng vừa được nhân viên xác nhận',
+        url: `/permission/manage-orders?orderCode=${findOrder.orderCode}`,
+        userId: userId,
+      });
       await this.transporter.sendMail({
         from: '"Bluetooth Mobile" <khangnvmse171448@fpt.edu.vn>', // Tên hiển thị + email
         to: (findOrder.userId as any).email,
@@ -692,6 +700,12 @@ export class OrderService {
           'products là bắt buộc khi xác nhận đơn hàng',
         );
       }
+      await this.staffLogRepo.create({
+        actionType: ActionLogType.CANCEL,
+        description: 'Đơn hàng vừa được nhân viên hủy đơn',
+        url: `/permission/manage-orders?orderCode=${findOrder.orderCode}`,
+        userId: userId,
+      });
       await Promise.all(
         dto.products.map(async (p) => {
           if (p.typeProduct === 300) {
@@ -719,6 +733,15 @@ export class OrderService {
           'products là bắt buộc khi xác nhận đơn hàng',
         );
       }
+      await this.staffLogRepo.create({
+        actionType: ActionLogType.CANCEL,
+        description:
+          dto.status === OrderNormalStatus.REFUNDED
+            ? 'Đơn hàng vừa được nhân viên hoàn lại đơn'
+            : 'Đơn hàng vừa được nhân viên xác nhận giao thất bại',
+        url: `/permission/manage-orders?orderCode=${findOrder.orderCode}`,
+        userId: userId,
+      });
       await Promise.all(
         dto.products.map((p) =>
           this.restoreStockQuantity(
@@ -748,9 +771,6 @@ export class OrderService {
     if (dto.paidAmount > (order.customerDept || 0)) {
       throw new BadRequestException('Số tiền trả vượt quá số tiền nợ');
     }
-
-    // Trả nợ
-    console.log({ dto });
 
     const updatedOrder = await this.orderRepository.payDebt(
       dto.orderId,

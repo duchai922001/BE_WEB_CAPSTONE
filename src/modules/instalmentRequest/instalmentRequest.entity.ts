@@ -18,6 +18,9 @@ export class InstalmentRequest {
   @Prop({ type: Types.ObjectId, ref: 'User' })
   assignedStaffId: Types.ObjectId;
 
+  @Prop({ type: String, required: true })
+  instalmentRequestOrder: string;
+
   @Prop({ type: Date, required: true })
   appointmentDate: Date;
 
