@@ -11,4 +11,5 @@ export enum PaymentMethod {
 export enum PaymentType {
   FULL_DEPOSIT = 'FULL_DEPOSIT', // 100%
   PARTIAL_DEPOSIT = 'PARTIAL_DEPOSIT', // cọc
+  INSTALLMENT = 'INSTALLMENT', // cọc
 }

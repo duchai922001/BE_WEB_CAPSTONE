@@ -250,7 +250,6 @@ export class ProductRepository {
       $lte: product.sellPrice * 1.5, // giá <= 150% giá gốc
     };
 
-    // Query sản phẩm tương tự (ưu tiên theo price range)
     const query: any = {
       _id: { $ne: product._id }, // loại trừ sản phẩm gốc
       categoryId: product.categoryId,
