@@ -649,6 +649,7 @@ export class OrderService {
         );
       }
       updatePayload.employeeId = userId;
+      updatePayload.isConfirm = true;
       await Promise.all(
         dto.products.map((p) =>
           this.updateStockQuantity(
@@ -776,9 +777,11 @@ export class OrderService {
       dto.orderId,
       dto.paidAmount,
     );
+    console.log('vao day di ne');
 
     // Nếu hết nợ thì update status = PAID
     if (updatedOrder.customerDept === 0) {
+      console.log('vao day di');
       await this.orderRepository.update(dto.orderId, {
         status: OrderNormalStatus.PAID,
       });

@@ -82,6 +82,7 @@ export class OrderRepository {
   }
 
   async update(id: string, data: any): Promise<OrderDocument | null> {
+    console.log({ data });
     return this.orderModel.findByIdAndUpdate(id, data, { new: true }).exec();
   }
 

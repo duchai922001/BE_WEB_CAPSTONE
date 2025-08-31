@@ -50,6 +50,9 @@ export class Order extends Document {
   @Prop({ default: false })
   isReturnedOrder: boolean;
 
+  @Prop({ default: false })
+  isConfirm: boolean;
+
   @Prop()
   reason: string;
 
