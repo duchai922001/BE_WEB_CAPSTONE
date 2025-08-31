@@ -200,7 +200,7 @@ export class OrderService {
     let order: any;
     const createdOrderItems: any[] = [];
     const user = await this.userService.findUserById(data.userId);
-    if (user?.status) {
+    if (user?.status === 0) {
       throw new BadRequestException('Tài khoản của bạn đã bị khóa');
     }
     try {
