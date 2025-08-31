@@ -129,6 +129,12 @@ export class UserRepository {
       })
       .then((users) => users.filter((user) => user.roleId));
   }
+  findUserByEmail(email: string) {
+    return this.userModel.findOne({ email: email.toLowerCase() });
+  }
+  updateById(id: string, patch: Partial<User>) {
+    return this.userModel.updateOne({ _id: id }, { $set: patch });
+  }
   async findAdmins() {
     return this.userModel
       .find()
@@ -150,7 +156,7 @@ export class UserRepository {
 
   async createGoogleUser(data: {
     googleId: string;
-    email: string;
+    email?: string;
     fullName: string;
     avatar?: string;
     roleId: string;

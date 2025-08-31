@@ -45,14 +45,22 @@ export class OrderItemRepository {
       orderId: new Types.ObjectId(orderId),
     })
 
-      .populate({
-        path: 'productId',
-        select: 'name brand costPrice sellPrice typeProduct barcode',
-      })
-      .populate({
-        path: 'variableId',
-        select: 'name sellPrice', // lấy giá biến thể nếu có
-      })
+      .populate([
+        {
+          path: 'productId',
+          select:
+            'name brand costPrice sellPrice typeProduct barcode productWarrantyPolicyId',
+          populate: {
+            path: 'productWarrantyPolicyId',
+            model: 'ProductWarrantyPolicy',
+            select: 'name duration description',
+          },
+        },
+        {
+          path: 'variableId',
+          select: 'name sellPrice',
+        },
+      ])
       .sort({ createdAt: -1 })
       .lean()
       .exec();

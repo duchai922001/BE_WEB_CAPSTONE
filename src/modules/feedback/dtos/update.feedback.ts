@@ -1,12 +1,4 @@
-import {
-  IsMongoId,
-  IsNotEmpty,
-  IsInt,
-  Min,
-  Max,
-  IsString,
-  IsOptional,
-} from 'class-validator';
+import { IsInt, Min, Max, IsString, IsOptional } from 'class-validator';
 
 export class UpdateFeedbackDto {
   @IsInt()

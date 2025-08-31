@@ -3,7 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, VerifyCallback } from 'passport-google-oauth20';
 import { UserRepository } from 'src/modules/users/user.repository';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Role, RoleDocument } from 'src/modules/roles/role.entity';
 
 @Injectable()
@@ -27,23 +27,63 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     profile: any,
     done: VerifyCallback,
   ) {
-    const { id, emails, displayName, photos } = profile;
+    try {
+      const googleId: string = profile.id;
+      const email: string | null =
+        (profile.emails?.[0]?.value as string | undefined)?.toLowerCase() ??
+        null;
+      const fullName: string = profile.displayName || '';
+      const avatar: string | undefined = profile.photos?.[0]?.value;
 
-    let user = await this.userRepo.findUserByGoogleId(id);
+      let user = await this.userRepo.findUserByGoogleId(googleId);
 
-    if (!user) {
+      if (user) return done(null, user);
+
+      if (email) {
+        const existingByEmail = await this.userRepo.findUserByEmail(email);
+        if (existingByEmail) {
+          const idStr = (existingByEmail._id as Types.ObjectId).toString();
+
+          await this.userRepo.updateById(idStr, {
+            googleId,
+            ...(avatar && !existingByEmail.avatar ? { avatar } : {}),
+            ...(fullName && !existingByEmail.fullName ? { fullName } : {}),
+          });
+
+          const updated = await this.userRepo.findById(idStr);
+          return done(null, updated);
+        }
+      }
+
       const defaultRole = await this.roleModel.findOne({ name: 'CUSTOMER' });
-      if (!defaultRole) throw new Error('Role CUSTOMER chưa tồn tại trong DB');
+      if (!defaultRole) {
+        return done(new Error('Role CUSTOMER chưa tồn tại trong DB'), false);
+      }
 
-      user = await this.userRepo.createGoogleUser({
-        googleId: id,
-        email: emails[0].value,
-        fullName: displayName,
-        avatar: photos[0]?.value,
+      const payload: {
+        googleId: string;
+        fullName: string;
+        roleId: string;
+        email?: string;
+        avatar?: string;
+      } = {
+        googleId,
+        fullName,
         roleId: defaultRole._id.toString(),
-      });
-    }
+        ...(email ? { email } : {}),
+        ...(avatar ? { avatar } : {}),
+      };
 
-    done(null, user);
+      user = await this.userRepo.createGoogleUser(payload);
+
+      return done(null, user);
+    } catch (err: any) {
+      // Race condition khi unique index trùng
+      if (err?.code === 11000) {
+        const fallback = await this.userRepo.findUserByGoogleId(profile.id);
+        if (fallback) return done(null, fallback);
+      }
+      return done(err, false);
+    }
   }
 }
