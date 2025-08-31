@@ -22,6 +22,7 @@ import { UpdateRepairRequestTimestampDto } from './dtos/update-repair-request-ti
 import { UpdateRepairRequestInfoDto } from './dtos/update.dto';
 import { UpdateCustomerPaidDto } from './dtos/customer-paid.dto';
 import { FilterRepairRequestDto } from './dtos/filter.dto';
+import { CreateRepairRequestAdminDto } from './dtos/admin-create.dto';
 
 @Controller('repair-requests')
 export class RepairRequestController {
@@ -36,7 +37,10 @@ export class RepairRequestController {
 
   @UseGuards(JwtAuthGuard)
   @Post('system')
-  async createRepairAdmin(@Body() dto: CreateRepairRequestDto, @Request() req) {
+  async createRepairAdmin(
+    @Body() dto: CreateRepairRequestAdminDto,
+    @Request() req,
+  ) {
     const data = await this.service.createRepairAdmin(req.user.userId, dto);
     return createResponse(HttpStatus.CREATED, data, ResponseMessage.CREATE);
   }

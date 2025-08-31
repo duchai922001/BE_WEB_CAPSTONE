@@ -31,6 +31,7 @@ import { NotificationGateway } from '../notification/notification.gateway';
 import { NotificationType } from 'src/common/enums/notification-type';
 import { UserService } from '../users/user.service';
 import { FilterRepairRequestDto } from './dtos/filter.dto';
+import { CreateRepairRequestAdminDto } from './dtos/admin-create.dto';
 @Injectable()
 export class RepairRequestService {
   constructor(
@@ -124,17 +125,24 @@ export class RepairRequestService {
     }
     return repairRequest;
   }
-  async createRepairAdmin(userId: string, data: CreateRepairRequestDto) {
+  async createRepairAdmin(staffId: string, data: CreateRepairRequestAdminDto) {
     const {
       repairRequestServices,
       imageDeviceBefore,
       technicianId,
+      customerName,
+      customerPhone,
+      userId,
       ...payloadOther
     } = data;
-    const user = await this.userService.createUserUnActive({
-      fullName: data.customerName,
-      phone: data.customerPhone,
-    });
+    let newUser;
+    if (!userId) {
+      newUser = await this.userService.createUserUnActive({
+        fullName: customerName,
+        phone: customerPhone,
+      });
+    }
+
     const MAX_RETRIES = 5;
     let retry = 0;
     let repairRequestCode: string;
@@ -148,9 +156,9 @@ export class RepairRequestService {
       try {
         repairRequest = await this.repairRequestRepo.create({
           ...payloadOther,
-          userId: (user as any)._id,
+          userId: userId ?? newUser._id,
           repairRequestCode,
-          assignedStaffId: userId,
+          assignedStaffId: staffId,
           technicianId,
           status: technicianId
             ? RepairRequestStatus.ASSIGNED_TECHNICAL
