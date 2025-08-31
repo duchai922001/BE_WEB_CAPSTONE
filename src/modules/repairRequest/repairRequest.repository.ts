@@ -243,21 +243,17 @@ export class RepairRequestRepository {
     filters: FilterRepairRequestDto,
   ) {
     const query: any = {};
-    console.log({ filters: filters.statuses });
-    // ✅ Lọc theo role
     if (role === 'TECHNICIAN') {
       query.technicianId = userId;
+    } else if (role === 'ADMIN') {
     } else {
-      // Mặc định cho STAFF/ADMIN thì sẽ lấy request được assign hoặc đang pending
       query.$or = [{ assignedStaffId: userId }, { status: 'PENDING' }];
     }
 
-    // ✅ Lọc theo status (nhiều status)
     if (filters?.statuses?.length) {
       query.status = { $in: filters.statuses };
     }
 
-    // ✅ Lọc theo ngày (fromDate, toDate)
     if (filters?.fromDate || filters?.toDate) {
       query.createdAt = {};
       if (filters.fromDate) {
