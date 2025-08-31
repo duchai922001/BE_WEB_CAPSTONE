@@ -285,67 +285,90 @@ export class UserService {
     const technicals = await this.userRepository.findTechnicians();
     const results: any[] = [];
 
+    const parseEstimatedHours = (estimatedTime?: string): number => {
+      if (!estimatedTime) return 12;
+      const match = estimatedTime.match(/(\d+)\s*([dhm])/i);
+      if (!match) return 12;
+      const value = parseInt(match[1], 10);
+      const unit = match[2].toLowerCase();
+      if (unit === 'd') return value * 24;
+      if (unit === 'h') return value;
+      if (unit === 'm') return value / 60;
+      return 12;
+    };
+
     for (const tech of technicals) {
       const repairs = await this.repairRequestRepo.findActiveByTechnician(
         (tech as any)._id.toString(),
       );
 
       let maxCompletionTime: Date | null = null;
-      const repairsWithInvoices: any[] = [];
 
       for (const repair of repairs) {
         const invoiceItems =
-          await this.repairInvoiceItemRepo.findByRepairRequestId(
+          (await this.repairInvoiceItemRepo.findByRepairRequestId(
             (repair as any)._id.toString(),
-          );
+          )) ?? [];
+
+        const base = (repair as any).customerConfirmDate
+          ? new Date((repair as any).customerConfirmDate)
+          : null;
+
+        if (!base || isNaN(base.getTime())) {
+          console.warn('Repair bỏ qua vì customerConfirmDate invalid', {
+            repairId: (repair as any)._id?.toString?.(),
+            customerConfirmDate: (repair as any).customerConfirmDate,
+          });
+          continue;
+        }
 
         let repairCompletionTime: Date | null = null;
 
-        for (const item of invoiceItems) {
-          let estimatedHours = 0;
-
-          if (
-            item.repairServiceId &&
-            (item.repairServiceId as any).estimatedTime
-          ) {
-            const match = (item.repairServiceId as any).estimatedTime.match(
-              /(\d+)([dhm])/i,
+        if (invoiceItems.length === 0) {
+          const completionTime = new Date(base.getTime() + 12 * 3600000);
+          repairCompletionTime = completionTime;
+        } else {
+          for (const item of invoiceItems) {
+            const estimatedHours = parseEstimatedHours(
+              (item.repairServiceId as any)?.estimatedTime,
             );
-            if (match) {
-              const value = parseInt(match[1], 10);
-              const unit = match[2].toLowerCase();
-              if (unit === 'd') estimatedHours = value * 24;
-              else if (unit === 'h') estimatedHours = value;
-              else if (unit === 'm') estimatedHours = value / 60;
+
+            const completionTime = new Date(
+              base.getTime() + estimatedHours * 3600000,
+            );
+
+            if (isNaN(completionTime.getTime())) {
+              console.warn('completionTime invalid cho item', {
+                repairId: (repair as any)._id?.toString?.(),
+                estimated: (item.repairServiceId as any)?.estimatedTime,
+              });
+              continue;
             }
-          } else {
-            estimatedHours = 12;
-          }
 
-          const customerConfirmDate = new Date(
-            (repair as any).customerConfirmDate,
-          );
-          const completionTime = new Date(
-            customerConfirmDate.getTime() + estimatedHours * 3600000,
-          );
-
-          if (!repairCompletionTime || completionTime > repairCompletionTime) {
-            repairCompletionTime = completionTime;
+            if (
+              !repairCompletionTime ||
+              completionTime > repairCompletionTime
+            ) {
+              repairCompletionTime = completionTime;
+            }
           }
         }
 
-        if (
-          repairCompletionTime &&
-          (!maxCompletionTime || repairCompletionTime > maxCompletionTime)
-        ) {
-          maxCompletionTime = repairCompletionTime;
+        if (repairCompletionTime) {
+          if (!maxCompletionTime || repairCompletionTime > maxCompletionTime) {
+            maxCompletionTime = repairCompletionTime;
+          }
+        } else {
+          console.warn('repairCompletionTime vẫn null sau khi xử lý', {
+            repairId: (repair as any)._id?.toString?.(),
+          });
         }
-
-        repairsWithInvoices.push({
-          ...(repair.toObject?.() ?? repair),
-          invoiceItems,
-        });
       }
+
+      console.log('=> maxCompletionTime cho kỹ thuật:', {
+        techId: (tech as any)._id?.toString?.(),
+        maxCompletionTime,
+      });
 
       results.push({
         infoTech: {
@@ -353,7 +376,7 @@ export class UserService {
           phone: tech.phone,
           fullName: tech.fullName,
         },
-        estimatedCompletionTime: maxCompletionTime ? maxCompletionTime : null,
+        estimatedCompletionTime: maxCompletionTime ?? null,
         ongoingRepairCount: repairs?.length ?? 0,
       });
     }
