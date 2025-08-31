@@ -264,9 +264,6 @@ export class RepairRequestRepository {
       }
     }
 
-    return this.repairRequestModel
-      .find(query)
-      .sort({ updatedAt: -1 }) // Mới nhất trước
-      .exec();
+    return this.repairRequestModel.find(query).sort({ updatedAt: -1 }).exec();
   }
 }

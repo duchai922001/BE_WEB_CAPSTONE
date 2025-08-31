@@ -139,8 +139,11 @@ export class UserController {
   }
 
   @Post('auth')
-  async validateUser(@Body() body: { phone: string; password: string }) {
-    const data = await this.userService.validateUser(body.phone, body.password);
+  async validateUser(@Body() body: { phoneOrEmail: string; password: string }) {
+    const data = await this.userService.validateUser(
+      body.phoneOrEmail,
+      body.password,
+    );
     return createResponse(HttpStatus.OK, data, 'Đăng nhập thành công');
   }
 

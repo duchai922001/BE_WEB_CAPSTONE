@@ -57,6 +57,15 @@ export class UserRepository {
   async findByPhone(phone: string): Promise<UserDocument | null> {
     return this.userModel.findOne({ phone }).exec();
   }
+  async findByPhoneOrEmailExist(
+    phoneOrEmail: string,
+  ): Promise<UserDocument | null> {
+    return this.userModel
+      .findOne({
+        $or: [{ phone: phoneOrEmail }, { email: phoneOrEmail }],
+      })
+      .exec();
+  }
 
   async findByEmail(email: string): Promise<UserDocument | null> {
     return this.userModel.findOne({ email }).exec();

@@ -124,16 +124,17 @@ export class UserService {
     }
     return user;
   }
-  async validateUser(phone: string, password: string): Promise<any> {
-    const user = await this.userRepository.findByPhone(phone);
+  async validateUser(phoneOrEmail: string, password: string): Promise<any> {
+    const user =
+      await this.userRepository.findByPhoneOrEmailExist(phoneOrEmail);
 
     if (!user) {
-      throw new BadRequestException('Số điện thoại hoặc mật khẩu không đúng');
+      throw new BadRequestException('Tài khoản hoặc mật khẩu không đúng');
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      throw new BadRequestException('Số điện thoại hoặc mật khẩu không đúng');
+      throw new BadRequestException('Tài khoản hoặc mật khẩu không đúng');
     }
 
     if (user.status === 0) {
