@@ -179,6 +179,7 @@ export class UserRepository {
     fullName: string;
     avatar?: string;
     roleId: string;
+    password: string;
   }): Promise<User> {
     return this.userModel.create({
       googleId: data.googleId,
@@ -187,6 +188,7 @@ export class UserRepository {
       avatar: data.avatar || null,
       roleId: new Types.ObjectId(data.roleId),
       status: 1,
+      password: data.password,
     });
   }
 

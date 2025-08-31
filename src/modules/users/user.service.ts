@@ -299,11 +299,9 @@ export class UserService {
             (repair as any)._id.toString(),
           );
 
-        // Tính thời gian hoàn thành cho từng repair
         let repairCompletionTime: Date | null = null;
 
         for (const item of invoiceItems) {
-          // estimatedTime: "2h", "3d", "45m"
           let estimatedHours = 0;
 
           if (
