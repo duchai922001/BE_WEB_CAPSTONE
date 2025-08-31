@@ -156,6 +156,8 @@ export class RepairRequestService {
       try {
         repairRequest = await this.repairRequestRepo.create({
           ...payloadOther,
+          customerName,
+          customerPhone,
           userId: userId ?? newUser._id,
           repairRequestCode,
           assignedStaffId: staffId,
