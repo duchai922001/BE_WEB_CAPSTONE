@@ -26,6 +26,8 @@ import { changeProfilePassword } from './dtos/change-profile-password';
 import { AuthGuard } from '@nestjs/passport';
 import { Response } from 'express';
 import { JwtService } from '@nestjs/jwt';
+import { AnyARecord } from 'dns';
+import { AnyBulkWriteOperation } from 'mongoose';
 
 @Controller('users')
 export class UserController {
@@ -63,7 +65,12 @@ export class UserController {
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   async googleAuthRedirect(@Req() req, @Res() res: Response) {
-    const user = req.user as { _id: any; email?: string; status?: number };
+    const user = req.user as {
+      _id: any;
+      email?: string;
+      status?: number;
+      roleId: { name: string };
+    };
 
     const FRONTEND_URL = 'https://www.bluetoothmobile.vn';
 
@@ -82,6 +89,7 @@ export class UserController {
     const token = this.jwtService.sign({
       sub: user._id.toString(),
       email: user.email ?? '',
+      role: user?.roleId.name,
     });
 
     return res.redirect(`${FRONTEND_URL}?token=${token}`);
