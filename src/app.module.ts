@@ -44,12 +44,15 @@ import { InstalmentBankModule } from './modules/instalmentBank/instalment-bank.m
 import { InvoiceModule } from './modules/invoice/invoice.module';
 import { ProductWarrantyPolicyModule } from './modules/product-warranty-policy/product-warranty-policy.module';
 import { WarrantyRequestModule } from './modules/warranty-request/warranty-request.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { JobsModule } from './modules/jobs/jobs.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    ScheduleModule.forRoot(),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -98,6 +101,7 @@ import { WarrantyRequestModule } from './modules/warranty-request/warranty-reque
     InvoiceModule,
     ProductWarrantyPolicyModule,
     WarrantyRequestModule,
+    JobsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

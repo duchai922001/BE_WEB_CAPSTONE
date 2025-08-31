@@ -287,4 +287,12 @@ export class ProductRepository {
     await doc.save();
     return { productId: String(doc._id), status: doc.status };
   }
+
+  async findLowStock(threshold: number) {
+    return this.productModel
+      .find({ stock: { $lt: threshold } })
+      .select({ name: 1, stock: 1 })
+      .lean()
+      .exec();
+  }
 }
