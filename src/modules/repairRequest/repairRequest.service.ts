@@ -232,7 +232,24 @@ export class RepairRequestService {
   async updateStatus(id: string, status: string) {
     const result = await this.repairRequestRepo.updateStatus(id, status);
     if (!result) throw new NotFoundException(ResponseMessage.FILE_NOT_FOUND);
+    if (status === RepairRequestStatus.FINISH_REPORT) {
+      const consultants = await this.userService.getConsultants();
 
+      for (const consultant of consultants) {
+        const notif = await this.notificationService.create({
+          userId: (consultant as any)._id.toString(),
+          title: 'Đơn sửa chữa vừa kiểm tra xong',
+          message: `Đơn sửa chữa có mã đơn ${result.repairRequestCode} vừa kiểm tra xong`,
+          type: NotificationType.ORDER,
+          targetUrl: `/permission/manage-repair-request?repairRequestCode=${result.repairRequestCode}`,
+        });
+
+        this.notificationGateway.sendNotification(
+          (consultant as any)._id.toString(),
+          notif,
+        );
+      }
+    }
     return result;
   }
 
