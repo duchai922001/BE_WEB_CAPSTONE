@@ -311,7 +311,7 @@ export class OrderRepository {
           { employeeId: null },
         ],
       })
-      .sort({ createdAt: -1 })
+      .sort({ updatedAt: -1 })
       .populate({ path: 'userId', select: 'fullName phone' })
       .populate({
         path: 'addressId',

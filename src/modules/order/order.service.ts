@@ -368,10 +368,11 @@ export class OrderService {
       }
 
       // Gửi notification
-      const consultants = await this.userService.getConsultants();
-      for (const consultant of consultants) {
+      const consultantsAndAdmin =
+        await this.userService.getConsultantsAndAdmin();
+      for (const staff of consultantsAndAdmin) {
         const notif = await this.notificationService.create({
-          userId: (consultant as any)._id.toString(),
+          userId: (staff as any)._id.toString(),
           title: 'Đơn hàng vừa được tạo',
           message: `Đơn hàng có mã đơn ${order.orderCode} vừa được tạo`,
           type: NotificationType.ORDER,
@@ -379,7 +380,7 @@ export class OrderService {
         });
 
         this.notificationGateway.sendNotification(
-          (consultant as any)._id.toString(),
+          (staff as any)._id.toString(),
           notif,
         );
       }

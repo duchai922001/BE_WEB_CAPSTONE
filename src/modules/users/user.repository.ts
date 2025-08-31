@@ -120,6 +120,16 @@ export class UserRepository {
       .then((users) => users.filter((user) => user.roleId));
   }
 
+  async findConsultantsAndAdmin() {
+    return this.userModel
+      .find()
+      .populate({
+        path: 'roleId',
+        match: { name: { $in: ['CONSULTANT', 'ADMIN'] } },
+      })
+      .then((users) => users.filter((user) => user.roleId));
+  }
+
   async findConsultants() {
     return this.userModel
       .find()

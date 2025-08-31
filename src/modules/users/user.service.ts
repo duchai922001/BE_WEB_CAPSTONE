@@ -276,6 +276,9 @@ export class UserService {
   async getConsultants() {
     return await this.userRepository.findConsultants();
   }
+  async getConsultantsAndAdmin() {
+    return await this.userRepository.findConsultantsAndAdmin();
+  }
 
   async getTechnicians() {
     const technicals = await this.userRepository.findTechnicians();
