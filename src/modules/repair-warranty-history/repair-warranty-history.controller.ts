@@ -6,8 +6,6 @@ import {
   Delete,
   Param,
   Body,
-  Query,
-  ParseIntPipe,
   HttpStatus,
   UseGuards,
   Request,
@@ -15,7 +13,6 @@ import {
 import { RepairWarrantyHistoryService } from './repair-warranty-history.service';
 import {
   CreateRepairWarrantyHistoryDto,
-  QueryRepairWarrantyHistoryDto,
   UpdatePhotosDto,
   UpdateRepairWarrantyHistoryDto,
   UpdateStatusDto,
@@ -47,9 +44,11 @@ export class RepairWarrantyHistoryController {
     return this.service.findById(id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
-  findAll(@Query() query: QueryRepairWarrantyHistoryDto) {
-    return this.service.findAll(query);
+  async getByStaff(@Request() req) {
+    const data = await this.service.getByStaff(req.user.userId);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
 
   @Patch(':id')
@@ -58,8 +57,9 @@ export class RepairWarrantyHistoryController {
   }
 
   @Patch(':id/status')
-  updateStatus(@Param('id') id: string, @Body() dto: UpdateStatusDto) {
-    return this.service.updateStatus(id, dto);
+  async updateStatus(@Param('id') id: string, @Body() dto: UpdateStatusDto) {
+    const data = await this.service.updateStatus(id, dto);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.UPDATE);
   }
 
   @Patch(':id/photos')

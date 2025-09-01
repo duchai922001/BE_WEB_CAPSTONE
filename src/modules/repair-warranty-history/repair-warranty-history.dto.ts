@@ -47,8 +47,9 @@ export class UpdateStatusDto {
   diagnosis?: string;
 
   @IsOptional()
-  @IsString()
-  reason?: string;
+  @IsArray()
+  @ArrayNotEmpty()
+  photosAfter?: string[];
 }
 
 export class UpdatePhotosDto {

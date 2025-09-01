@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { Model, FilterQuery, Types, Connection } from 'mongoose';
 import {
@@ -17,7 +21,8 @@ import {
   RepairRequest,
   RepairRequestDocument,
 } from '../repairRequest/repairRequest.entity';
-
+import * as nodemailer from 'nodemailer';
+import * as dayjs from 'dayjs';
 @Injectable()
 export class RepairWarrantyHistoryService {
   constructor(
@@ -126,13 +131,43 @@ export class RepairWarrantyHistoryService {
           $set: {
             status: dto.status,
             diagnosis: dto.diagnosis,
-            reason: dto.reason,
+            photosAfter: dto.photosAfter,
           },
         },
         { new: true },
       )
       .exec();
     if (!updated) throw new NotFoundException('Warranty history not found');
+    if (dto.status === RepairWarrantyHistoryStatus.NOTIFY_CUSTOMER) {
+      const repairRequest = await this.requestModel
+        .findById(updated.repairRequestId)
+        .populate('userId');
+      const emailUser = (repairRequest?.userId as any).email;
+      const fullNameUser = (repairRequest?.userId as any).fullName;
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS,
+        },
+      });
+      const fromDate = dayjs().add(1, 'day');
+      const mailOptions = {
+        from: `"Thông báo nhận hàng" <${process.env.EMAIL_USER}>`,
+        to: emailUser,
+        subject: 'Thông báo lịch hẹn nhận hàng',
+        html: `
+          <h3>Xin chào ${fullNameUser || ''}</h3>
+          <p>Đơn bảo hành của bạn đã sẵn sàng để nhận.</p>
+         <p><b>Ngày hẹn nhận:</b> 
+    ${fromDate.format('DD-MM-YYYY HH:mm')} 
+
+  </p>
+          <p>Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi!</p>
+        `,
+      };
+      await transporter.sendMail(mailOptions);
+    }
     return updated;
   }
 
@@ -165,12 +200,12 @@ export class RepairWarrantyHistoryService {
   }
 
   async getSummaryByRepairRequestId(repairRequestId: string) {
-    console.log({ repairRequestId });
     const pendingStatuses = new Set([
       RepairWarrantyHistoryStatus.RECEIVED,
       RepairWarrantyHistoryStatus.CHECKING,
       RepairWarrantyHistoryStatus.IN_PROGRESS,
-      RepairWarrantyHistoryStatus.WAITING_PARTS,
+      RepairWarrantyHistoryStatus.DONE_REPAIR,
+      RepairWarrantyHistoryStatus.NOTIFY_CUSTOMER,
     ]);
 
     const data = await this.model
@@ -191,5 +226,24 @@ export class RepairWarrantyHistoryService {
     const isPending = latest ? pendingStatuses.has(latest.status) : false;
 
     return { data, isPending };
+  }
+
+  async getByStaff(staffId: string) {
+    if (!staffId) {
+      throw new BadRequestException('Vui lòng truyền staffId');
+    }
+
+    return this.model
+      .find({
+        $or: [{ assignedStaffId: staffId }, { technicianId: staffId }],
+      })
+      .populate('assignedStaffId technicianId')
+      .populate({
+        path: 'repairRequestId',
+        select: 'repairRequestCode',
+      })
+      .populate('repairInvoiceItemId')
+      .lean()
+      .exec();
   }
 }

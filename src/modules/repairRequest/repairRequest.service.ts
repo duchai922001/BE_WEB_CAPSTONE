@@ -429,8 +429,7 @@ export class RepairRequestService {
            <i>Bạn đến cửa hàng đọc mã đơn hàng cho nhân viên để được hổ trợ nhanh nhất</i>
          <p><b>Ngày hẹn nhận:</b> 
     ${fromDate.format('DD-MM-YYYY HH:mm')} 
-    → 
-    ${toDate.format('DD-MM-YYYY HH:mm')}
+   
   </p>
           <p>Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi!</p>
         `,
