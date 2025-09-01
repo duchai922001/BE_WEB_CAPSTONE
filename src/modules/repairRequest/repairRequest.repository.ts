@@ -266,4 +266,8 @@ export class RepairRequestRepository {
 
     return this.repairRequestModel.find(query).sort({ updatedAt: -1 }).exec();
   }
+
+  async findByCode(code: string) {
+    return this.repairRequestModel.findOne({ repairRequestCode: code }).exec();
+  }
 }

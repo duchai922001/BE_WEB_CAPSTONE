@@ -56,4 +56,16 @@ export class RepairInvoiceItemRepository {
       })
       .exec();
   }
+
+  async findFreeServicesByRequestId(
+    repairRequestId: string,
+  ): Promise<RepairInvoiceItem[]> {
+    return this.model
+      .find({
+        repairRequestId: repairRequestId,
+        totalPrice: 0,
+      })
+      .populate('repairServiceId')
+      .exec();
+  }
 }

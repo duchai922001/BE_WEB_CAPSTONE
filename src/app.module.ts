@@ -46,6 +46,7 @@ import { ProductWarrantyPolicyModule } from './modules/product-warranty-policy/p
 import { WarrantyRequestModule } from './modules/warranty-request/warranty-request.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { JobsModule } from './modules/jobs/jobs.module';
+import { RepairWarrantyHistoryModule } from './modules/repair-warranty-history/repair-warranty-history.module';
 
 @Module({
   imports: [
@@ -102,6 +103,7 @@ import { JobsModule } from './modules/jobs/jobs.module';
     ProductWarrantyPolicyModule,
     WarrantyRequestModule,
     JobsModule,
+    RepairWarrantyHistoryModule,
   ],
   controllers: [AppController],
   providers: [AppService],

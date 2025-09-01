@@ -12,6 +12,7 @@ import { RepairServiceModule } from '../repairService/repairService.module';
 import { NotificationModule } from '../notification/notification.module';
 import { UserModule } from '../users/user.module';
 import { StaffActionLogModule } from '../staffActionLog/staffActionLog.module';
+import { RepairWarrantyHistoryModule } from '../repair-warranty-history/repair-warranty-history.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { StaffActionLogModule } from '../staffActionLog/staffActionLog.module';
     RepairServiceModule,
     NotificationModule,
     StaffActionLogModule,
+    RepairWarrantyHistoryModule,
     forwardRef(() => UserModule),
   ],
   controllers: [RepairRequestController],

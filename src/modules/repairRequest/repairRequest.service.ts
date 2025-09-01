@@ -34,6 +34,7 @@ import { FilterRepairRequestDto } from './dtos/filter.dto';
 import { CreateRepairRequestAdminDto } from './dtos/admin-create.dto';
 import { StaffActionLogRepository } from '../staffActionLog/staffActionLog.repository';
 import { ActionLogType } from 'src/common/enums/config';
+import { RepairWarrantyHistoryService } from '../repair-warranty-history/repair-warranty-history.service';
 @Injectable()
 export class RepairRequestService {
   constructor(
@@ -49,6 +50,7 @@ export class RepairRequestService {
     private readonly notificationGateway: NotificationGateway,
     private readonly userService: UserService,
     private readonly staffLogRepo: StaffActionLogRepository,
+    private readonly warrantyHistoryService: RepairWarrantyHistoryService,
   ) {}
 
   async create(userId: string, data: CreateRepairRequestDto) {
@@ -510,9 +512,15 @@ export class RepairRequestService {
           };
         });
 
+        const historyWarranty =
+          await this.warrantyHistoryService.getSummaryByRepairRequestId(
+            String(req._id),
+          );
+
         return {
           ...req,
           invoiceItems: itemsWithWarranty,
+          historyWarranty,
         };
       }),
     );
@@ -561,5 +569,20 @@ export class RepairRequestService {
       (user?.roleId as any)?.name,
       filters,
     );
+  }
+
+  async getHistoryWarranty(code: string) {
+    const repairRequest = await this.repairRequestRepo.findByCode(code);
+    if (!repairRequest) {
+      throw new BadRequestException('Không tìm yêu cầu sửa chữa');
+    }
+    const historyItem =
+      await this.repairInvoiceItemRepo.findFreeServicesByRequestId(
+        (repairRequest as any)._id,
+      );
+    return {
+      ...historyItem,
+      countWarranty: repairRequest.countWarranty,
+    };
   }
 }
