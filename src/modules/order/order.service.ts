@@ -15,8 +15,8 @@ import { OrderItemRepository } from '../orderItem/orderItem.repository';
 import { UserService } from '../users/user.service';
 import { ProductType } from 'src/common/enums/productType';
 import { SerialService } from '../serials/serial.service';
-import { InjectConnection } from '@nestjs/mongoose';
-import { Connection, Types } from 'mongoose';
+import { InjectConnection, InjectModel } from '@nestjs/mongoose';
+import { Connection, Model, Types } from 'mongoose';
 import { UpdateOrderStatusDto } from './dtos/update-status.dto';
 import { ResponseMessage } from 'src/common/enums/responseMessage';
 import { PayDebtDto } from './dtos/pay-debt.dto';
@@ -37,9 +37,15 @@ import { OrderDocument } from './order.entity';
 import { PromotionRepository } from '../promotion/promotion.repository';
 import { StaffActionLogRepository } from '../staffActionLog/staffActionLog.repository';
 import { ActionLogType } from 'src/common/enums/config';
+import {
+  WarrantyRequest,
+  WarrantyRequestDocument,
+} from '../warranty-request/warranty-request.entity';
 @Injectable()
 export class OrderService {
   constructor(
+    @InjectModel(WarrantyRequest.name)
+    private readonly warrantyRequestModel: Model<WarrantyRequestDocument>,
     @InjectConnection() private readonly connection: Connection,
     private readonly orderRepository: OrderRepository,
     private readonly orderItemRepository: OrderItemRepository,
@@ -608,7 +614,56 @@ export class OrderService {
   }
 
   async searchOrderByOrderCode(keyword: string) {
-    return await this.orderRepository.findByKeyword(keyword);
+    const orders = await this.orderRepository.findByKeyword(keyword);
+    if (!orders?.length) return [];
+
+    const itemIds: string[] = [];
+    for (const o of orders) {
+      for (const it of o?.orderItems ?? []) {
+        if (it?._id) itemIds.push(String(it._id));
+      }
+    }
+    if (!itemIds.length) return orders;
+
+    const wrs = await this.warrantyRequestModel
+      .find({ orderItemId: { $in: itemIds } })
+      .select([
+        '_id',
+        'orderItemId',
+        'status',
+        'brandTicketNo',
+        'serviceCenterName',
+        'toBrandTrackingNo',
+        'fromBrandTrackingNo',
+        'brandDecision',
+        'estimatedCost',
+        'actualCost',
+        'receivedDate',
+        'expectedDate',
+        'returnedDate',
+        'deliveredAt',
+        'createdAt',
+        'updatedAt',
+      ])
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const wrByItemId = new Map<string, any[]>();
+    for (const w of wrs) {
+      const key = String(w.orderItemId);
+      if (!wrByItemId.has(key)) wrByItemId.set(key, []);
+      wrByItemId.get(key)!.push(w);
+    }
+
+    const enriched = orders.map((o: any) => ({
+      ...o,
+      orderItems: (o.orderItems ?? []).map((it: any) => ({
+        ...it,
+        historyWarranty: wrByItemId.get(String(it._id)) ?? [],
+      })),
+    }));
+
+    return enriched;
   }
 
   async getUserByOrderId(id: string) {

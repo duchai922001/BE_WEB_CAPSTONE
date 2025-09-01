@@ -21,6 +21,10 @@ import {
 } from '../product-warranty-policy/product-warranty-policy.entity';
 import { PromotionModule } from '../promotion/promotion.module';
 import { StaffActionLogModule } from '../staffActionLog/staffActionLog.module';
+import {
+  WarrantyRequest,
+  WarrantyRequestSchema,
+} from '../warranty-request/warranty-request.entity';
 
 @Module({
   imports: [
@@ -29,6 +33,7 @@ import { StaffActionLogModule } from '../staffActionLog/staffActionLog.module';
       { name: OrderItem.name, schema: OrderItemSchema },
       { name: Product.name, schema: ProductSchema },
       { name: ProductWarrantyPolicy.name, schema: ProductWarrantyPolicySchema },
+      { name: WarrantyRequest.name, schema: WarrantyRequestSchema },
     ]),
     PaymentModule,
     OrderItemModule,
