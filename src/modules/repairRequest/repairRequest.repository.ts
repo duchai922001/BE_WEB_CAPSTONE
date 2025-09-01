@@ -92,10 +92,14 @@ export class RepairRequestRepository {
     id: string,
     assignedStaffId?: string,
     technicianId?: string,
+    diagnosis?: string,
+    photosReceiving?: string[],
   ) {
     const updatePayload: any = {};
     if (assignedStaffId) updatePayload.assignedStaffId = assignedStaffId;
     if (technicianId) updatePayload.technicianId = technicianId;
+    if (diagnosis) updatePayload.diagnosis = diagnosis;
+    if (photosReceiving) updatePayload.photosReceiving = photosReceiving;
 
     return this.repairRequestModel.findByIdAndUpdate(id, updatePayload, {
       new: true,

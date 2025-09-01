@@ -275,12 +275,16 @@ export class RepairRequestService {
     id: string,
     assignedStaffId?: string,
     technicianId?: string,
+    diagnosis?: string,
+    photosReceiving?: string[],
   ) {
     const updatedRequest =
       await this.repairRequestRepo.assignStaffAndTechnician(
         id,
         assignedStaffId,
         technicianId,
+        diagnosis,
+        photosReceiving,
       );
     if (!updatedRequest) {
       throw new NotFoundException('Repair request not found');

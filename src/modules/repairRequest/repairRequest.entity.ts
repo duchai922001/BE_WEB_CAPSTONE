@@ -65,6 +65,12 @@ export class RepairRequest extends Document {
   @Prop({ default: 0 })
   customerDept: number;
 
+  @Prop({ type: [String], default: [] })
+  photosReceiving: string[];
+
+  @Prop()
+  diagnosis: string;
+
   @Prop({
     required: true,
     enum: RepairRequestStatus,

@@ -5,5 +5,5 @@ export enum RepairWarrantyHistoryStatus {
   DONE_REPAIR = 'DONE_REPAIR', // Hoàn thành sửa chữa
   COMPLETED = 'COMPLETED', // Đã hoàn thành bảo hành
   NOTIFY_CUSTOMER = 'NOTIFY_CUSTOMER', // Báo khách nhân hàng
-  REJECTED = 'REJECTED', // Báo khách nhân hàng
+  REJECTED = 'REJECTED', // Từ chối bảo hành
 }

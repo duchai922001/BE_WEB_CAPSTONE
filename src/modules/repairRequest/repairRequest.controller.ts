@@ -98,6 +98,8 @@ export class RepairRequestController {
       id,
       dto.assignedStaffId,
       dto.technicianId,
+      dto.diagnosis,
+      dto.photosReceiving,
     );
     return createResponse(200, data, ResponseMessage.UPDATE);
   }
