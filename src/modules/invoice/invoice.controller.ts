@@ -39,7 +39,7 @@ export class InvoiceController {
 
     const pdfBuffer = await this.invoiceService.generatePdf(
       order,
-      'Nguyễn Văn A',
+      'Nguyễn Tiến Đạt',
       promos,
       defaultPromo,
     );

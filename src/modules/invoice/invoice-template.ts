@@ -1,5 +1,9 @@
 import { PaymentMethod } from 'src/common/enums/payment';
-
+type Promo = {
+  discountType: 'PERCENT' | 'AMOUNT';
+  discountValue: number;
+  maxDiscountMoney?: number;
+};
 const paymentMethodMap: Record<PaymentMethod, string> = {
   [PaymentMethod.COD]: 'Thanh toán khi nhận hàng',
   [PaymentMethod.PAY_IN_STORE]: 'Thanh toán tại cửa hàng',
@@ -10,21 +14,30 @@ const paymentMethodMap: Record<PaymentMethod, string> = {
   [PaymentMethod.CREDIT_CARD]: 'Thẻ tín dụng / ghi nợ',
 };
 
-function applyDiscount(
-  price: number,
-  promo?: { discountType: string; discountValue: number },
-  defaultPromo?: { discountType: string; discountValue: number },
-) {
+function applyDiscount(price: number, promo?: Promo, defaultPromo?: Promo) {
   let discount = 0;
   const appliedPromo = promo || defaultPromo;
+
   if (appliedPromo) {
+    // Tính giảm cơ bản
     if (appliedPromo.discountType === 'PERCENT') {
-      discount = (price * appliedPromo.discountValue) / 100;
+      discount = (price * Number(appliedPromo.discountValue || 0)) / 100;
     } else if (appliedPromo.discountType === 'AMOUNT') {
-      discount = appliedPromo.discountValue;
+      discount = Number(appliedPromo.discountValue || 0);
     }
+
+    // Áp trần giảm tối đa nếu có
+    if (appliedPromo.maxDiscountMoney != null) {
+      const cap = Math.max(0, Number(appliedPromo.maxDiscountMoney));
+      discount = Math.min(discount, cap);
+    }
+
+    // Không cho vượt quá đơn giá
+    discount = Math.min(discount, price);
   }
-  return { discount, finalPrice: Math.max(price - discount, 0) };
+
+  const finalPrice = Math.max(price - discount, 0);
+  return { discount, finalPrice };
 }
 
 export const generateInvoiceHTML = (
