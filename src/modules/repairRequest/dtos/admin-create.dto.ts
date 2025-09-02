@@ -9,16 +9,6 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export class RepairRequestServices {
-  @IsOptional()
-  @IsMongoId()
-  repairServiceId: string;
-
-  @IsOptional()
-  @IsString()
-  note: string;
-}
-
 export class CreateRepairRequestAdminDto {
   @IsString()
   @IsOptional()
@@ -30,7 +20,7 @@ export class CreateRepairRequestAdminDto {
 
   @IsNotEmpty()
   @IsString()
-  issueDescription: string;
+  diagnosis: string;
 
   @IsOptional()
   @IsString()
@@ -50,11 +40,5 @@ export class CreateRepairRequestAdminDto {
 
   @IsOptional()
   @IsArray()
-  imageDeviceBefore: string[];
-
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => RepairRequestServices)
-  repairRequestServices?: RepairRequestServices[];
+  photosReceiving: string[];
 }

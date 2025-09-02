@@ -132,8 +132,6 @@ export class RepairRequestService {
   }
   async createRepairAdmin(staffId: string, data: CreateRepairRequestAdminDto) {
     const {
-      repairRequestServices,
-      imageDeviceBefore,
       technicianId,
       customerName,
       customerPhone,
@@ -167,10 +165,18 @@ export class RepairRequestService {
           repairRequestCode,
           assignedStaffId: staffId,
           technicianId,
-          status: technicianId
-            ? RepairRequestStatus.ASSIGNED_TECHNICAL
-            : RepairRequestStatus.ASSIGNED,
+          issueDescription: 'Yêu cầu cửa hàng',
+          status: RepairRequestStatus.ASSIGNED_TECHNICAL,
         });
+        const notif = await this.notificationService.create({
+          userId: technicianId,
+          title: 'Đơn sửa chữa vừa được nhân viên tư vấn giao cho bạn',
+          message: `Đơn sửa chữa có mã đơn ${repairRequestCode} giao cho bạn`,
+          type: NotificationType.ORDER,
+          targetUrl: `/permission/manage-repair-request?repairRequestCode=${repairRequestCode}`,
+        });
+
+        this.notificationGateway.sendNotification(technicianId, notif);
         break;
       } catch (error) {
         if (error.code === 11000 && error.keyPattern?.repairRequestCode) {
@@ -187,30 +193,6 @@ export class RepairRequestService {
       );
     }
 
-    if (imageDeviceBefore?.length) {
-      await Promise.all(
-        imageDeviceBefore.map((url: string) =>
-          this.repairRequestImageService.create({
-            repairRequestId: repairRequest._id.toString(),
-            url,
-            note: '',
-            type: RepairImageType.BEFORE,
-          }),
-        ),
-      );
-    }
-
-    if (repairRequestServices?.length) {
-      await Promise.all(
-        repairRequestServices.map((item: RepairRequestServices) =>
-          this.repairRequestSeviceRepo.create({
-            repairRequestId: repairRequest._id,
-            repairServiceId: item.repairServiceId,
-            note: item.note,
-          }),
-        ),
-      );
-    }
     return repairRequest;
   }
   async getByUserId(userId: string) {
