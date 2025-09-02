@@ -186,13 +186,14 @@ export class WarrantyRequestService {
     switch (next) {
       case WarrantyRequestStatus.SENT_TO_BRAND:
         wr.serviceCenterName = dto.serviceCenterName ?? wr.serviceCenterName;
-        wr.brandTicketNo = dto.brandTicketNo ?? wr.brandTicketNo;
         wr.toBrandCarrier = dto.toBrandCarrier ?? wr.toBrandCarrier;
         wr.toBrandTrackingNo = dto.toBrandTrackingNo ?? wr.toBrandTrackingNo;
         wr.toBrandShippedAt = new Date();
         break;
 
       case WarrantyRequestStatus.AT_BRAND_CHECKING:
+        wr.brandTicketNo = dto.brandTicketNo ?? wr.brandTicketNo;
+        wr.expectedDate = wr.expectedDate ?? new Date();
         if (dto.toBrandReceivedAt) {
           wr.toBrandReceivedAt = new Date(dto.toBrandReceivedAt);
         } else if (!wr.toBrandReceivedAt) {
@@ -223,7 +224,7 @@ export class WarrantyRequestService {
         wr.fromBrandShippedAt = wr.fromBrandShippedAt ?? new Date();
         wr.fromBrandReceivedAt = new Date();
         wr.returnedDate = new Date();
-        wr.expectedDate = wr.expectedDate ?? new Date();
+
         break;
 
       case WarrantyRequestStatus.READY_FOR_PICKUP:
