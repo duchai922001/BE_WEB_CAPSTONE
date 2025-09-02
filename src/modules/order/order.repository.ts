@@ -129,7 +129,6 @@ export class OrderRepository {
     });
     return count;
   }
-
   async findByKeyword(keyword: string) {
     keyword = String(keyword).trim();
 
@@ -152,11 +151,29 @@ export class OrderRepository {
       { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
 
       {
+        $lookup: {
+          from: 'orderitems',
+          let: { oid: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ['$orderId', '$$oid'] },
+                serialCodes: { $elemMatch: { $regex: keyword, $options: 'i' } },
+              },
+            },
+            { $project: { _id: 1 } },
+          ],
+          as: 'matchedItemsBySerial',
+        },
+      },
+
+      {
         $match: {
           $or: [
             { orderCode: { $regex: keyword, $options: 'i' } },
             { 'customer.phone': { $regex: keyword, $options: 'i' } },
             { 'customer.fullName': { $regex: keyword, $options: 'i' } },
+            { $expr: { $gt: [{ $size: '$matchedItemsBySerial' }, 0] } },
           ],
         },
       },
@@ -197,7 +214,6 @@ export class OrderRepository {
             .findById(product.productWarrantyPolicyId)
             .lean();
           if (policy) {
-            // Tính ngày hết hạn dựa trên duration
             const unit = policy.duration.slice(-1); // 'm', 'd', 'h'
             const value = parseInt(policy.duration.slice(0, -1), 10);
             let expiry = dayjs(item.createdAt);
@@ -209,7 +225,6 @@ export class OrderRepository {
             const now = dayjs();
             const isExpired = now.isAfter(expiry);
 
-            // Tính timeLeft thủ công
             let timeLeft = '';
             if (!isExpired) {
               const diffMs = expiry.diff(now);
