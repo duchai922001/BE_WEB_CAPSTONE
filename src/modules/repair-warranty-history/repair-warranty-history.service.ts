@@ -185,6 +185,19 @@ export class RepairWarrantyHistoryService {
       };
       await transporter.sendMail(mailOptions);
     }
+    if (dto.status === RepairWarrantyHistoryStatus.DONE_REPAIR) {
+      const notif = await this.notificationService.create({
+        userId: String(updated.assignedStaffId),
+        title: 'Đơn bảo hành vừa được nhân viên tư kỹ thuật hoàn thành',
+        message: `Đơn bảo hành vừa được nhân viên tư kỹ thuật hoàn thành`,
+        type: NotificationType.ORDER,
+        targetUrl: `/permission/manage-warranty-history`,
+      });
+      this.notificationGateway.sendNotification(
+        String(updated.assignedStaffId),
+        notif,
+      );
+    }
     return updated;
   }
 
