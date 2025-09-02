@@ -1,0 +1,9 @@
+export enum ShippingProvider {
+  GHN = 'GHN',
+  GHTK = 'GHTK',
+  VIETTEL_POST = 'VIETTEL_POST',
+  JT_EXPRESS = 'JT_EXPRESS',
+  BEST_EXPRESS = 'BEST_EXPRESS',
+  GRAB = 'GRAB',
+  SELF_DELIVERY = 'SELF_DELIVERY',
+}

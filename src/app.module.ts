@@ -38,12 +38,22 @@ import { InstalmentRequestModule } from './modules/instalmentRequest/instalmentC
 import { SpecificationsKeyModule } from './modules/specifications-key/specifications-key.module';
 import { CheckoutModule } from './modules/checkout/checkout.module';
 import { RepairWarrantyPolicyModule } from './modules/repair-warranty-policy/repair-warranty-policy.module';
+import { ChatboxAIModule } from './modules/chatbox-ai/chatbox-ai.module';
+import { AdviseModule } from './modules/advise/advise.module';
+import { InstalmentBankModule } from './modules/instalmentBank/instalment-bank.module';
+import { InvoiceModule } from './modules/invoice/invoice.module';
+import { ProductWarrantyPolicyModule } from './modules/product-warranty-policy/product-warranty-policy.module';
+import { WarrantyRequestModule } from './modules/warranty-request/warranty-request.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { JobsModule } from './modules/jobs/jobs.module';
+import { RepairWarrantyHistoryModule } from './modules/repair-warranty-history/repair-warranty-history.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    ScheduleModule.forRoot(),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -86,6 +96,14 @@ import { RepairWarrantyPolicyModule } from './modules/repair-warranty-policy/rep
     SpecificationsKeyModule,
     CheckoutModule,
     RepairWarrantyPolicyModule,
+    ChatboxAIModule,
+    AdviseModule,
+    InstalmentBankModule,
+    InvoiceModule,
+    ProductWarrantyPolicyModule,
+    WarrantyRequestModule,
+    JobsModule,
+    RepairWarrantyHistoryModule,
   ],
   controllers: [AppController],
   providers: [AppService],

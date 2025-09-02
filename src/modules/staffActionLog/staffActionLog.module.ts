@@ -13,6 +13,6 @@ import { StaffActionLogRepository } from './staffActionLog.repository';
   ],
   controllers: [StaffActionLogController],
   providers: [StaffActionLogService, StaffActionLogRepository],
-  exports: [StaffActionLogService],
+  exports: [StaffActionLogService, StaffActionLogRepository],
 })
 export class StaffActionLogModule {}

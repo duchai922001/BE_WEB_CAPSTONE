@@ -2,11 +2,10 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { UserRepository } from './user.repository';
 import { CreateUserDto } from './dtos/create.dto';
-import { User, UserDocument } from './user.entity';
+import { UserDocument } from './user.entity';
 import * as bcrypt from 'bcrypt';
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { UpdateUserDto } from './dtos/update.dto';
@@ -14,6 +13,8 @@ import { isValidObjectId, Types } from 'mongoose';
 import { AddressService } from '../address/address.service';
 import { changeProfilePassword } from './dtos/change-profile-password';
 import { RoleService } from '../roles/role.service';
+import { RepairRequestRepository } from '../repairRequest/repairRequest.repository';
+import { RepairInvoiceItemRepository } from '../repair-invoice-item/repair-invoice-item.repository';
 
 @Injectable()
 export class UserService {
@@ -21,23 +22,42 @@ export class UserService {
     private readonly userRepository: UserRepository,
     private readonly addressService: AddressService,
     private readonly roleService: RoleService,
+    private readonly repairRequestRepo: RepairRequestRepository,
+    private readonly repairInvoiceItemRepo: RepairInvoiceItemRepository,
   ) {}
 
-  async create(data: CreateUserDto): Promise<UserDocument> {
-    const { password, phone, email, roleId } = data;
+  async create(data: CreateUserDto) {
+    const { password, phone, email, fullName, roleId } = data;
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = password
+      ? await bcrypt.hash(password, 10)
+      : undefined;
 
+    // Tìm user đã tồn tại theo phone hoặc email
     const existingUser = await this.userRepository.findByPhoneOrEmail(
       phone,
       email,
     );
+
     if (existingUser) {
-      throw new BadRequestException('Tài khoản hoặc email đã tồn tại');
+      if (existingUser.status === 1) {
+        // User active → báo lỗi
+        throw new BadRequestException('Email hoặc số điện thoại đã tồn tại');
+      } else {
+        // User inactive → kích hoạt lại
+        return this.userRepository.updateUserActive((existingUser as any)._id, {
+          fullName: fullName || existingUser.fullName,
+          email: email || existingUser.email,
+          phone: phone || existingUser.phone,
+          roleId: existingUser.roleId,
+          password: hashedPassword || existingUser.password,
+          status: 1,
+        });
+      }
     }
 
+    // Xác định roleId
     let finalRoleId = roleId;
-
     if (!roleId) {
       const customerRole = await this.roleService.findByName('CUSTOMER');
       if (!customerRole) {
@@ -46,13 +66,35 @@ export class UserService {
       finalRoleId = (customerRole as any)._id;
     }
 
-    const newUser = await this.userRepository.create({
-      ...data,
-      roleId: finalRoleId,
-      password: hashedPassword,
-    });
+    // Tạo user mới
+    const newUserData: Partial<UserDocument> = {
+      fullName,
+      phone,
+      status: 1,
+      roleId: new Types.ObjectId(finalRoleId),
+    };
+
+    if (email) newUserData.email = email;
+    if (hashedPassword) newUserData.password = hashedPassword;
+
+    const newUser = await this.userRepository.create(newUserData);
 
     return newUser;
+  }
+
+  async createUserUnActive(data: { phone: string; fullName: string }) {
+    const roleCustomer = await this.roleService.findByName('CUSTOMER');
+    if (!roleCustomer) {
+      throw new BadRequestException('Không tìm thấy role CUSTOMER');
+    }
+    const user = await this.userRepository.create({
+      ...data,
+      roleId: (roleCustomer as any)._id,
+      password: '',
+      email: '',
+      status: 0,
+    });
+    return user;
   }
 
   // Done chưa xét page và keyword
@@ -75,15 +117,28 @@ export class UserService {
     }
     return user;
   }
-  async validateUser(phone: string, password: string): Promise<any> {
-    const user = await this.userRepository.findByPhone(phone);
+  async findByEmail(email: string): Promise<UserDocument> {
+    const user = await this.userRepository.findByEmail(email);
     if (!user) {
-      throw new BadRequestException('Số điện thoại hoặc mật khẩu không đúng');
+      throw new NotFoundException('Không tìm thấy người dùng');
+    }
+    return user;
+  }
+  async validateUser(phoneOrEmail: string, password: string): Promise<any> {
+    const user =
+      await this.userRepository.findByPhoneOrEmailExist(phoneOrEmail);
+
+    if (!user) {
+      throw new BadRequestException('Tài khoản hoặc mật khẩu không đúng');
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      throw new BadRequestException('Số điện thoại hoặc mật khẩu không đúng');
+      throw new BadRequestException('Tài khoản hoặc mật khẩu không đúng');
+    }
+
+    if (user.status === 0) {
+      throw new BadRequestException('Tài khoản của bạn đã bị khóa');
     }
 
     const populatedUser = await user.populate({
@@ -195,6 +250,14 @@ export class UserService {
     }
     return user;
   }
+  async getUserByEmailOrPhone(
+    email: string,
+    phone: string,
+  ): Promise<UserDocument | null> {
+    const user = await this.userRepository.getUserByEmailOrPhone(email, phone);
+
+    return user;
+  }
 
   async getUsersExcludeAdminAndCustomer() {
     return await this.userRepository.findUsersExcludeRoles([
@@ -211,7 +274,136 @@ export class UserService {
     ]);
   }
 
+  async getConsultants() {
+    return await this.userRepository.findConsultants();
+  }
+  async getConsultantsAndAdmin() {
+    return await this.userRepository.findConsultantsAndAdmin();
+  }
+
   async getTechnicians() {
-    return this.userRepository.findTechnicians();
+    const technicals = await this.userRepository.findTechnicians();
+    const results: any[] = [];
+
+    const parseEstimatedHours = (estimatedTime?: string): number => {
+      if (!estimatedTime) return 12;
+      const match = estimatedTime.match(/(\d+)\s*([dhm])/i);
+      if (!match) return 12;
+      const value = parseInt(match[1], 10);
+      const unit = match[2].toLowerCase();
+      if (unit === 'd') return value * 24;
+      if (unit === 'h') return value;
+      if (unit === 'm') return value / 60;
+      return 12;
+    };
+
+    for (const tech of technicals) {
+      const repairs = await this.repairRequestRepo.findActiveByTechnician(
+        (tech as any)._id.toString(),
+      );
+
+      let maxCompletionTime: Date | null = null;
+
+      for (const repair of repairs) {
+        const invoiceItems =
+          (await this.repairInvoiceItemRepo.findByRepairRequestId(
+            (repair as any)._id.toString(),
+          )) ?? [];
+
+        const base = (repair as any).customerConfirmDate
+          ? new Date((repair as any).customerConfirmDate)
+          : null;
+
+        if (!base || isNaN(base.getTime())) {
+          console.warn('Repair bỏ qua vì customerConfirmDate invalid', {
+            repairId: (repair as any)._id?.toString?.(),
+            customerConfirmDate: (repair as any).customerConfirmDate,
+          });
+          continue;
+        }
+
+        let repairCompletionTime: Date | null = null;
+
+        if (invoiceItems.length === 0) {
+          const completionTime = new Date(base.getTime() + 12 * 3600000);
+          repairCompletionTime = completionTime;
+        } else {
+          for (const item of invoiceItems) {
+            const estimatedHours = parseEstimatedHours(
+              (item.repairServiceId as any)?.estimatedTime,
+            );
+
+            const completionTime = new Date(
+              base.getTime() + estimatedHours * 3600000,
+            );
+
+            if (isNaN(completionTime.getTime())) {
+              console.warn('completionTime invalid cho item', {
+                repairId: (repair as any)._id?.toString?.(),
+                estimated: (item.repairServiceId as any)?.estimatedTime,
+              });
+              continue;
+            }
+
+            if (
+              !repairCompletionTime ||
+              completionTime > repairCompletionTime
+            ) {
+              repairCompletionTime = completionTime;
+            }
+          }
+        }
+
+        if (repairCompletionTime) {
+          if (!maxCompletionTime || repairCompletionTime > maxCompletionTime) {
+            maxCompletionTime = repairCompletionTime;
+          }
+        } else {
+          console.warn('repairCompletionTime vẫn null sau khi xử lý', {
+            repairId: (repair as any)._id?.toString?.(),
+          });
+        }
+      }
+
+      console.log('=> maxCompletionTime cho kỹ thuật:', {
+        techId: (tech as any)._id?.toString?.(),
+        maxCompletionTime,
+      });
+
+      results.push({
+        infoTech: {
+          _id: tech._id,
+          phone: tech.phone,
+          fullName: tech.fullName,
+        },
+        estimatedCompletionTime: maxCompletionTime ?? null,
+        ongoingRepairCount: repairs?.length ?? 0,
+      });
+    }
+
+    return results;
+  }
+
+  async findByPhone(phone: string) {
+    return await this.userRepository.findByPhone(phone);
+  }
+  async findUserById(userId: string) {
+    return await this.userRepository.findById(userId);
+  }
+
+  async toggleStatus(id: string) {
+    const user = await this.userRepository.findById(id);
+    if (!user) throw new NotFoundException('User not found');
+
+    const newStatus = user.status === 1 ? 0 : 1;
+    return this.userRepository.updateStatus(id, newStatus);
+  }
+
+  async activateUser(id: string) {
+    return this.userRepository.updateStatus(id, 1);
+  }
+
+  async deactivateUser(id: string) {
+    return this.userRepository.updateStatus(id, 0);
   }
 }

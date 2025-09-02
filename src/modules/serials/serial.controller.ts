@@ -20,6 +20,18 @@ export class SerialController {
     return createResponse(HttpStatus.CREATED, data, ResponseMessage.GET);
   }
 
+  @Get('by-product/:id')
+  async findSerialByProduct(@Param('id') id: string) {
+    const data = await this.serialService.findByProductId(id);
+    return createResponse(HttpStatus.CREATED, data, ResponseMessage.GET);
+  }
+
+  @Get('by-variable/:id')
+  async findSerialByVariable(@Param('id') id: string) {
+    const data = await this.serialService.findByVariableId(id);
+    return createResponse(HttpStatus.CREATED, data, ResponseMessage.GET);
+  }
+
   @Get(':id')
   async findById(@Param('id') id: string) {
     const data = await this.serialService.findById(id);

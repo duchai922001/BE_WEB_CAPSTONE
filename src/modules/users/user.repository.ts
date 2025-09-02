@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { User, UserDocument } from './user.entity';
-import { FilterQuery, Model } from 'mongoose';
+import { FilterQuery, Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { builderQuery } from 'src/common/helpers/query-builder.helper';
@@ -51,15 +51,35 @@ export class UserRepository {
   }
 
   async findById(id: string): Promise<UserDocument | null> {
-    return this.userModel.findById(id).exec();
+    return this.userModel.findById(id).populate('roleId');
   }
 
   async findByPhone(phone: string): Promise<UserDocument | null> {
     return this.userModel.findOne({ phone }).exec();
   }
+  async findByPhoneOrEmailExist(
+    phoneOrEmail: string,
+  ): Promise<UserDocument | null> {
+    return this.userModel
+      .findOne({
+        $or: [{ phone: phoneOrEmail }, { email: phoneOrEmail }],
+      })
+      .exec();
+  }
 
   async findByEmail(email: string): Promise<UserDocument | null> {
     return this.userModel.findOne({ email }).exec();
+  }
+
+  async getUserByEmailOrPhone(
+    email: string,
+    phone: string,
+  ): Promise<UserDocument | null> {
+    const user = await this.userModel.findOne({
+      $or: [{ email }, { phone }],
+    });
+
+    return user;
   }
 
   async update(id: string, data: UpdateUserDto): Promise<UserDocument | null> {
@@ -67,6 +87,10 @@ export class UserRepository {
       .findByIdAndUpdate(id, data, { new: true })
       .select('-password')
       .exec();
+  }
+
+  async updateUserActive(id: string, data: any): Promise<UserDocument | null> {
+    return this.userModel.findByIdAndUpdate(id, data, { new: true }).exec();
   }
   async updatePassword(
     id: string,
@@ -103,5 +127,76 @@ export class UserRepository {
         match: { name: 'TECHNICIAN' },
       })
       .then((users) => users.filter((user) => user.roleId));
+  }
+
+  async findConsultantsAndAdmin() {
+    return this.userModel
+      .find()
+      .populate({
+        path: 'roleId',
+        match: { name: { $in: ['CONSULTANT', 'ADMIN'] } },
+      })
+      .then((users) => users.filter((user) => user.roleId));
+  }
+
+  async findConsultants() {
+    return this.userModel
+      .find()
+      .populate({
+        path: 'roleId',
+        match: { name: 'CONSULTANT' },
+      })
+      .then((users) => users.filter((user) => user.roleId));
+  }
+  findUserByEmail(email: string) {
+    return this.userModel.findOne({ email: email.toLowerCase() });
+  }
+  updateById(id: string, patch: Partial<User>) {
+    return this.userModel.updateOne({ _id: id }, { $set: patch });
+  }
+  async findAdmins() {
+    return this.userModel
+      .find()
+      .populate({
+        path: 'roleId',
+        match: { name: 'ADMIN' },
+      })
+      .then((users) => users.filter((user) => user.roleId));
+  }
+  async findUserByGoogleId(googleId: string): Promise<User | null> {
+    return this.userModel
+      .findOne({ googleId })
+      .populate({
+        path: 'roleId',
+        populate: { path: 'permissionId' },
+      })
+      .exec();
+  }
+
+  async createGoogleUser(data: {
+    googleId: string;
+    email?: string;
+    fullName: string;
+    avatar?: string;
+    roleId: string;
+    password: string;
+  }): Promise<User> {
+    return this.userModel.create({
+      googleId: data.googleId,
+      email: data.email,
+      fullName: data.fullName,
+      avatar: data.avatar || null,
+      roleId: new Types.ObjectId(data.roleId),
+      status: 1,
+      password: data.password,
+    });
+  }
+
+  async updateStatus(id: string, status: number): Promise<UserDocument | null> {
+    return this.userModel.findByIdAndUpdate(
+      new Types.ObjectId(id),
+      { status },
+      { new: true },
+    );
   }
 }

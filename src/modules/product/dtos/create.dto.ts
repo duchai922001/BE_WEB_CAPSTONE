@@ -70,9 +70,13 @@ export class CreateProductDto {
   @IsMongoId()
   brandId: string;
 
+  @IsMongoId()
+  @IsOptional()
+  productWarrantyPolicyId?: string;
+
   @IsOptional()
   @IsArray()
-  variables: CreateVariableDto[];
+  variables?: CreateVariableDto[];
 
   @IsNotEmpty()
   @IsString()
@@ -114,6 +118,7 @@ export class CreateProductDto {
   mainImage: string;
 
   @IsBoolean()
+  @IsOptional()
   isInstallment: boolean;
 
   @IsArray()
@@ -124,5 +129,6 @@ export class CreateProductDto {
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => SpecificationDto)
+  @IsOptional()
   specifications: SpecificationDto[];
 }

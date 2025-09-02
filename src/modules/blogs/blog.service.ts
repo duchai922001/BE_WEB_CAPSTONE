@@ -47,4 +47,7 @@ export class BlogService {
   async getBlogsQuery(query: BaseQueryDto) {
     return this.blogRepository.GetAllQuery(query);
   }
+  async getLatestBlog() {
+    return this.blogRepository.getLatestBlog();
+  }
 }

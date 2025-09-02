@@ -11,6 +11,9 @@ import { CategoryModule } from '../categories/category.module';
 import { BrandModule } from '../brands/brand.module';
 import { Brand, BrandSchema } from '../brands/brand.entity';
 import { SpecificationsModule } from '../specifications/specifications.module';
+import { PromotionModule } from '../promotion/promotion.module';
+import { NotificationModule } from '../notification/notification.module';
+import { UserModule } from '../users/user.module';
 
 @Module({
   imports: [
@@ -23,7 +26,10 @@ import { SpecificationsModule } from '../specifications/specifications.module';
     VariableModule,
     CategoryModule,
     SpecificationsModule,
+    NotificationModule,
+    UserModule,
     forwardRef(() => BrandModule),
+    forwardRef(() => PromotionModule),
   ],
   providers: [ProductRepository, ProductService],
   controllers: [ProductController],

@@ -50,4 +50,7 @@ export class RoleRepository {
       { new: true },
     );
   }
+  async getRoleConsultant() {
+    return await this.roleModel.findOne({ name: 'CONSULTANT' }).exec();
+  }
 }

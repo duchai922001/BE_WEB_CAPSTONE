@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { CartItem, CartItemDocument } from './cartItem.entity';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { CreateCartItemDto } from './dtos/create-cartItem';
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { builderQuery } from 'src/common/helpers/query-builder.helper';
@@ -25,6 +25,11 @@ export class CartItemRepository {
       .limit(pagination.limit)
       .sort(sort as any);
     return queryBuilder.exec();
+  }
+
+  async deleteMany(ids: string[]): Promise<{ deletedCount: number }> {
+    const objectIds = ids.map((id) => new Types.ObjectId(id));
+    return await this.cartItemModel.deleteMany({ _id: { $in: objectIds } });
   }
 
   async addItem(
@@ -88,5 +93,32 @@ export class CartItemRepository {
           model: 'Attribute',
         },
       });
+  }
+
+  async deleteManyByIds(cartItemIds: string[]) {
+    if (!cartItemIds || !cartItemIds.length) {
+      throw new BadRequestException('cartItemIds không được để trống');
+    }
+
+    const objectIds = cartItemIds.map((id) => new Types.ObjectId(id));
+
+    const result = await this.cartItemModel.deleteMany({
+      _id: { $in: objectIds },
+    });
+
+    return result;
+  }
+
+  async countItemsByCartId(cartId: string): Promise<number> {
+    return this.cartItemModel.countDocuments({
+      cartId,
+    });
+  }
+  async updateQuantity(id: string, quantity: number) {
+    return this.cartItemModel.findByIdAndUpdate(
+      id,
+      { $set: { quantity } },
+      { new: true },
+    );
   }
 }

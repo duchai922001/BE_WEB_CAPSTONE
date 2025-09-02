@@ -20,6 +20,9 @@ import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { AssignRepairRequestDto } from './dtos/assign-staff.dto';
 import { UpdateRepairRequestTimestampDto } from './dtos/update-repair-request-timestamp.dto';
 import { UpdateRepairRequestInfoDto } from './dtos/update.dto';
+import { UpdateCustomerPaidDto } from './dtos/customer-paid.dto';
+import { FilterRepairRequestDto } from './dtos/filter.dto';
+import { CreateRepairRequestAdminDto } from './dtos/admin-create.dto';
 
 @Controller('repair-requests')
 export class RepairRequestController {
@@ -29,7 +32,31 @@ export class RepairRequestController {
   @Post()
   async create(@Body() dto: CreateRepairRequestDto, @Request() req) {
     const data = await this.service.create(req.user.userId, dto);
-    return createResponse(201, data, ResponseMessage.CREATE);
+    return createResponse(HttpStatus.CREATED, data, ResponseMessage.CREATE);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('system')
+  async createRepairAdmin(
+    @Body() dto: CreateRepairRequestAdminDto,
+    @Request() req,
+  ) {
+    const data = await this.service.createRepairAdmin(req.user.userId, dto);
+    return createResponse(HttpStatus.CREATED, data, ResponseMessage.CREATE);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('technician-stats')
+  async getTechnicianStats(@Request() req) {
+    const data = await this.service.getTechnicianStats(req.user.userId);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('requests-by-user')
+  async getRequestByUser(@Request() req, @Body() dto: FilterRepairRequestDto) {
+    const data = await this.service.getRequestsByUser(req.user.userId, dto);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -71,6 +98,8 @@ export class RepairRequestController {
       id,
       dto.assignedStaffId,
       dto.technicianId,
+      dto.diagnosis,
+      dto.photosReceiving,
     );
     return createResponse(200, data, ResponseMessage.UPDATE);
   }
@@ -94,5 +123,15 @@ export class RepairRequestController {
   async updateTimestamp(@Body() dto: UpdateRepairRequestTimestampDto) {
     const data = await this.service.updateTimestamp(dto);
     return createResponse(200, data, ResponseMessage.UPDATE);
+  }
+
+  @Patch('customer-paid')
+  async updateCustomerPaid(@Body() dto: UpdateCustomerPaidDto) {
+    const data = await this.service.updateCustomerPaid(dto);
+    return createResponse(
+      HttpStatus.OK,
+      data,
+      'Cập nhật thanh toán thành công',
+    );
   }
 }

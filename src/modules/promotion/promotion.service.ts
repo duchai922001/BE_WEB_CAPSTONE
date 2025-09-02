@@ -63,19 +63,17 @@ export class PromotionService {
       const productDocs = await this.productRepo.findManyByIds(products);
 
       for (const product of productDocs) {
-        const sellPrice = product.sellPrice;
-        let salePrice = sellPrice;
+        // const sellPrice = product.sellPrice;
 
-        if (typeof discountValue === 'number') {
-          if (discountType === 'PERCENT') {
-            salePrice = Math.round(sellPrice * (1 - discountValue / 100));
-          } else if (discountType === 'MONEY') {
-            salePrice = Math.max(sellPrice - discountValue, 0);
-          }
-        }
+        // if (typeof discountValue === 'number') {
+        //   if (discountType === 'PERCENT') {
+        //     salePrice = Math.round(sellPrice * (1 - discountValue / 100));
+        //   } else if (discountType === 'MONEY') {
+        //     salePrice = Math.max(sellPrice - discountValue, 0);
+        //   }
+        // }
 
         await this.productRepo.updateOne((product as any)._id, {
-          salePrice,
           isPromotion: true,
           promotionId: (newPromotion as any)._id.toString(),
         });
@@ -98,5 +96,9 @@ export class PromotionService {
       throw new NotFoundException(`Promotion with id ${id} not found`);
     }
     return { promotion, images };
+  }
+
+  async getActiveOrDefaultPromotions() {
+    return await this.promotionRepository.getActiveOrDefaultPromotions();
   }
 }

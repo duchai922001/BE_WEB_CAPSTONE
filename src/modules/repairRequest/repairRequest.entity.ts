@@ -47,6 +47,9 @@ export class RepairRequest extends Document {
   @Prop() // Thời gian xử lý
   processingDate: Date;
 
+  @Prop() // Thời gian xử lý
+  customerConfirmDate: Date;
+
   @Prop() // Thời gian dự kiến giao hàng
   pickupAppointmentDate: Date;
 
@@ -61,6 +64,12 @@ export class RepairRequest extends Document {
 
   @Prop({ default: 0 })
   customerDept: number;
+
+  @Prop({ type: [String], default: [] })
+  photosReceiving: string[];
+
+  @Prop()
+  diagnosis: string;
 
   @Prop({
     required: true,

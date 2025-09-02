@@ -15,8 +15,4 @@ export class StaffActionLogService {
   async getAllLogs() {
     return this.staffActionLogRepository.findAll();
   }
-
-  async getLogDetail(id: string) {
-    return this.staffActionLogRepository.findById(id);
-  }
 }

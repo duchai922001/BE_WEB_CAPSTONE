@@ -1,4 +1,12 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateFeedbackDto } from './create.feedback';
+import { IsInt, Min, Max, IsString, IsOptional } from 'class-validator';
 
-export class UpdateFeedbackDto extends PartialType(CreateFeedbackDto) {}
+export class UpdateFeedbackDto {
+  @IsInt()
+  @Min(1)
+  @Max(5)
+  rating: number;
+
+  @IsString()
+  @IsOptional()
+  comment?: string;
+}

@@ -43,7 +43,7 @@ export class RepairInvoiceItemRepository {
 
   async findByRepairRequestIdWithPolicy(repairRequestId: string) {
     return this.model
-      .find({ repairRequestId })
+      .find({ repairRequestId, totalPrice: { $gt: 0 } })
       .populate({
         path: 'repairServiceId',
         populate: {
@@ -54,6 +54,18 @@ export class RepairInvoiceItemRepository {
       .populate({
         path: 'repairRequestId',
       })
+      .exec();
+  }
+
+  async findFreeServicesByRequestId(
+    repairRequestId: string,
+  ): Promise<RepairInvoiceItem[]> {
+    return this.model
+      .find({
+        repairRequestId: repairRequestId,
+        totalPrice: 0,
+      })
+      .populate('repairServiceId')
       .exec();
   }
 }

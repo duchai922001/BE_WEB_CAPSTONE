@@ -16,7 +16,8 @@ export class InstalmentRequestRepository {
   async findByUserId(userId: string) {
     return this.model
       .find({ userId: userId })
-      .populate('instalmentItemId')
+      .populate('productId')
+      .populate('variableId')
       .populate('assignedStaffId', 'fullName phone')
       .sort({ createdAt: -1 })
       .exec();
@@ -27,21 +28,44 @@ export class InstalmentRequestRepository {
   }
 
   async findAll(): Promise<InstalmentRequest[]> {
-    return this.model
-      .find()
-      .populate('userId assignedStaffId instalmentItemId');
+    return this.model.find().populate('userId assignedStaffId productId');
   }
 
   async findById(id: string): Promise<InstalmentRequest | null> {
     return this.model
       .findById(id)
-      .populate('userId assignedStaffId instalmentItemId');
+      .populate('userId assignedStaffId productId variableId')
+      .lean();
   }
 
-  async updateStatus(
-    id: string,
-    status: boolean,
-  ): Promise<InstalmentRequest | null> {
-    return this.model.findByIdAndUpdate(id, { status }, { new: true });
+  async updateStatus({
+    id,
+    status,
+    resultImage,
+    assignedStaffId,
+  }: {
+    id: string;
+    status: string;
+    resultImage?: string;
+    assignedStaffId?: string;
+  }): Promise<InstalmentRequest | null> {
+    const updateData: any = { status };
+    if (resultImage) {
+      updateData.resultImage = resultImage;
+    }
+    if (assignedStaffId) {
+      updateData.assignedStaffId = assignedStaffId;
+    }
+    return this.model.findByIdAndUpdate(id, updateData, { new: true });
+  }
+
+  async getRequestsByStaff(userId: string, role: string) {
+    const query: any = {};
+    if (role === 'ADMIN') {
+    } else {
+      query.$or = [{ assignedStaffId: userId }, { status: 'pending' }];
+    }
+
+    return this.model.find(query).sort({ updatedAt: -1 }).exec();
   }
 }

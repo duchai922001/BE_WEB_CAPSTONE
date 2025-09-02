@@ -1,5 +1,5 @@
 import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
-import { ActionTypeConfig, RefConfig } from 'src/common/enums/config';
+import { ActionLogType, ActionTypeConfig } from 'src/common/enums/config';
 
 export class CreateActionLogDto {
   @IsString()
@@ -8,11 +8,11 @@ export class CreateActionLogDto {
 
   @IsString()
   @IsNotEmpty()
-  refId: RefConfig;
+  url: string;
 
   @IsString()
   @IsNotEmpty()
-  actionType: ActionTypeConfig;
+  actionType: ActionLogType;
 
   @IsString()
   @IsOptional()

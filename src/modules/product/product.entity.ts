@@ -10,6 +10,9 @@ export class Product extends Document {
   @Prop({ type: Types.ObjectId, ref: 'Brand', required: true })
   brandId: Types.ObjectId;
 
+  @Prop({ type: Types.ObjectId, ref: 'ProductWarrantyPolicy' })
+  productWarrantyPolicyId: Types.ObjectId;
+
   @Prop({ required: true, unique: true })
   name: string;
 
@@ -31,7 +34,7 @@ export class Product extends Document {
   @Prop({ required: true, unique: true })
   barcode: string;
 
-  @Prop({ default: false })
+  @Prop({ default: true })
   status: boolean;
 
   @Prop({ default: false })

@@ -37,9 +37,16 @@ export class FeedbackService {
     const feedbacks = await this.feedbackRepo.findByProductId(productId);
 
     if (!feedbacks || feedbacks.length === 0) {
-      throw new NotFoundException('Không tìm thấy đánh giá cho sản phẩm này');
+      return [];
     }
 
     return feedbacks;
+  }
+
+  async getFeedbackByOrderId(orderId: string) {
+    return await this.feedbackRepo.getFeedbackByOrderId(orderId);
+  }
+  async findByProductAndUser(productId: string, userId: string) {
+    return await this.feedbackRepo.findByProductAndUser(productId, userId);
   }
 }

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Cart, CartDocument } from './cart.entity';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { CreateCartDto } from './dtos/create-cart.dto';
 import { PromotionDocument } from '../promotion/promotion.entity';
 
@@ -34,5 +34,10 @@ export class CartRepository {
     let cart = await this.cartModel.findOne({ userId });
     if (!cart) cart = await this.cartModel.create({ userId });
     return cart;
+  }
+  async findByUserId(userId: string): Promise<CartDocument | null> {
+    return this.cartModel.findOne({
+      userId,
+    });
   }
 }

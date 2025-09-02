@@ -6,17 +6,22 @@ import { PromotionRepository } from './promotion.repository';
 import { Promotion, PromotionSchema } from './promotion.entity';
 import { PromotionImageModule } from '../promotionImage/promotionImage.module';
 import { ProductModule } from '../product/product.module';
+import {
+  ProductImage,
+  ProductImageSchema,
+} from '../productImage/productImage.entity';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Promotion.name, schema: PromotionSchema },
+      { name: ProductImage.name, schema: ProductImageSchema },
     ]),
     PromotionImageModule,
     ProductModule,
   ],
   controllers: [PromotionController],
   providers: [PromotionService, PromotionRepository],
-  exports: [PromotionService],
+  exports: [PromotionService, PromotionRepository],
 })
 export class PromotionModule {}

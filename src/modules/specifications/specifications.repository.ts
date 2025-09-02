@@ -91,4 +91,28 @@ export class SpecificationsRepository {
 
     return matched.map((m) => m._id.toString());
   }
+
+  async getFilteredProductIds(
+    productIds: string[],
+    filters: { key: string; value?: string[] }[],
+  ): Promise<string[]> {
+    if (!filters || filters.length === 0) return productIds;
+
+    const specs = await this.model.find({
+      productId: { $in: productIds },
+    });
+
+    return productIds.filter((id) => {
+      // lấy specs của sản phẩm này
+      const specsOfProduct = specs.filter((s) => s.productId.toString() === id);
+
+      // OR logic: chỉ cần một filter key trùng với một value
+      return filters.some((f) => {
+        if (!f.value || f.value.length === 0) return false;
+        return specsOfProduct.some(
+          (s) => s.key === f.key && f.value!.includes(s.value),
+        );
+      });
+    });
+  }
 }

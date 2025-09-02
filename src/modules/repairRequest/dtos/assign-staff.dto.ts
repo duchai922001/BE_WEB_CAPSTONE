@@ -1,4 +1,10 @@
-import { IsOptional, IsMongoId } from 'class-validator';
+import {
+  IsOptional,
+  IsMongoId,
+  ArrayNotEmpty,
+  IsArray,
+  IsString,
+} from 'class-validator';
 
 export class AssignRepairRequestDto {
   @IsOptional()
@@ -8,4 +14,13 @@ export class AssignRepairRequestDto {
   @IsOptional()
   @IsMongoId()
   technicianId?: string;
+
+  @IsOptional()
+  @IsString()
+  diagnosis?: string;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayNotEmpty()
+  photosReceiving?: string[];
 }

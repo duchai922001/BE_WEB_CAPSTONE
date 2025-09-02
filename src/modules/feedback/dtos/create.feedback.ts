@@ -18,8 +18,7 @@ export class CreateFeedbackDto {
   productId: string;
 
   @IsMongoId()
-  @IsOptional()
-  repairRequestId: string;
+  orderId: string;
 
   @IsInt()
   @Min(1)

@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { NotificationRepository } from './notification.repository';
 import { CreateNotificationDto } from './dtos/create.dto';
 import { Notification } from './notification.entity';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class NotificationService {
@@ -11,13 +12,13 @@ export class NotificationService {
   ) {}
 
   async create(data: CreateNotificationDto): Promise<Notification> {
-    const { userId, title, message, type, targeUrl } = data;
+    const { userId, title, message, type, targetUrl } = data;
     const notification = await this.notificationRepository.create({
       userId,
       title,
       message,
       type,
-      targeUrl,
+      targetUrl,
     });
     return notification;
   }
@@ -38,7 +39,10 @@ export class NotificationService {
     id: string,
     data: UpdateNotificationDto,
   ): Promise<Notification | null> {
-    const updatedNotification = await this.notificationRepository.updateById(id, data);
+    const updatedNotification = await this.notificationRepository.updateById(
+      id,
+      data,
+    );
     if (!updatedNotification) {
       return null;
     }
@@ -47,5 +51,16 @@ export class NotificationService {
 
   async delete(id: string): Promise<void> {
     return await this.notificationRepository.deleteById(id);
+  }
+
+  async getNotificationOrderByUser(userId: string | Types.ObjectId) {
+    return await this.notificationRepository.getNotificationOrderByUser(
+      userId,
+      20,
+    );
+  }
+
+  async markAsRead(notificationId: string) {
+    return await this.notificationRepository.markAsRead(notificationId);
   }
 }

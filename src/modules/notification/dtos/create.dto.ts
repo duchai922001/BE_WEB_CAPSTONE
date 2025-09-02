@@ -17,7 +17,7 @@ export class CreateNotificationDto {
   @IsString()
   type: string;
 
-  @IsOptional() 
+  @IsOptional()
   @IsString()
-  targeUrl: string;
+  targetUrl: string;
 }

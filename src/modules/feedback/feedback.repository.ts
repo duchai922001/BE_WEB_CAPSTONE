@@ -39,4 +39,22 @@ export class FeedbackRepository {
       .populate('userId')
       .exec();
   }
+
+  async getFeedbackByOrderId(orderId: string) {
+    return this.feedbackModel
+      .findOne({ orderId: orderId })
+      .populate('userId', 'name email')
+      .populate('productId', 'name price')
+      .exec();
+  }
+  async findByProductAndUser(productId: string, userId: string) {
+    return this.feedbackModel
+      .find({
+        productId: productId,
+        userId: userId,
+        isFeedback: true,
+      })
+      .populate({ path: 'userId', select: 'fullName avatar email' })
+      .lean();
+  }
 }

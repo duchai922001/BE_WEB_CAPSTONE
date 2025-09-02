@@ -4,16 +4,16 @@ import { Document, Types } from 'mongoose';
 export type UserDocument = User & Document;
 @Schema({ timestamps: true, versionKey: false })
 export class User extends Document {
-  @Prop({ required: true, unique: true })
+  @Prop({ sparse: true })
   phone: string;
 
-  @Prop({ required: true })
+  @Prop({ default: null })
   password: string;
 
   @Prop({ required: true })
   fullName: string;
 
-  @Prop({ required: true, unique: true })
+  @Prop({ default: null })
   email: string;
 
   @Prop({ type: Types.ObjectId, ref: 'Role', required: true })
@@ -24,6 +24,9 @@ export class User extends Document {
 
   @Prop({ default: 1 })
   status: number;
+
+  @Prop({ default: null, unique: true, sparse: true })
+  googleId: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

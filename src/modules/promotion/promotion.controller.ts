@@ -19,6 +19,11 @@ export class PromotionController {
     const data = await this.promotionService.getAll();
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
+  @Get('active-or-default')
+  async getActiveOrDefaultPromotions() {
+    const data = await this.promotionService.getActiveOrDefaultPromotions();
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
 
   @Get(':id')
   async getPromotionById(@Param('id') id: string) {

@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UserService } from '../users/user.service';
 import { JwtService } from '@nestjs/jwt';
 import { Token, TokenDocument } from './auth.entity';
@@ -14,8 +18,8 @@ export class AuthService {
     @InjectModel(Token.name) private tokenModel: Model<TokenDocument>,
   ) {}
 
-  async login(phone: string, password: string) {
-    const user = await this.userService.validateUser(phone, password);
+  async login(phoneOrEmail: string, password: string) {
+    const user = await this.userService.validateUser(phoneOrEmail, password);
 
     const permission =
       user.roleId.permissionId?.map((p) => p.name as PermissionSystem) || [];

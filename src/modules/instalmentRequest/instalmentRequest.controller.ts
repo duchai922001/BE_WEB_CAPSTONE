@@ -27,20 +27,31 @@ export class InstalmentRequestController {
   }
 
   @Get()
-  findAll() {
-    const data = this.service.findAll();
+  async findAll() {
+    const data = await this.service.findAll();
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('requests-by-user')
+  async getRequestsByStaff(@Request() req) {
+    const data = await this.service.getRequestsByStaff(req.user.userId);
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
 
   @Get('get-id/:id')
-  findById(@Param('id') id: string) {
-    const data = this.service.findById(id);
+  async findById(@Param('id') id: string) {
+    const data = await this.service.findById(id);
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
 
   @Patch(':id/status/:status')
-  updateStatus(@Param('id') id: string, @Param('status') status: string) {
-    const data = this.service.updateStatus(id, status === 'true');
+  updateStatus(
+    @Param('id') id: string,
+    @Param('status') status: string,
+    @Body('resultImage') resultImage?: string,
+  ) {
+    const data = this.service.updateStatus(id, status, resultImage);
     return createResponse(HttpStatus.OK, data, ResponseMessage.UPDATE);
   }
 
@@ -49,5 +60,16 @@ export class InstalmentRequestController {
   async getByUserId(@Request() req) {
     const data = await this.service.getRequestsByUser(req.user.userId);
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/send-email')
+  async sendEmail(@Param('id') id: string, @Request() req) {
+    const data = await this.service.sendRequestEmail(id, req.user.userId);
+    return createResponse(
+      HttpStatus.OK,
+      data,
+      'Email đã được gửi tới ngân hàng',
+    );
   }
 }

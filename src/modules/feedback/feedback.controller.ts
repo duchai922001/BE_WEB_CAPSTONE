@@ -7,12 +7,15 @@ import {
   Body,
   HttpStatus,
   Put,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { FeedbackService } from './feedback.service';
 import { CreateFeedbackDto } from './dtos/create.feedback';
 import { UpdateFeedbackDto } from './dtos/update.feedback';
 import { createResponse } from 'src/common/helpers/response.helper';
 import { ResponseMessage } from 'src/common/enums/responseMessage';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('feedbacks')
 export class FeedbackController {
@@ -22,6 +25,26 @@ export class FeedbackController {
   async create(@Body() dto: CreateFeedbackDto) {
     const data = await this.feedbackService.create(dto);
     return createResponse(HttpStatus.CREATED, data, ResponseMessage.CREATE);
+  }
+
+  @Get('order/:orderId')
+  async getFeedbackByOrder(@Param('orderId') orderId: string) {
+    const data = await this.feedbackService.getFeedbackByOrderId(orderId);
+    return createResponse(HttpStatus.CREATED, data, ResponseMessage.GET);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('user-product/:productId')
+  async findByProductAndUser(
+    @Param('productId') productId: string,
+    @Request() req,
+  ) {
+    const userId = req.user?.userId;
+    const data = await this.feedbackService.findByProductAndUser(
+      productId,
+      userId,
+    );
+    return createResponse(HttpStatus.CREATED, data, ResponseMessage.GET);
   }
 
   @Get()

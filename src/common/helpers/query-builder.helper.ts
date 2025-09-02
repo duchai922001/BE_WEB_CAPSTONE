@@ -62,7 +62,7 @@ export function builderQuery(
   extraFilters?: Record<string, any>,
 ) {
   const page = parseInt(query.page ?? '1', 10);
-  const limit = parseInt(query.limit ?? '10', 10);
+  const limit = parseInt(query.limit ?? '10', 20);
   const skip = (page - 1) * limit;
 
   const filter: any = {};

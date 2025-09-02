@@ -57,4 +57,7 @@ export class BlogRepository {
       limit: Number(query.limit) || 10,
     };
   }
+  async getLatestBlog(): Promise<Blog | null> {
+    return this.blogModel.findOne().sort({ createdAt: -1 }).exec();
+  }
 }

@@ -1,7 +1,7 @@
 import { InjectModel } from '@nestjs/mongoose';
 import { Serial, SerialDocument } from './serial.entity';
-import { ClientSession, Model } from 'mongoose';
-import { Injectable } from '@nestjs/common';
+import { ClientSession, Model, Types } from 'mongoose';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateSerialDto } from './dtos/create.dto';
 
 @Injectable()
@@ -24,6 +24,14 @@ export class SerialRepository {
   }
   async findByProductId(productId: string): Promise<SerialDocument[]> {
     return this.serialModel.find({ productId }).exec();
+  }
+  async findSerialNotSoldByProductId(
+    productId: string,
+  ): Promise<SerialDocument[]> {
+    return this.serialModel.find({ productId, isSold: false }).exec();
+  }
+  async findByVariableId(variableId: string): Promise<SerialDocument[]> {
+    return this.serialModel.find({ variableId, isSold: false }).exec();
   }
 
   async deleteById(id: string): Promise<void> {
@@ -48,6 +56,15 @@ export class SerialRepository {
       .exec();
   }
 
+  async updateBySerialCode(
+    serialCode: string,
+    data: Partial<CreateSerialDto>,
+  ): Promise<SerialDocument | null> {
+    return this.serialModel
+      .findOneAndUpdate({ serialCode }, data, { new: true })
+      .exec();
+  }
+
   async find(
     condition: any,
     limit?: number,
@@ -61,5 +78,121 @@ export class SerialRepository {
       query.session(session);
     }
     return query.exec();
+  }
+  async markAsSold(productId: string, serialCodes: string[]) {
+    if (!Types.ObjectId.isValid(productId)) {
+      throw new BadRequestException('productId không hợp lệ');
+    }
+    if (!serialCodes || !serialCodes.length) {
+      throw new BadRequestException('Danh sách serialCodes là bắt buộc');
+    }
+
+    const result = await this.serialModel.updateMany(
+      {
+        productId: productId,
+        serialCode: { $in: serialCodes },
+        isSold: false,
+      },
+      { $set: { isSold: true } },
+    );
+
+    return {
+      message: `Cập nhật thành công ${result.modifiedCount} serial`,
+      modifiedCount: result.modifiedCount,
+    };
+  }
+
+  async markVariableAsSold(
+    productId: string,
+    serialCodes: string[],
+    variableId?: string,
+  ) {
+    if (!Types.ObjectId.isValid(productId)) {
+      throw new BadRequestException('productId không hợp lệ');
+    }
+    if (variableId && !Types.ObjectId.isValid(variableId)) {
+      throw new BadRequestException('variableId không hợp lệ');
+    }
+    if (!serialCodes || !serialCodes.length) {
+      throw new BadRequestException('serialCodes là bắt buộc');
+    }
+
+    const filter: any = {
+      productId: productId,
+      serialCode: { $in: serialCodes },
+      isSold: false,
+    };
+    if (variableId) {
+      filter.variableId = variableId;
+    }
+
+    const result = await this.serialModel.updateMany(filter, {
+      $set: { isSold: true },
+    });
+
+    return {
+      message: `Đã cập nhật ${result.modifiedCount} serial thành sold`,
+      modifiedCount: result.modifiedCount,
+    };
+  }
+
+  async checkExistSerialCodes(serialCodes: string[]): Promise<string[]> {
+    const existing = await this.serialModel
+      .find({ serialCode: { $in: serialCodes } })
+      .select('serialCode -_id')
+      .lean();
+
+    return existing.map((item) => item.serialCode);
+  }
+
+  async markAsUnsold(productId: string, serialCodes: string[]) {
+    if (!Types.ObjectId.isValid(productId)) {
+      throw new BadRequestException('productId không hợp lệ');
+    }
+
+    const result = await this.serialModel.updateMany(
+      {
+        productId: productId,
+        serialCode: { $in: serialCodes },
+        isSold: true,
+      },
+      { $set: { isSold: false } },
+    );
+
+    return {
+      message: `Cập nhật thành công ${result.modifiedCount} serial`,
+      modifiedCount: result.modifiedCount,
+    };
+  }
+
+  async markVariableAsUnsold(
+    productId: string,
+    serialCodes: string[],
+    variableId?: string,
+  ) {
+    if (!Types.ObjectId.isValid(productId)) {
+      throw new BadRequestException('productId không hợp lệ');
+    }
+    if (variableId && !Types.ObjectId.isValid(variableId)) {
+      throw new BadRequestException('variableId không hợp lệ');
+    }
+
+    const filter: any = {
+      productId: productId,
+      serialCode: { $in: serialCodes },
+      isSold: true,
+    };
+    if (variableId) {
+      filter.variableId = variableId;
+    }
+
+    const result = await this.serialModel.updateMany(filter, {
+      $set: { isSold: false },
+    });
+
+    return {
+      message: `Đã cập nhật ${result.modifiedCount} serial thành unsold`,
+      modifiedCount: result.modifiedCount,
+    };
   }
 }

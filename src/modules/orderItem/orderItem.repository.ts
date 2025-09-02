@@ -44,10 +44,23 @@ export class OrderItemRepository {
     const orderItems = await this.OrderItemModel.find({
       orderId: new Types.ObjectId(orderId),
     })
-      .populate({
-        path: 'productId',
-        select: 'name brand costPrice sellPrice typeProduct',
-      })
+
+      .populate([
+        {
+          path: 'productId',
+          select:
+            'name brand costPrice sellPrice typeProduct barcode productWarrantyPolicyId',
+          populate: {
+            path: 'productWarrantyPolicyId',
+            model: 'ProductWarrantyPolicy',
+            select: 'name duration description',
+          },
+        },
+        {
+          path: 'variableId',
+          select: 'name sellPrice',
+        },
+      ])
       .sort({ createdAt: -1 })
       .lean()
       .exec();
@@ -68,13 +81,15 @@ export class OrderItemRepository {
       imageMap.set(img.productId.toString(), img.url);
     });
 
+    // Format items
     const formattedItems = orderItems.map((item) => {
-      const { productId, ...rest } = item;
+      const { productId, variableId, ...rest } = item;
       const imageUrl = imageMap.get(productId._id.toString()) || null;
 
       return {
         ...rest,
         product: productId,
+        variable: variableId, // lưu biến thể để dùng giá
         imageUrl,
       };
     });

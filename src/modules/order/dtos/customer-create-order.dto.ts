@@ -11,6 +11,7 @@ import {
 import { Type } from 'class-transformer';
 import { PaymentMethod, PaymentType } from 'src/common/enums/payment';
 import { ProductType } from 'src/common/enums/productType';
+import { OrderNormalStatus } from 'src/common/enums/orderStatus';
 
 export class OrderItems {
   @IsNotEmpty()
@@ -55,13 +56,20 @@ export class CustomerCreateOrderDto {
   totalAmount: number;
 
   @IsMongoId()
-  addressId: string;
+  @IsOptional()
+  addressId?: string;
 
   @IsNotEmpty()
   @IsEnum(PaymentType, {
     message: `paymentType must be one of: ${Object.values(PaymentType).join(', ')}`,
   })
   paymentType: PaymentType;
+
+  @IsOptional()
+  @IsEnum(OrderNormalStatus, {
+    message: `OrderNormalStatus must be one of: ${Object.values(OrderNormalStatus).join(', ')}`,
+  })
+  status?: OrderNormalStatus;
 
   @IsNotEmpty()
   @IsEnum(PaymentMethod, {
@@ -73,4 +81,9 @@ export class CustomerCreateOrderDto {
   @ValidateNested({ each: true })
   @Type(() => OrderItems)
   orderItems?: OrderItems[];
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  cartItemIds: string[];
 }

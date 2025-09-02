@@ -10,6 +10,8 @@ import {
   Put,
   Query,
   Req,
+  Request,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
@@ -17,27 +19,90 @@ import { CreateUserDto } from './dtos/create.dto';
 import { createResponse } from 'src/common/helpers/response.helper';
 import { BaseQueryDto } from 'src/common/dtos/base-query.dto';
 import { UpdateUserDto } from './dtos/update.dto';
-import { RoleSystem } from 'src/common/enums/role';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../roles/guards/role.guard';
-import { Roles } from '../roles/role.decorator';
 import { PermissionsGuard } from '../permissions/guards/permission.guard';
-import { Permissions } from '../permissions/permission.decorator';
-import { PermissionSystem } from 'src/common/enums/permission';
 import { ResponseMessage } from 'src/common/enums/responseMessage';
 import { changeProfilePassword } from './dtos/change-profile-password';
+import { AuthGuard } from '@nestjs/passport';
+import { Response } from 'express';
+import { JwtService } from '@nestjs/jwt';
+import { AnyARecord } from 'dns';
+import { AnyBulkWriteOperation } from 'mongoose';
 
 @Controller('users')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly jwtService: JwtService,
+  ) {}
+
+  @Patch(':id/toggle-status')
+  async toggleStatus(@Param('id') id: string) {
+    return this.userService.toggleStatus(id);
+  }
+
+  @Patch(':id/activate')
+  async activate(@Param('id') id: string) {
+    return this.userService.activateUser(id);
+  }
+
+  @Patch(':id/deactivate')
+  async deactivate(@Param('id') id: string) {
+    return this.userService.deactivateUser(id);
+  }
+
   @Post('register')
   async create(@Body() dto: CreateUserDto) {
     const data = await this.userService.create(dto);
     return createResponse(HttpStatus.CREATED, data, 'Tạo user thành công');
   }
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  async googleAuth() {
+    // redirect tới Google
+  }
+
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  async googleAuthRedirect(@Req() req, @Res() res: Response) {
+    const user = req.user as {
+      _id: any;
+      email?: string;
+      status?: number;
+      roleId: { name: string };
+    };
+
+    const FRONTEND_URL = 'https://www.bluetoothmobile.vn';
+
+    if (!user) {
+      const msg = encodeURIComponent('Không lấy được thông tin người dùng.');
+      return res.redirect(`${FRONTEND_URL}/auth/callback?error=${msg}`);
+    }
+
+    if (user.status === 0) {
+      const msg = encodeURIComponent(
+        'Tài khoản đã bị khóa. Vui lòng liên hệ hỗ trợ.',
+      );
+      return res.redirect(`${FRONTEND_URL}/auth/callback?error=${msg}`);
+    }
+
+    const token = this.jwtService.sign({
+      sub: user._id.toString(),
+      email: user.email ?? '',
+      role: user?.roleId.name,
+    });
+
+    return res.redirect(`${FRONTEND_URL}?token=${token}`);
+  }
+
   @Get('')
   async getAll(@Query() query: BaseQueryDto) {
     const data = await this.userService.getAll(query);
+    return createResponse(HttpStatus.OK, data, 'Lấy danh sách User thành công');
+  }
+  @Get('get-phone/:phone')
+  async getUserByPhone(@Param('phone') phone: string) {
+    const data = await this.userService.findByPhone(phone);
     return createResponse(HttpStatus.OK, data, 'Lấy danh sách User thành công');
   }
   @UseGuards(JwtAuthGuard)
@@ -74,8 +139,11 @@ export class UserController {
   }
 
   @Post('auth')
-  async validateUser(@Body() body: { phone: string; password: string }) {
-    const data = await this.userService.validateUser(body.phone, body.password);
+  async validateUser(@Body() body: { phoneOrEmail: string; password: string }) {
+    const data = await this.userService.validateUser(
+      body.phoneOrEmail,
+      body.password,
+    );
     return createResponse(HttpStatus.OK, data, 'Đăng nhập thành công');
   }
 

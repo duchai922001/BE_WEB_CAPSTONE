@@ -25,20 +25,4 @@ export class StaffActionLogRepository {
       .populate('userId')
       .exec();
   }
-
-  async findById(id: string) {
-    const log = await this.staffActionModel
-      .findById(id)
-      .populate('userId')
-      .lean();
-
-    if (!log) return null;
-
-    const refModel = log.refId;
-    const populatedRef = await this.staffActionModel.populate(log, {
-      path: 'refId',
-      model: refModel,
-    });
-    return populatedRef;
-  }
 }

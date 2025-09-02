@@ -19,7 +19,7 @@ export class AuthController {
   async register() {}
   @Post('login')
   async login(@Body() data: LoginDto) {
-    const res = await this.authService.login(data.phone, data.password);
+    const res = await this.authService.login(data.phoneOrEmail, data.password);
     return createResponse(HttpStatus.OK, res, 'Đăng nhập thành công');
   }
   @Post('refresh-token')
@@ -33,7 +33,7 @@ export class AuthController {
     const result = await this.authService.isAccessTokenValid(token);
     return result;
   }
-  
+
   @Post('logout')
   async logout(@Req() req: Request, @Body() body: { refreshToken: string }) {
     const user = (req as any).user;

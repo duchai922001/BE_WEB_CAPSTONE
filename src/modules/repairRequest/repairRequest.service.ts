@@ -22,10 +22,19 @@ import { InjectModel } from '@nestjs/mongoose';
 import { RepairInvoiceItemRepository } from '../repair-invoice-item/repair-invoice-item.repository';
 import { RepairWarrantyPolicyRepository } from '../repair-warranty-policy/repair-warranty-policy.repository';
 import { RepairServiceRepository } from '../repairService/repairService.repository';
-import { RepairInvoiceItem } from '../repair-invoice-item/repair-invoice-item.entity';
-import { RepairWarrantyPolicy } from '../repair-warranty-policy/repair-warranty-policy.entity';
 import { formatTimeLeft, parseDuration } from 'src/common/utils/parseDuration';
-
+import * as nodemailer from 'nodemailer';
+import * as dayjs from 'dayjs';
+import { UpdateCustomerPaidDto } from './dtos/customer-paid.dto';
+import { NotificationService } from '../notification/notification.service';
+import { NotificationGateway } from '../notification/notification.gateway';
+import { NotificationType } from 'src/common/enums/notification-type';
+import { UserService } from '../users/user.service';
+import { FilterRepairRequestDto } from './dtos/filter.dto';
+import { CreateRepairRequestAdminDto } from './dtos/admin-create.dto';
+import { StaffActionLogRepository } from '../staffActionLog/staffActionLog.repository';
+import { ActionLogType } from 'src/common/enums/config';
+import { RepairWarrantyHistoryService } from '../repair-warranty-history/repair-warranty-history.service';
 @Injectable()
 export class RepairRequestService {
   constructor(
@@ -37,6 +46,11 @@ export class RepairRequestService {
     private readonly repairWarrantyPolicyRepo: RepairWarrantyPolicyRepository,
     private readonly repairInvoiceItemRepo: RepairInvoiceItemRepository,
     private readonly repairServiceRepo: RepairServiceRepository,
+    private readonly notificationService: NotificationService,
+    private readonly notificationGateway: NotificationGateway,
+    private readonly userService: UserService,
+    private readonly staffLogRepo: StaffActionLogRepository,
+    private readonly warrantyHistoryService: RepairWarrantyHistoryService,
   ) {}
 
   async create(userId: string, data: CreateRepairRequestDto) {
@@ -57,6 +71,105 @@ export class RepairRequestService {
           ...payloadOther,
           userId: userId,
           repairRequestCode,
+        });
+        const consultants = await this.userService.getConsultants();
+
+        for (const consultant of consultants) {
+          const notif = await this.notificationService.create({
+            userId: (consultant as any)._id.toString(),
+            title: 'Đơn sửa chữa vừa được tạo',
+            message: `Đơn sửa chữa có mã đơn ${repairRequestCode} vừa được tạo`,
+            type: NotificationType.ORDER,
+            targetUrl: `/permission/manage-repair-request?repairRequestCode=${repairRequestCode}`,
+          });
+
+          this.notificationGateway.sendNotification(
+            (consultant as any)._id.toString(),
+            notif,
+          );
+        }
+        break;
+      } catch (error) {
+        if (error.code === 11000 && error.keyPattern?.repairRequestCode) {
+          retry++;
+          continue;
+        }
+        throw error;
+      }
+    }
+
+    if (!repairRequest) {
+      throw new Error(
+        'Could not create unique repairRequestCode after retries',
+      );
+    }
+
+    if (imageDeviceBefore?.length) {
+      await Promise.all(
+        imageDeviceBefore.map((url: string) =>
+          this.repairRequestImageService.create({
+            repairRequestId: repairRequest._id.toString(),
+            url,
+            note: '',
+            type: RepairImageType.BEFORE,
+          }),
+        ),
+      );
+    }
+
+    if (repairRequestServices?.length) {
+      await Promise.all(
+        repairRequestServices.map((item: RepairRequestServices) =>
+          this.repairRequestSeviceRepo.create({
+            repairRequestId: repairRequest._id,
+            repairServiceId: item.repairServiceId,
+            note: item.note,
+          }),
+        ),
+      );
+    }
+    return repairRequest;
+  }
+  async createRepairAdmin(staffId: string, data: CreateRepairRequestAdminDto) {
+    const {
+      repairRequestServices,
+      imageDeviceBefore,
+      technicianId,
+      customerName,
+      customerPhone,
+      userId,
+      ...payloadOther
+    } = data;
+    let newUser;
+    if (!userId) {
+      newUser = await this.userService.createUserUnActive({
+        fullName: customerName,
+        phone: customerPhone,
+      });
+    }
+
+    const MAX_RETRIES = 5;
+    let retry = 0;
+    let repairRequestCode: string;
+    let repairRequest: any;
+
+    while (retry < MAX_RETRIES) {
+      repairRequestCode = `${Date.now()}${Math.floor(Math.random() * 1000)
+        .toString()
+        .padStart(3, '0')}`;
+
+      try {
+        repairRequest = await this.repairRequestRepo.create({
+          ...payloadOther,
+          customerName,
+          customerPhone,
+          userId: userId ?? newUser._id,
+          repairRequestCode,
+          assignedStaffId: staffId,
+          technicianId,
+          status: technicianId
+            ? RepairRequestStatus.ASSIGNED_TECHNICAL
+            : RepairRequestStatus.ASSIGNED,
         });
         break;
       } catch (error) {
@@ -100,7 +213,6 @@ export class RepairRequestService {
     }
     return repairRequest;
   }
-
   async getByUserId(userId: string) {
     const repairRequests = await this.repairRequestRepo.getByUserId(userId);
     return repairRequests;
@@ -127,6 +239,29 @@ export class RepairRequestService {
   async updateStatus(id: string, status: string) {
     const result = await this.repairRequestRepo.updateStatus(id, status);
     if (!result) throw new NotFoundException(ResponseMessage.FILE_NOT_FOUND);
+    if (status === RepairRequestStatus.FINISH_REPORT) {
+      const consultants = await this.userService.getConsultants();
+      await this.staffLogRepo.create({
+        actionType: ActionLogType.REPORT,
+        description: 'Đơn sửa chữa vừa được nhân viên báo cáo',
+        url: `/permission/manage-repair-request?repairRequestCode=${result.repairRequestCode}`,
+        userId: String(result?.technicianId),
+      });
+      for (const consultant of consultants) {
+        const notif = await this.notificationService.create({
+          userId: (consultant as any)._id.toString(),
+          title: 'Đơn sửa chữa vừa kiểm tra xong',
+          message: `Đơn sửa chữa có mã đơn ${result.repairRequestCode} vừa kiểm tra xong`,
+          type: NotificationType.ORDER,
+          targetUrl: `/permission/manage-repair-request?repairRequestCode=${result.repairRequestCode}`,
+        });
+
+        this.notificationGateway.sendNotification(
+          (consultant as any)._id.toString(),
+          notif,
+        );
+      }
+    }
     return result;
   }
 
@@ -140,12 +275,45 @@ export class RepairRequestService {
     id: string,
     assignedStaffId?: string,
     technicianId?: string,
+    diagnosis?: string,
+    photosReceiving?: string[],
   ) {
-    return this.repairRequestRepo.assignStaffAndTechnician(
-      id,
-      assignedStaffId,
-      technicianId,
-    );
+    const updatedRequest =
+      await this.repairRequestRepo.assignStaffAndTechnician(
+        id,
+        assignedStaffId,
+        technicianId,
+        diagnosis,
+        photosReceiving,
+      );
+    if (!updatedRequest) {
+      throw new NotFoundException('Repair request not found');
+    }
+    if (assignedStaffId) {
+      await this.staffLogRepo.create({
+        actionType: ActionLogType.ASSIGN,
+        description: 'Đơn sửa chữa được nhân viên tư vấn nhận đơn',
+        url: `/permission/manage-repair-request?repairRequestCode=${updatedRequest.repairRequestCode}`,
+        userId: String(updatedRequest?.assignedStaffId),
+      });
+    }
+    if (technicianId) {
+      await this.staffLogRepo.create({
+        actionType: ActionLogType.ASSIGN,
+        description: 'Đơn sửa chữa được nhân viên tư vấn giao kỹ thuật',
+        url: `/permission/manage-repair-request?repairRequestCode=${updatedRequest.repairRequestCode}`,
+        userId: String(updatedRequest?.assignedStaffId),
+      });
+      const notif = await this.notificationService.create({
+        userId: technicianId,
+        title: 'Bạn được giao làm kỹ thuật viên',
+        message: `Bạn vừa được giao làm kỹ thuật viên cho đơn ${updatedRequest.repairRequestCode}`,
+        type: NotificationType.ORDER,
+        targetUrl: `/permission/manage-repair-request?repairRequestCode=${updatedRequest.repairRequestCode}`,
+      });
+      this.notificationGateway.sendNotification(technicianId, notif);
+    }
+    return updatedRequest;
   }
 
   async updateTimestamp(dto: UpdateRepairRequestTimestampDto) {
@@ -154,6 +322,7 @@ export class RepairRequestService {
       'processingDate',
       'pickupAppointmentDate',
       'completionDate',
+      'customerConfirmDate',
       'cancelledDate',
     ];
 
@@ -165,11 +334,53 @@ export class RepairRequestService {
       dto.repairRequestId,
       dto.field,
     );
+    if (!updated) {
+      throw new NotFoundException('Repair request not found');
+    }
+
+    if (dto.field === 'customerConfirmDate') {
+      await this.updateStatus(
+        dto.repairRequestId,
+        RepairRequestStatus.CUSTOMER_CONFIRMED,
+      );
+      await this.repairRequestRepo.updateInfo(dto.repairRequestId, {
+        customerDept: dto.customerDebt,
+      });
+
+      const notif = await this.notificationService.create({
+        userId: updated?.technicianId?.toString(),
+        title: 'Khách hàng đã xác nhận sửa chữa',
+        message: `Tiến hành sữa chữa đơn hàng ${updated.repairRequestCode}`,
+        type: NotificationType.ORDER,
+        targetUrl: `/permission/manage-repair-request?repairRequestCode=${updated.repairRequestCode}`,
+      });
+      this.notificationGateway.sendNotification(
+        updated?.technicianId?.toString(),
+        notif,
+      );
+    }
 
     if (dto.field === 'processingDate') {
       await this.updateStatus(
         dto.repairRequestId,
         RepairRequestStatus.WAIT_CUSTOMER_RECEIVE,
+      );
+      await this.staffLogRepo.create({
+        actionType: ActionLogType.DONE_REPAIR,
+        description: 'Đơn sửa chữa được nhân viên kỹ thuật hoàn thành sửa chữa',
+        url: `/permission/manage-repair-request?repairRequestCode=${updated.repairRequestCode}`,
+        userId: String(updated?.technicianId),
+      });
+      const notif = await this.notificationService.create({
+        userId: updated?.assignedStaffId?.toString(),
+        title: 'Nhân viên kỹ thuật đã hoàn thành sữa chữa',
+        message: `Kiểm tra lại đơn hàng ${updated.repairRequestCode}`,
+        type: NotificationType.ORDER,
+        targetUrl: `/permission/manage-repair-request?repairRequestCode=${updated.repairRequestCode}`,
+      });
+      this.notificationGateway.sendNotification(
+        updated?.assignedStaffId?.toString(),
+        notif,
       );
     }
 
@@ -178,6 +389,57 @@ export class RepairRequestService {
         dto.repairRequestId,
         RepairRequestStatus.COMPLETED,
       );
+      await this.staffLogRepo.create({
+        actionType: ActionLogType.DONE,
+        description: 'Đơn sửa chữa được nhân viên tư vấn hoàn thành đơn',
+        url: `/permission/manage-repair-request?repairRequestCode=${updated.repairRequestCode}`,
+        userId: String(updated?.assignedStaffId),
+      });
+    }
+    if (dto.field === 'pickupAppointmentDate') {
+      const repairRequest = await this.repairRequestRepo.findById(
+        dto.repairRequestId,
+      );
+      if (!repairRequest) {
+        throw new NotFoundException('Không tìm thấy yêu cầu sửa chữa');
+      }
+      await this.staffLogRepo.create({
+        actionType: ActionLogType.NOTI,
+        description: 'Đơn sửa chữa được nhân viên tư vấn thông báo khách nhận',
+        url: `/permission/manage-repair-request?repairRequestCode=${updated.repairRequestCode}`,
+        userId: String(updated?.assignedStaffId),
+      });
+      const email = (repairRequest.userId as any)?.email;
+      const fullName = (repairRequest.userId as any)?.fullName || 'Khách hàng';
+      if (email) {
+        const fromDate = dayjs().add(1, 'day');
+        const toDate = dayjs().add(7, 'day');
+        const transporter = nodemailer.createTransport({
+          service: 'gmail',
+          auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+          },
+        });
+
+        const mailOptions = {
+          from: `"Thông báo nhận hàng" <${process.env.EMAIL_USER}>`,
+          to: email, // lấy email từ user
+          subject: 'Thông báo lịch hẹn nhận hàng',
+          html: `
+          <h3>Xin chào ${fullName || ''}</h3>
+          <p>Đơn sửa chữa của bạn đã sẵn sàng để nhận.</p>
+           <p>Mã đơn hàng: ${repairRequest.repairRequestCode}</p>
+           <i>Bạn đến cửa hàng đọc mã đơn hàng cho nhân viên để được hổ trợ nhanh nhất</i>
+         <p><b>Ngày hẹn nhận:</b> 
+    ${fromDate.format('DD-MM-YYYY HH:mm')} 
+   
+  </p>
+          <p>Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi!</p>
+        `,
+        };
+        await transporter.sendMail(mailOptions);
+      }
     }
 
     return updated;
@@ -253,13 +515,77 @@ export class RepairRequestService {
           };
         });
 
+        const historyWarranty =
+          await this.warrantyHistoryService.getSummaryByRepairRequestId(
+            String(req._id),
+          );
+
         return {
           ...req,
           invoiceItems: itemsWithWarranty,
+          historyWarranty,
         };
       }),
     );
 
     return results;
+  }
+
+  async updateCustomerPaid(dto: UpdateCustomerPaidDto) {
+    const repairRequest = await this.repairRequestRepo.findById(
+      dto.repairRequestId,
+    );
+    if (!repairRequest) {
+      throw new NotFoundException('Repair request not found');
+    }
+
+    if (dto.amount <= 0) {
+      throw new BadRequestException('Số tiền phải lớn hơn 0');
+    }
+
+    const currentDept = repairRequest.customerDept || 0;
+
+    if (dto.amount > currentDept) {
+      throw new BadRequestException(
+        `Số tiền không được vượt quá số còn nợ: ${currentDept}`,
+      );
+    }
+
+    return this.repairRequestRepo.updateCustomerPaid(
+      dto.repairRequestId,
+      dto.amount,
+    );
+  }
+
+  async getTechnicianStats(technicianId: string) {
+    return await this.repairRequestRepo.getTechnicianStats(technicianId);
+  }
+
+  async getRequestsByUser(userId: string, filters: FilterRepairRequestDto) {
+    const user = await this.userService.findUserById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return this.repairRequestRepo.getRequestsByUser(
+      userId,
+      (user?.roleId as any)?.name,
+      filters,
+    );
+  }
+
+  async getHistoryWarranty(code: string) {
+    const repairRequest = await this.repairRequestRepo.findByCode(code);
+    if (!repairRequest) {
+      throw new BadRequestException('Không tìm yêu cầu sửa chữa');
+    }
+    const historyItem =
+      await this.repairInvoiceItemRepo.findFreeServicesByRequestId(
+        (repairRequest as any)._id,
+      );
+    return {
+      ...historyItem,
+      countWarranty: repairRequest.countWarranty,
+    };
   }
 }

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Product, ProductDocument } from './product.entity';
 import { Model, SortOrder, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
@@ -23,6 +27,10 @@ export class ProductRepository {
     return this.productModel.findOne({ name }).exec();
   }
 
+  async findProductByBarcode(barcode: string): Promise<Product | null> {
+    return this.productModel.findOne({ barcode }).exec();
+  }
+
   async findById(id: string): Promise<ProductDocument | null> {
     return this.productModel.findById(id).exec();
   }
@@ -40,23 +48,36 @@ export class ProductRepository {
     await this.productModel.findByIdAndDelete(id).exec();
   }
 
-  async findAll(): Promise<ProductDocument[]> {
-    return this.productModel.find().exec();
+  async getAll(): Promise<Product[]> {
+    return this.productModel.find({ status: true }).lean().exec();
+  }
+
+  async findAll(): Promise<Product[]> {
+    return this.productModel
+      .find()
+      .populate('categoryId', 'name')
+      .populate('brandId', 'name')
+      .lean()
+      .exec();
   }
 
   async search(query: BaseQueryDto) {
     const builder = builderQuery(query);
 
+    const finalFilter = builder.filter?.$or
+      ? { $and: [builder.filter, { status: true }] }
+      : { ...(builder.filter || {}), status: true };
+
     const [items, total] = await Promise.all([
       this.productModel
-        .find(builder.filter)
+        .find(finalFilter)
         .skip(builder.pagination.skip)
         .limit(builder.pagination.limit)
         .sort(builder.sort)
         .populate(builder.populate)
-        .lean(),
-
-      this.productModel.countDocuments(builder.filter),
+        .lean()
+        .exec(),
+      this.productModel.countDocuments(finalFilter),
     ]);
 
     return {
@@ -71,13 +92,24 @@ export class ProductRepository {
     brandId: string,
     sortBy: string = 'sellPrice',
     sortOrder: 'asc' | 'desc' = 'asc',
+    fromPrice?: number,
+    toPrice?: number,
   ) {
     const sort: Record<string, SortOrder> = {
       [sortBy]: sortOrder === 'asc' ? 1 : -1,
     };
 
+    const query: any = { brandId, status: true };
+
+    if (fromPrice !== undefined) {
+      query.sellPrice = { ...query.sellPrice, $gte: fromPrice };
+    }
+    if (toPrice !== undefined) {
+      query.sellPrice = { ...query.sellPrice, $lte: toPrice };
+    }
+
     return this.productModel
-      .find({ brandId })
+      .find(query)
       .sort(sort)
       .populate('brandId categoryId')
       .exec();
@@ -87,12 +119,24 @@ export class ProductRepository {
     categoryId: string,
     sortBy: string = 'sellPrice',
     sortOrder: 'asc' | 'desc' = 'asc',
+    fromPrice?: number,
+    toPrice?: number,
   ) {
     const sort: Record<string, SortOrder> = {
       [sortBy]: sortOrder === 'asc' ? 1 : -1,
     };
+
+    const query: any = { categoryId, status: true };
+
+    if (fromPrice !== undefined) {
+      query.sellPrice = { ...query.sellPrice, $gte: fromPrice };
+    }
+    if (toPrice !== undefined) {
+      query.sellPrice = { ...query.sellPrice, $lte: toPrice };
+    }
+
     return this.productModel
-      .find({ categoryId: categoryId })
+      .find(query)
       .sort(sort)
       .populate('brandId categoryId')
       .exec();
@@ -108,7 +152,7 @@ export class ProductRepository {
   }
 
   async findWithPagination(query: BaseQueryDto) {
-    const { page = '1', limit = '10', keyword } = query;
+    const { page = '1', limit = '50', keyword } = query;
 
     const filter: any = {};
 
@@ -122,7 +166,7 @@ export class ProductRepository {
     const [data, total] = await Promise.all([
       this.productModel
         .find(filter)
-        .select('_id name costPrice sellPrice stock barcode')
+        .select('_id name costPrice sellPrice stock barcode status')
         .skip((pageNumber - 1) * limitNumber)
         .limit(limitNumber)
         .sort({ createdAt: -1 }),
@@ -144,5 +188,111 @@ export class ProductRepository {
 
   async updateOne(id: string, data: Partial<Product>): Promise<void> {
     await this.productModel.updateOne({ _id: id }, { $set: data });
+  }
+
+  async decreaseStock(productId: string, quantity: number) {
+    if (!Types.ObjectId.isValid(productId)) {
+      throw new BadRequestException('ID sản phẩm không hợp lệ');
+    }
+
+    if (quantity <= 0) {
+      throw new BadRequestException('Số lượng phải lớn hơn 0');
+    }
+
+    const product = await this.productModel.findById(productId);
+    if (!product) {
+      throw new NotFoundException('Không tìm thấy sản phẩm');
+    }
+
+    if (product.stock < quantity) {
+      throw new BadRequestException('Tồn kho không đủ');
+    }
+
+    product.stock -= quantity;
+    await product.save();
+
+    return {
+      message: 'Cập nhật tồn kho thành công',
+      product,
+    };
+  }
+
+  async increaseStock(productId: string, quantity: number) {
+    if (!Types.ObjectId.isValid(productId)) {
+      throw new BadRequestException('ID sản phẩm không hợp lệ');
+    }
+
+    if (quantity <= 0) {
+      throw new BadRequestException('Số lượng phải lớn hơn 0');
+    }
+
+    const product = await this.productModel.findById(productId);
+    if (!product) {
+      throw new NotFoundException('Không tìm thấy sản phẩm');
+    }
+
+    product.stock += quantity;
+    await product.save();
+
+    return {
+      message: 'Cập nhật tồn kho thành công',
+      product,
+    };
+  }
+
+  async getRecommendedProducts(productId: string, limit: number = 10) {
+    // Lấy thông tin sản phẩm gốc
+    const product = await this.productModel.findById(productId).lean();
+    if (!product) return [];
+
+    const priceRange = {
+      $gte: product.sellPrice * 0.5, // giá >= 50% giá gốc
+      $lte: product.sellPrice * 1.5, // giá <= 150% giá gốc
+    };
+
+    const query: any = {
+      _id: { $ne: product._id }, // loại trừ sản phẩm gốc
+      categoryId: product.categoryId,
+      sellPrice: priceRange,
+    };
+
+    if (product.brandId) {
+      query.brandId = product.brandId;
+    }
+
+    let recommended = await this.productModel.find(query).limit(limit).lean();
+
+    // Nếu số lượng chưa đủ thì lấy thêm sản phẩm trong category
+    if (recommended.length < limit) {
+      const excludeIds = [product._id, ...recommended.map((p) => p._id)];
+
+      const fillProducts = await this.productModel
+        .find({
+          _id: { $nin: excludeIds },
+          categoryId: product.categoryId,
+        })
+        .limit(limit - recommended.length)
+        .lean();
+
+      recommended = [...recommended, ...fillProducts];
+    }
+
+    return recommended;
+  }
+
+  async toggleStatus(productId: string) {
+    const doc = await this.productModel.findById(productId).select('status');
+    if (!doc) throw new NotFoundException('Không tìm thấy sản phẩm');
+    doc.status = !doc.status;
+    await doc.save();
+    return { productId: String(doc._id), status: doc.status };
+  }
+
+  async findLowStock(threshold: number) {
+    return this.productModel
+      .find({ stock: { $lt: threshold } })
+      .select({ name: 1, stock: 1 })
+      .lean()
+      .exec();
   }
 }

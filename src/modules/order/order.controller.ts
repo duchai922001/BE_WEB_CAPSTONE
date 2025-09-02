@@ -22,20 +22,55 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UpdateOrderStatusDto } from './dtos/update-status.dto';
 import { PayDebtDto } from './dtos/pay-debt.dto';
 import { ReturnOrderDto } from './dtos/return-order.dto';
+import { AdminCreateOrderDto } from './dtos/admin-create-order.dto';
 
 @Controller('orders')
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
   @Get('search')
-  async searchByOrderCode(@Query('orderCode') orderCode: string) {
-    const data = await this.orderService.searchOrderByOrderCode(orderCode);
+  async searchByOrderCode(@Query('keyword') keyword: string) {
+    const data = await this.orderService.searchOrderByOrderCode(keyword);
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('user-stats')
+  async getUserStatistics(@Request() req) {
+    const userId = req.user.userId;
+    const data = await this.orderService.getUserOrderStatistics(userId);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('employee')
+  async getOrdersByEmployee(@Request() req) {
+    const userId = req.user.userId;
+    const data = await this.orderService.getOrdersByEmployee(userId);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
+
+  @Get('stats')
+  async getOrderStats() {
+    const data = await this.orderService.getOrderStats();
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
+
+  @Patch(':id/customer-cancel-order')
+  async customerCancelOrder(@Param('id') id: string) {
+    const data = await this.orderService.customerCancelOrder(id);
+    return createResponse(HttpStatus.CREATED, data, ResponseMessage.CREATE);
   }
 
   @Post('')
   async create(@Body() dto: CustomerCreateOrderDto) {
     const data = await this.orderService.createOrder(dto);
+    return createResponse(HttpStatus.CREATED, data, ResponseMessage.CREATE);
+  }
+
+  @Post('create-in-store')
+  async createInStore(@Body() dto: AdminCreateOrderDto) {
+    const data = await this.orderService.createOrderInStore(dto);
     return createResponse(HttpStatus.CREATED, data, ResponseMessage.CREATE);
   }
 
@@ -109,6 +144,12 @@ export class OrderController {
   @Post('return')
   async returnOrder(@Body() dto: ReturnOrderDto) {
     const data = await this.orderService.returnOrder(dto);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.UPDATE);
+  }
+
+  @Post('roll-back/:orderId')
+  async rollBack(@Param('orderId') orderId: string) {
+    const data = await this.orderService.rollBack(orderId);
     return createResponse(HttpStatus.OK, data, ResponseMessage.UPDATE);
   }
 }

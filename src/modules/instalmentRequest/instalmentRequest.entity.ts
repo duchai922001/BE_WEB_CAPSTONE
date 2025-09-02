@@ -9,17 +9,26 @@ export class InstalmentRequest {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   userId: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'InstalmentItem', required: true })
-  instalmentItemId: Types.ObjectId;
+  @Prop({ type: Types.ObjectId, ref: 'Product', required: true })
+  productId: Types.ObjectId;
+
+  @Prop({ type: Types.ObjectId, ref: 'Variable' })
+  variableId: Types.ObjectId;
 
   @Prop({ type: Types.ObjectId, ref: 'User' })
   assignedStaffId: Types.ObjectId;
 
+  @Prop({ type: String, required: true })
+  instalmentRequestOrder: string;
+
   @Prop({ type: Date, required: true })
   appointmentDate: Date;
 
-  @Prop({ type: Types.ObjectId, ref: 'InstalmentBank', required: true })
-  bankId: Types.ObjectId;
+  @Prop({ type: String, required: true })
+  bankName: string;
+
+  @Prop({ type: Number, required: true })
+  installmentPeriod: number;
 
   @Prop({ type: String })
   note?: string;
@@ -60,6 +69,9 @@ export class InstalmentRequest {
 
   @Prop({ type: String, required: true })
   address: string;
+
+  @Prop({ type: String })
+  resultImage: string;
 }
 
 export const InstalmentRequestSchema =

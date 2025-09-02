@@ -22,6 +22,9 @@ export class ProductImageService {
   async findDefaultByProductIds(productIds: string[]) {
     return this.productImageRepository.findDefaultByProductIds(productIds);
   }
+  async findOtherByProductIds(productIds: string[]) {
+    return this.productImageRepository.findOtherByProductIds(productIds);
+  }
 
   async findDefaultImageByProductId(productId: string) {
     return this.productImageRepository.findDefaultImageByProductId(productId);

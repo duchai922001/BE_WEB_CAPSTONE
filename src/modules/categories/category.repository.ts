@@ -23,20 +23,24 @@ export class CategoryRepository {
     return this.categoryModel.findOne({ name });
   }
 
+  async getAll() {
+    return this.categoryModel.find({ isDelete: false }).lean();
+  }
+
   async findAll(query: BaseQueryDto): Promise<Category[]> {
     const { filter, pagination, sort } = builderQuery(query);
-  
+
     const finalFilter = {
       ...filter,
       isDelete: false,
     };
-  
+
     const queryBuilder = this.categoryModel
       .find(finalFilter)
       .skip(pagination.skip)
       .limit(pagination.limit)
       .sort(sort as any);
-  
+
     return queryBuilder.exec();
   }
 
@@ -69,7 +73,7 @@ export class CategoryRepository {
   }
 
   async findManyByIds(ids: string[]): Promise<Category[]> {
-    const objectIds = ids.map(id => new Types.ObjectId(id));
+    const objectIds = ids.map((id) => new Types.ObjectId(id));
     return this.categoryModel.find({ _id: { $in: objectIds } }).exec();
   }
 }

@@ -20,6 +20,10 @@ export class RepairRequestServices {
 }
 
 export class CreateRepairRequestDto {
+  @IsString()
+  @IsOptional()
+  technicianId: string;
+
   @IsNotEmpty()
   @IsString()
   deviceName: string;

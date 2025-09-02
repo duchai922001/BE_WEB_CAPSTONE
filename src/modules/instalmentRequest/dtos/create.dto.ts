@@ -11,13 +11,26 @@ import { InstalmentRequestStatus } from 'src/common/enums/instalmentRequest';
 
 export class CreateInstalmentRequestDto {
   @IsMongoId()
-  instalmentItemId: string;
+  productId: string;
+
+  @IsMongoId()
+  @IsOptional()
+  variableId?: string;
 
   @IsDateString()
   appointmentDate: Date;
 
-  @IsMongoId()
-  bankId: string;
+  @IsString()
+  @IsNotEmpty()
+  bankName: string;
+
+  @IsNumber()
+  @IsNotEmpty()
+  installmentPeriod: number;
+
+  @IsString()
+  @IsOptional()
+  cartItemId?: string;
 
   @IsOptional()
   @IsString()
