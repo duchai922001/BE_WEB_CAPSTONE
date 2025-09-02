@@ -437,6 +437,7 @@ export class OrderService {
           userId: userId ?? newUser._id,
           totalAmount,
           customerPaid,
+          isConfirm: true,
           paymentMethod: PaymentMethod.PAY_IN_STORE,
           status:
             totalAmount > customerPaid

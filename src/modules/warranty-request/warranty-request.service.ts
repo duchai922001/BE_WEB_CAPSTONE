@@ -115,6 +115,7 @@ export class WarrantyRequestService {
   ) {
     const allow: Record<WarrantyRequestStatus, WarrantyRequestStatus[]> = {
       [WarrantyRequestStatus.RECEIVE]: [WarrantyRequestStatus.SENT_TO_BRAND],
+
       [WarrantyRequestStatus.SENT_TO_BRAND]: [
         WarrantyRequestStatus.AT_BRAND_CHECKING,
         WarrantyRequestStatus.AT_BRAND_REPAIRING,
@@ -134,11 +135,15 @@ export class WarrantyRequestService {
         WarrantyRequestStatus.AT_BRAND_REPAIRING,
         WarrantyRequestStatus.BRAND_DONE,
         WarrantyRequestStatus.BRAND_REJECTED,
+        WarrantyRequestStatus.CUSTOMER_REJECTED,
       ],
       [WarrantyRequestStatus.BRAND_DONE]: [
         WarrantyRequestStatus.RETURNED_TO_STORE,
       ],
       [WarrantyRequestStatus.BRAND_REJECTED]: [
+        WarrantyRequestStatus.RETURNED_TO_STORE,
+      ],
+      [WarrantyRequestStatus.CUSTOMER_REJECTED]: [
         WarrantyRequestStatus.RETURNED_TO_STORE,
       ],
       [WarrantyRequestStatus.RETURNED_TO_STORE]: [
@@ -222,6 +227,9 @@ export class WarrantyRequestService {
         break;
 
       case WarrantyRequestStatus.READY_FOR_PICKUP:
+        break;
+
+      case WarrantyRequestStatus.CUSTOMER_REJECTED:
         break;
 
       case WarrantyRequestStatus.DELIVERED:
