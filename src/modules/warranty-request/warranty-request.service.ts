@@ -11,6 +11,7 @@ import {
 } from './warranty-request.entity';
 import {
   CreateWarrantyRequestDto,
+  GetWarrantyRequestsDto,
   UpdateWarrantyRequestDto,
   UpdateWarrantyStatusDto,
 } from './warranty-request.dto';
@@ -239,5 +240,139 @@ export class WarrantyRequestService {
       .populate('customerId', 'fullName phone email')
       .populate('createdBy', 'fullName')
       .lean();
+  }
+
+  async findByCustomer(customerId: string, q: GetWarrantyRequestsDto) {
+    const {
+      status,
+      from,
+      to,
+      q: keyword,
+      page = 1,
+      limit = 20,
+      sort = 'desc',
+    } = q;
+
+    const match: any = {
+      $expr: { $eq: [{ $toString: '$customerId' }, String(customerId)] },
+    };
+
+    if (status) match.status = status;
+    if (from || to) {
+      match.createdAt = {};
+      if (from) match.createdAt.$gte = new Date(from);
+      if (to) match.createdAt.$lte = new Date(to);
+    }
+
+    const pipeline: any[] = [{ $match: match }];
+
+    if (keyword && keyword.trim()) {
+      const rx = new RegExp(keyword.trim(), 'i');
+      pipeline.push({
+        $match: {
+          $or: [
+            { brandTicketNo: rx },
+            { toBrandTrackingNo: rx },
+            { fromBrandTrackingNo: rx },
+            { externalCondition: rx },
+            { brandDiagnosis: rx },
+            { approvalNote: rx },
+          ],
+        },
+      });
+    }
+
+    pipeline.push(
+      {
+        $lookup: {
+          from: 'orderitems',
+          localField: 'orderItemId',
+          foreignField: '_id',
+          pipeline: [
+            {
+              $project: {
+                _id: 1,
+                orderId: 1,
+                productId: 1,
+                variableId: 1,
+                serialCodes: 1,
+                quantity: 1,
+              },
+            },
+          ],
+          as: 'orderItem',
+        },
+      },
+      { $unwind: { path: '$orderItem', preserveNullAndEmptyArrays: true } },
+      { $sort: { createdAt: sort === 'asc' ? 1 : -1 } },
+      {
+        $facet: {
+          data: [
+            { $skip: (page - 1) * limit },
+            { $limit: limit },
+            {
+              $project: {
+                _id: 1,
+                orderItemId: 1,
+                createdBy: 1,
+                customerId: 1,
+
+                receivedDate: 1,
+                externalCondition: 1,
+                photosAtStore: 1,
+
+                serviceCenterName: 1,
+                brandTicketNo: 1,
+
+                toBrandCarrier: 1,
+                toBrandTrackingNo: 1,
+                toBrandShippedAt: 1,
+                toBrandReceivedAt: 1,
+
+                fromBrandCarrier: 1,
+                fromBrandTrackingNo: 1,
+                fromBrandShippedAt: 1,
+                fromBrandReceivedAt: 1,
+
+                brandDiagnosis: 1,
+                brandDecision: 1,
+                estimatedCost: 1,
+                actualCost: 1,
+
+                customerApproved: 1,
+                customerApprovedAt: 1,
+                approvalNote: 1,
+
+                returnedDate: 1,
+                deliveredAt: 1,
+                expectedDate: 1,
+
+                attachments: 1,
+                status: 1,
+                createdAt: 1,
+                updatedAt: 1,
+
+                orderItem: 1,
+              },
+            },
+          ],
+          total: [{ $count: 'count' }],
+        },
+      },
+      {
+        $project: {
+          data: 1,
+          total: { $ifNull: [{ $arrayElemAt: ['$total.count', 0] }, 0] },
+          page: { $literal: page },
+          limit: { $literal: limit },
+        },
+      },
+    );
+
+    const [res] = await this.warrantyRequestModel.aggregate(pipeline);
+    if (!res || res.total === 0) {
+      throw new NotFoundException('Không có phiếu bảo hành cho khách hàng này');
+    }
+    return res;
   }
 }

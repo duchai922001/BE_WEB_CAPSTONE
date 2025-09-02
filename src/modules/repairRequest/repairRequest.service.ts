@@ -161,7 +161,7 @@ export class RepairRequestService {
           ...payloadOther,
           customerName,
           customerPhone,
-          userId: userId ?? newUser._id,
+          userId: userId ?? String(newUser._id),
           repairRequestCode,
           assignedStaffId: staffId,
           technicianId,

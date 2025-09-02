@@ -9,10 +9,12 @@ import {
   HttpStatus,
   UseGuards,
   Request,
+  Query,
 } from '@nestjs/common';
 import { RepairWarrantyHistoryService } from './repair-warranty-history.service';
 import {
   CreateRepairWarrantyHistoryDto,
+  GetWarrantyHistoryQueryDto,
   UpdatePhotosDto,
   UpdateRepairWarrantyHistoryDto,
   UpdateStatusDto,
@@ -36,6 +38,13 @@ export class RepairWarrantyHistoryController {
   async findByRequest(@Param('repairRequestId') repairRequestId: string) {
     const data =
       await this.service.getSummaryByRepairRequestId(repairRequestId);
+    return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('history-warranty-repair')
+  async findByUser(@Query() q: GetWarrantyHistoryQueryDto, @Request() req) {
+    const data = await this.service.findByUser(req.user.userId, q);
     return createResponse(HttpStatus.OK, data, ResponseMessage.GET);
   }
 

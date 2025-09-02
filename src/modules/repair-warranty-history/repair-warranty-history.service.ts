@@ -11,6 +11,7 @@ import {
 } from './repair-warranty-history.entity';
 import {
   CreateRepairWarrantyHistoryDto,
+  GetWarrantyHistoryQueryDto,
   QueryRepairWarrantyHistoryDto,
   UpdatePhotosDto,
   UpdateRepairWarrantyHistoryDto,
@@ -245,5 +246,121 @@ export class RepairWarrantyHistoryService {
       .populate('repairInvoiceItemId')
       .lean()
       .exec();
+  }
+
+  async findByUser(userId: string, q: GetWarrantyHistoryQueryDto) {
+    const { status, from, to, page = 1, limit = 20 } = q;
+
+    const matchHistory: any = {};
+    if (status) matchHistory.status = status;
+    if (from || to) {
+      matchHistory.createdAt = {};
+      if (from) matchHistory.createdAt.$gte = new Date(from);
+      if (to) matchHistory.createdAt.$lte = new Date(to);
+    }
+
+    const pipeline: any[] = [
+      { $match: matchHistory },
+
+      {
+        $lookup: {
+          from: 'repairrequests',
+          let: { rrid: '$repairRequestId' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: [{ $toString: '$_id' }, { $toString: '$$rrid' }] },
+                    { $eq: [{ $toString: '$userId' }, String(userId)] },
+                  ],
+                },
+              },
+            },
+            {
+              $project: {
+                _id: 1,
+                repairRequestCode: 1,
+                deviceName: 1,
+                deviceSerial: 1,
+                status: 1,
+              },
+            },
+          ],
+          as: 'repairRequest',
+        },
+      },
+      { $unwind: '$repairRequest' },
+
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'assignedStaffId',
+          foreignField: '_id',
+          pipeline: [{ $project: { fullName: 1, phone: 1, avatar: 1 } }],
+          as: 'assignedStaff',
+        },
+      },
+      { $unwind: { path: '$assignedStaff', preserveNullAndEmptyArrays: true } },
+
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'technicianId',
+          foreignField: '_id',
+          pipeline: [{ $project: { fullName: 1, phone: 1, avatar: 1 } }],
+          as: 'technician',
+        },
+      },
+      { $unwind: { path: '$technician', preserveNullAndEmptyArrays: true } },
+
+      { $sort: { createdAt: -1 } },
+
+      {
+        $facet: {
+          data: [
+            { $skip: (page - 1) * limit },
+            { $limit: limit },
+            {
+              $project: {
+                _id: 1,
+                repairRequestId: 1,
+                repairInvoiceItemId: 1,
+                assignedStaffId: 1,
+                technicianId: 1,
+                status: 1,
+                countWarranty: 1,
+                reason: 1,
+                diagnosis: 1,
+                photosBefore: 1,
+                photosAfter: 1,
+                createdAt: 1,
+                updatedAt: 1,
+                repairRequest: 1,
+                assignedStaff: 1,
+                technician: 1,
+              },
+            },
+          ],
+          total: [{ $count: 'count' }],
+        },
+      },
+      {
+        $project: {
+          data: 1,
+          total: { $ifNull: [{ $arrayElemAt: ['$total.count', 0] }, 0] },
+          page: { $literal: page },
+          limit: { $literal: limit },
+        },
+      },
+    ];
+
+    const [res] = await this.model.aggregate(pipeline);
+    if (!res || res.total === 0) {
+      throw new NotFoundException(
+        'Không có lịch sử bảo hành cho người dùng này',
+      );
+    }
+    return res;
   }
 }

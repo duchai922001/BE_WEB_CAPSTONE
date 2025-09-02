@@ -95,3 +95,29 @@ export class QueryRepairWarrantyHistoryDto {
   @Min(1)
   limit?: number = 20;
 }
+
+export class GetWarrantyHistoryQueryDto {
+  @IsOptional()
+  @IsEnum(RepairWarrantyHistoryStatus)
+  status?: RepairWarrantyHistoryStatus;
+
+  @IsOptional()
+  @IsDateString()
+  from?: string;
+
+  @IsOptional()
+  @IsDateString()
+  to?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page = 1;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  limit = 20;
+}

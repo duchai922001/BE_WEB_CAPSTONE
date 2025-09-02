@@ -71,11 +71,8 @@ export class Order extends Document {
   @Prop({ type: Date, required: false })
   depositDeadline?: Date;
 
-  @Prop({
-    enum: ShippingProvider,
-    default: ShippingProvider.GHN,
-  })
-  shippingProvider?: ShippingProvider;
+  @Prop({ type: String, required: false })
+  shippingProvider?: string;
 
   @Prop({ type: String, required: false })
   trackingCode?: string;

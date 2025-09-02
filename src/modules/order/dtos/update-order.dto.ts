@@ -2,14 +2,11 @@ import { Type } from 'class-transformer';
 import {
   IsBoolean,
   IsEnum,
-  IsMongoId,
-  IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
 } from 'class-validator';
 import { OrderNormalStatus } from 'src/common/enums/orderStatus';
-import { ShippingProvider } from 'src/common/enums/shipping-provider';
 
 export class UpdateOrderDto {
   @IsOptional()
@@ -59,8 +56,8 @@ export class UpdateOrderDto {
   reason?: string;
 
   @IsOptional()
-  @IsEnum(ShippingProvider)
-  shippingProvider?: ShippingProvider;
+  @IsString()
+  shippingProvider?: string;
 
   @IsOptional()
   @IsString()

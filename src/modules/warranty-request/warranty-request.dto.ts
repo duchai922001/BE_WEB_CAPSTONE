@@ -8,9 +8,12 @@ import {
   ArrayNotEmpty,
   IsNumber,
   IsBoolean,
+  IsInt,
+  Min,
 } from 'class-validator';
 import { WarrantyRequestStatus } from 'src/common/enums/warranty-request';
 import { PartialType } from '@nestjs/mapped-types';
+import { Type } from 'class-transformer';
 
 export class CreateWarrantyRequestDto {
   @IsNotEmpty()
@@ -69,4 +72,38 @@ export class UpdateWarrantyStatusDto {
 
   @IsOptional() @IsDateString() returnedDate?: string;
   @IsOptional() @IsDateString() deliveredAt?: string;
+}
+
+export class GetWarrantyRequestsDto {
+  @IsOptional()
+  @IsEnum(WarrantyRequestStatus)
+  status?: WarrantyRequestStatus;
+
+  @IsOptional()
+  @IsDateString()
+  from?: string;
+
+  @IsOptional()
+  @IsDateString()
+  to?: string;
+
+  @IsOptional()
+  @IsString()
+  q?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page = 1;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  limit = 20;
+
+  @IsOptional()
+  @IsString()
+  sort?: 'desc' | 'asc';
 }
