@@ -24,6 +24,9 @@ import {
 } from '../repairRequest/repairRequest.entity';
 import * as nodemailer from 'nodemailer';
 import * as dayjs from 'dayjs';
+import { NotificationService } from '../notification/notification.service';
+import { NotificationGateway } from '../notification/notification.gateway';
+import { NotificationType } from 'src/common/enums/notification-type';
 @Injectable()
 export class RepairWarrantyHistoryService {
   constructor(
@@ -33,6 +36,8 @@ export class RepairWarrantyHistoryService {
     private readonly requestModel: Model<RepairRequestDocument>,
     @InjectConnection()
     private readonly connection: Connection,
+    private readonly notificationService: NotificationService,
+    private readonly notificationGateway: NotificationGateway,
   ) {}
 
   async create(staffId: string, dto: CreateRepairWarrantyHistoryDto) {
@@ -61,6 +66,17 @@ export class RepairWarrantyHistoryService {
       };
 
       const [doc] = await this.model.create([payload], { session });
+      const notif = await this.notificationService.create({
+        userId: String(dto.technicianId),
+        title: 'Đơn bảo hành vừa được nhân viên tư vấn giao cho bạn',
+        message: `Đơn bảo hành vừa được nhân viên tư vấn giao cho bạn`,
+        type: NotificationType.ORDER,
+        targetUrl: `/permission/manage-warranty-history`,
+      });
+      this.notificationGateway.sendNotification(
+        String(dto.technicianId),
+        notif,
+      );
 
       await session.commitTransaction();
       return doc;

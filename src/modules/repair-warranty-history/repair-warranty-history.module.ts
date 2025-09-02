@@ -10,6 +10,7 @@ import {
   RepairRequest,
   RepairRequestSchema,
 } from '../repairRequest/repairRequest.entity';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import {
       { name: RepairWarrantyHistory.name, schema: RepairWarrantyHistorySchema },
       { name: RepairRequest.name, schema: RepairRequestSchema },
     ]),
+    NotificationModule,
   ],
 
   controllers: [RepairWarrantyHistoryController],
