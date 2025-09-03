@@ -53,6 +53,9 @@ export class Order extends Document {
   @Prop({ default: false })
   isConfirm: boolean;
 
+  @Prop({ default: false })
+  isPacking: boolean;
+
   @Prop()
   reason: string;
 

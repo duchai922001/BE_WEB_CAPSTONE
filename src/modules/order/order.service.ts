@@ -698,6 +698,9 @@ export class OrderService {
     if (!findOrder) {
       throw new NotFoundException('Không tìm thấy đơn hàng');
     }
+    if (dto.status === OrderNormalStatus.PACKING) {
+      updatePayload.isPacking = true;
+    }
     if (dto.status === OrderNormalStatus.CONFIRMED && userId) {
       if (!dto.products?.length) {
         throw new BadRequestException(
