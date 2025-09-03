@@ -39,7 +39,7 @@ export class InvoiceController {
 
     const pdfBuffer = await this.invoiceService.generatePdf(
       order,
-      'Nguyễn Tiến Đạt',
+      'Trần Khai Minh Pháp',
       promos,
       defaultPromo,
     );
@@ -63,7 +63,7 @@ export class InvoiceController {
     const pdfBuffer = await this.invoiceService.generateRepairInvoice(
       repairRequest,
       repairInvoiceItems,
-      'Nguyễn Văn A', // tên thu ngân
+      'Trần Khai Minh Pháp', // tên thu ngân
     );
 
     res.set({
