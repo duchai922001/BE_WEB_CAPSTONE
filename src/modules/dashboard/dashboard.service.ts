@@ -33,17 +33,25 @@ export class DashboardService {
     const ordersMatch = { [ordersDateField]: { $gte: from, $lte: to } };
     const repairsMatch = { [repairsDateField]: { $gte: from, $lte: to } };
 
+    const toNum = (fieldPath: string) => ({
+      $ifNull: [{ $toDouble: fieldPath }, 0],
+    });
+
     const ordersAgg = this.orderModel.aggregate([
       { $match: ordersMatch },
       {
         $group: {
           _id: null,
-          totalRevenue: { $sum: { $ifNull: ['$totalAmount', 0] } },
-          totalProfit: { $sum: { $ifNull: ['$estimatedRevenue', 0] } },
-          totalDebt: { $sum: { $ifNull: ['$customerDept', 0] } },
+          totalRevenue: { $sum: toNum('$totalAmount') },
+          totalDebt: { $sum: toNum('$customerDept') },
           count: { $sum: 1 },
-          customerPaid: { $sum: { $ifNull: ['$customerPaid', 0] } },
-          lastAmount: { $sum: { $ifNull: ['$lastAmount', 0] } },
+          customerPaid: { $sum: toNum('$customerPaid') },
+          lastAmount: { $sum: toNum('$lastAmount') },
+        },
+      },
+      {
+        $addFields: {
+          totalProfit: { $multiply: ['$totalRevenue', 0.33] },
         },
       },
       { $project: { _id: 0 } },
@@ -54,18 +62,15 @@ export class DashboardService {
       {
         $group: {
           _id: null,
-          totalRevenue: { $sum: { $ifNull: ['$actualCost', 0] } },
-          totalProfit: {
-            $sum: {
-              $subtract: [
-                { $ifNull: ['$actualCost', 0] },
-                { $ifNull: ['$estimatedCost', 0] },
-              ],
-            },
-          },
-          totalDebt: { $sum: { $ifNull: ['$customerDept', 0] } },
+          totalRevenue: { $sum: toNum('$customerPaid') },
+          totalDebt: { $sum: toNum('$customerDept') },
           count: { $sum: 1 },
-          customerPaid: { $sum: { $ifNull: ['$customerPaid', 0] } },
+          customerPaid: { $sum: toNum('$customerPaid') },
+        },
+      },
+      {
+        $addFields: {
+          totalProfit: { $multiply: ['$totalRevenue', 0.33] },
         },
       },
       { $project: { _id: 0 } },
