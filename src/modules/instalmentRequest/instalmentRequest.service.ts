@@ -196,7 +196,7 @@ export class InstalmentRequestService {
 
     const mailOptions = {
       from: `"Yêu cầu trả góp" <${process.env.EMAIL_USER}>`,
-      to: 'Thongtqse173366@fpt.edu.vn', //chỉnh lại theo email ngân hàng
+      to: 'minhkhangg32@gmail.com', //chỉnh lại theo email ngân hàng
       subject: 'Yêu cầu trả góp mới',
       html: `
         <h3>Thông tin yêu cầu trả góp</h3>
