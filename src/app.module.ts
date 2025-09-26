@@ -48,6 +48,8 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { JobsModule } from './modules/jobs/jobs.module';
 import { RepairWarrantyHistoryModule } from './modules/repair-warranty-history/repair-warranty-history.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { CustomSlideModule } from './modules/custom-slide/custom-slide.module';
+import { CustomBannerModule } from './modules/custom-banner/custom-banner.module';
 
 @Module({
   imports: [
@@ -106,6 +108,8 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
     JobsModule,
     RepairWarrantyHistoryModule,
     DashboardModule,
+    CustomSlideModule,
+    CustomBannerModule,
   ],
   controllers: [AppController],
   providers: [AppService],
