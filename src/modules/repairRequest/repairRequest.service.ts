@@ -72,11 +72,12 @@ export class RepairRequestService {
           userId: userId,
           repairRequestCode,
         });
-        const consultants = await this.userService.getConsultants();
+        const consultantsAndAdmins =
+          await this.userService.getConsultantsAndAdmin();
 
-        for (const consultant of consultants) {
+        for (const stf of consultantsAndAdmins) {
           const notif = await this.notificationService.create({
-            userId: (consultant as any)._id.toString(),
+            userId: (stf as any)._id.toString(),
             title: 'Đơn sửa chữa vừa được tạo',
             message: `Đơn sửa chữa có mã đơn ${repairRequestCode} vừa được tạo`,
             type: NotificationType.ORDER,
@@ -84,7 +85,7 @@ export class RepairRequestService {
           });
 
           this.notificationGateway.sendNotification(
-            (consultant as any)._id.toString(),
+            (stf as any)._id.toString(),
             notif,
           );
         }
@@ -222,14 +223,15 @@ export class RepairRequestService {
     const result = await this.repairRequestRepo.updateStatus(id, status);
     if (!result) throw new NotFoundException(ResponseMessage.FILE_NOT_FOUND);
     if (status === RepairRequestStatus.FINISH_REPORT) {
-      const consultants = await this.userService.getConsultants();
+      const consultantsAndAdmins =
+        await this.userService.getConsultantsAndAdmin();
       await this.staffLogRepo.create({
         actionType: ActionLogType.REPORT,
         description: 'Đơn sửa chữa vừa được nhân viên báo cáo',
         url: `/permission/manage-repair-request?repairRequestCode=${result.repairRequestCode}`,
         userId: String(result?.technicianId),
       });
-      for (const consultant of consultants) {
+      for (const consultant of consultantsAndAdmins) {
         const notif = await this.notificationService.create({
           userId: (consultant as any)._id.toString(),
           title: 'Đơn sửa chữa vừa kiểm tra xong',
