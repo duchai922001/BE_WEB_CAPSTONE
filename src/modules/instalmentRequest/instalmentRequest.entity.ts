@@ -41,9 +41,6 @@ export class InstalmentRequest {
   status: InstalmentRequestStatus;
 
   @Prop({ type: String, required: true })
-  documentType: string;
-
-  @Prop({ type: String, required: true })
   documentNumber: string;
 
   @Prop({ type: String, required: true })
@@ -51,6 +48,17 @@ export class InstalmentRequest {
 
   @Prop({ type: String, required: true })
   idBackUrl: string;
+
+  // ảnh giấy phép lái xe
+  @Prop({ type: String })
+  driverLicenseFrontUrl?: string;
+
+  @Prop({ type: String })
+  driverLicenseBackUrl?: string;
+
+  // ảnh bảo hiểm y tế
+  @Prop({ type: String })
+  healthInsuranceUrl?: string;
 
   @Prop({ type: String })
   insurance?: string;

@@ -38,10 +38,6 @@ export class CreateInstalmentRequestDto {
 
   @IsString()
   @IsNotEmpty()
-  documentType: 'cccd' | 'license';
-
-  @IsString()
-  @IsNotEmpty()
   documentNumber: string;
 
   @IsOptional()
@@ -74,6 +70,20 @@ export class CreateInstalmentRequestDto {
   @IsString()
   @IsNotEmpty()
   idBackUrl: string;
+
+  // ảnh giấy phép lái xe
+  @IsOptional()
+  @IsString()
+  driverLicenseFrontUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  driverLicenseBackUrl?: string;
+
+  // ảnh bảo hiểm y tế
+  @IsOptional()
+  @IsString()
+  healthInsuranceUrl?: string;
 
   @IsOptional()
   @IsEnum(InstalmentRequestStatus)

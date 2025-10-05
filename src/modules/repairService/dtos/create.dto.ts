@@ -1,5 +1,6 @@
 import {
   IsBoolean,
+  IsMongoId,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -12,6 +13,10 @@ export class CreateRepairServiceDto {
   @IsString()
   @IsNotEmpty()
   createBy: string;
+
+  @IsNotEmpty()
+  @IsMongoId()
+  categoryId: string;
 
   @IsString()
   @IsNotEmpty()

@@ -206,7 +206,7 @@ export class InstalmentRequestService {
          <p><b>Ngày hẹn:</b> ${dayjs(request.appointmentDate).format('DD-MM-YYYY HH:mm')}</p>
         <p><b>Thu nhập:</b> ${request.income}</p>
         <p><b>Nghề nghiệp:</b> ${request.occupation}</p>
-        <p><b>CMND/CCCD:</b> ${request.documentType} - ${request.documentNumber}</p>
+        <p><b>CMND/CCCD:</b> ${request.documentNumber}</p>
         <p><b>Ảnh mặt trước:</b><br/>
           <img src="${request.idFrontUrl}" alt="Ảnh mặt trước" style="max-width:300px;" />
         </p>

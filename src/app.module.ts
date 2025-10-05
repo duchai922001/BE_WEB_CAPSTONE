@@ -50,6 +50,7 @@ import { RepairWarrantyHistoryModule } from './modules/repair-warranty-history/r
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { CustomSlideModule } from './modules/custom-slide/custom-slide.module';
 import { CustomBannerModule } from './modules/custom-banner/custom-banner.module';
+import { RepairServiceCategoryModule } from './modules/repairServiceCategory/repairServiceCategory.module';
 
 @Module({
   imports: [
@@ -110,6 +111,7 @@ import { CustomBannerModule } from './modules/custom-banner/custom-banner.module
     DashboardModule,
     CustomSlideModule,
     CustomBannerModule,
+    RepairServiceCategoryModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -9,6 +9,9 @@ export class RepairService extends Document {
   @Prop({ type: Types.ObjectId, ref: 'RepairWarrantyPolicy', required: true })
   repairWarrantyPolicyId: Types.ObjectId;
 
+  @Prop({ type: Types.ObjectId, ref: 'RepairServiceCategory', required: true })
+  categoryId: Types.ObjectId;
+
   @Prop({ required: true, unique: true })
   name: string;
 
